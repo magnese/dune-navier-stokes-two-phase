@@ -1,0 +1,102 @@
+#define GRIDDIM ALBERTA_DIM
+#define WORLDDIM ALBERTA_DIM
+
+//#define ALUGRID_SIMPLEX
+#define ALBERTAGRID
+
+#define HAVE_UMFPACK 1
+
+#define PRESSURE_SPACE_TYPE 0 // 0 P0, 1 P1, 2 P1+P0
+
+#define REMESH_TYPE 1 // 0 none, 1 uniform, 2 fixed, 3 adaptive
+
+#define PROBLEM_NUMBER 2 // 0 StokesTest1, 1 StokesTest2, 2 StationaryBubble, 3 ExpandingBubble, 4 ShearFlow
+                         // 5 StationaryNavierStokes, 6 NavierStokes2D, 7 RisingBubble2D
+
+// C++ includes
+#include <string>
+#include <vector>
+#include <memory>
+#include <algorithm>
+
+// dune includes
+#include "config.h"
+#include <dune/common/timer.hh>
+#include <dune/fem/misc/mpimanager.hh>
+#include <dune/fem/io/parameter.hh>
+
+// local includes
+#include "coupledmeshmanager.hh"
+#include "fluidstate.hh"
+#include "femscheme.hh"
+#include "meshsmoothing.hh"
+#include "compute.hh"
+
+int main(int argc,char** argv)
+{
+  try
+  {
+    // start timer
+    Dune::Timer timer(false);
+    timer.start();
+
+    // init
+    Dune::Fem::MPIManager::initialize(argc,argv);
+    Dune::Fem::Parameter::append(argc,argv);
+    Dune::Fem::Parameter::append((argc<2)?("/home/ma/m/ma2413/dune-repo/dune-navier-stokes-two-phase/src/parameter"):(argv[1]));
+
+    // create coupled grids
+    typedef Dune::GridSelector::GridType BulkHostGridType;
+    constexpr auto worlddim(BulkHostGridType::dimensionworld);
+    constexpr auto bulkGriddim(BulkHostGridType::dimension);
+    typedef Dune::AlbertaGrid<bulkGriddim-1,worlddim> InterfaceHostGridType;
+    #if REMESH_TYPE == 0
+    typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,false> CoupledMeshManagerType;
+    #elif REMESH_TYPE == 1
+    typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,true, Dune::UniformCharlength> CoupledMeshManagerType;
+    #elif REMESH_TYPE == 2
+    typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,true, Dune::FixedCharlength> CoupledMeshManagerType;
+    #else
+    typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,true, Dune::AdaptiveCharlength> CoupledMeshManagerType;
+    #endif
+    #if PRESSURE_SPACE_TYPE == 0
+    constexpr bool checkEntityWithNoVerticesInDomain(false);
+    #else
+    constexpr bool checkEntityWithNoVerticesInDomain(true);
+    #endif
+    CoupledMeshManagerType meshManager(argc,argv,Dune::automatic,false,checkEntityWithNoVerticesInDomain);
+    meshManager.printInfo();
+
+    // create mesh smoothing
+    typedef Dune::Fem::MeshSmoothing<CoupledMeshManagerType> MeshSmoothingType;
+    MeshSmoothingType smoothing(meshManager);
+    smoothing.printInfo();
+
+    // create fluid state
+    typedef Dune::Fem::FluidState<CoupledMeshManagerType> FluidStateType;
+    FluidStateType fluidState(meshManager);
+
+    // compute solution
+    typedef Dune::Fem::FemScheme<CoupledMeshManagerType> FemSchemeType;
+    FemSchemeType femScheme(meshManager);
+    femScheme.problem().printInfo();
+    std::vector<double> errors;
+    Dune::Fem::compute<FluidStateType,FemSchemeType,MeshSmoothingType>(fluidState,femScheme,smoothing,errors);
+
+    // output total running time
+    timer.stop();
+    std::cout<<std::endl<<"Total running time: "<<timer.elapsed()<<" seconds."<<std::endl;
+
+    return 0;
+  }
+
+  catch(Dune::Exception &e)
+  {
+    std::cerr<<"Dune reported error: "<<e<<std::endl;
+  }
+
+  catch(...)
+  {
+    std::cerr<<"Unknown exception thrown!"<<std::endl;
+  }
+}

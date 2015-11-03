@@ -1,0 +1,6 @@
+#ifndef DUNE_NAVIER_STOKES_TWO_PHASE_HH
+#define DUNE_NAVIER_STOKES_TWO_PHASE_HH
+
+// add your classes here
+
+#endif // DUNE_NAVIER_STOKES_TWO_PHASE_HH
