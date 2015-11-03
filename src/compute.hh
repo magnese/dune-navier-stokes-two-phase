@@ -137,6 +137,9 @@ void compute(FluidStateType& fluidState,FemSchemeType& femScheme,MeshSmoothingTy
     // interpolate velocity onto the new grid (if necessary)
     if(!(femScheme.problem().isDensityNull()))
     {
+      // rebuild all quantities if the mesh is changed
+      fluidState.update();
+      // interpolate velocity onto the new grid
       const auto velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
       const auto& velocitySpace(fluidState.velocitySpace());
       for(const auto entity:velocitySpace)
