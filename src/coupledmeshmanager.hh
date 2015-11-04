@@ -400,12 +400,12 @@ class CoupledMeshManager
   {
     s<<std::endl;
     s<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :"<<std::endl;
-    s<<"BoundaryIDs = "<<boundaryids_<<std::endl;;
-    s<<"ElementIDs = "<<elementsids_<<std::endl;
-    s<<"BulkGrid = "<<bulkgrid_<<std::endl;
-    s<<"BulkIndicatorFunction = "<<bulkindicator_<<std::endl;
-    s<<"InterfaceGrid = "<<interfacegrid_<<std::endl;
-    s<<"BulkInterfaceGridMapper = "<<mapper_<<std::endl;
+    s<<"BoundaryIDs = "<<boundaryids_.use_count()<<std::endl;;
+    s<<"ElementIDs = "<<elementsids_.use_count()<<std::endl;
+    s<<"BulkGrid = "<<bulkgrid_.use_count()<<std::endl;
+    s<<"BulkIndicatorFunction = "<<bulkindicator_.use_count()<<std::endl;
+    s<<"InterfaceGrid = "<<interfacegrid_.use_count()<<std::endl;
+    s<<"BulkInterfaceGridMapper = "<<mapper_.use_count()<<std::endl;
     s<<std::endl;
   }
 
