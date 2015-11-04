@@ -400,6 +400,40 @@ class FluidState
     std::copy(solutionIt,interfaceSolution().dend(),displacement().dbegin());
   }
 
+  // check pointers status
+  void checkPointersStatus(const std::string& str="FluidState",std::ostream& s=std::cout) const
+  {
+    s<<std::endl;
+    s<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :"<<std::endl;
+    s<<"BulkGridPart = "<<bulkgridpart_.use_count()<<std::endl;
+    s<<"InterfaceGridPart = "<<interfacegridpart_.use_count()<<std::endl;
+    s<<"VelocityDiscreteSpace = "<<velocityspace_.use_count()<<std::endl;
+    s<<"PressureDiscreteSpace = "<<pressurespace_.use_count()<<std::endl;
+    #if PRESSURE_SPACE_TYPE == 2
+    s<<"PressureAdditionalDiscreteSpace = "<<pressureadditionalspace_.use_count()<<std::endl;
+    s<<"PressureDumpDiscreteSpace = "<<pressuredumpspace_.use_count()<<std::endl;
+    #endif
+    s<<"BulkDiscreteSpace = "<<bulkspace_.use_count()<<std::endl;
+    s<<"CurvatureDiscreteSpace = "<<curvaturespace_.use_count()<<std::endl;
+    s<<"DisplacementDiscreteSpace = "<<displacementspace_.use_count()<<std::endl;
+    s<<"InterfaceDiscreteSpace = "<<interfacespace_.use_count()<<std::endl;
+    s<<"VelocityDiscreteFunction = "<<velocity_.use_count()<<std::endl;
+    s<<"PressureDiscreteFunction = "<<pressure_.use_count()<<std::endl;
+    #if PRESSURE_SPACE_TYPE == 2
+    s<<"PressureAdditionalDiscreteFunction = "<<pressureadditional_.use_count()<<std::endl;
+    s<<"PressureDumpDiscreteFunction = "<<pressuredump_.use_count()<<std::endl;
+    #endif
+    s<<"BulkDiscreteFunction = "<<bulk_.use_count()<<std::endl;
+    s<<"CurvatureDiscreteFunction = "<<curvature_.use_count()<<std::endl;
+    s<<"DisplacementDiscreteFunction = "<<displacement_.use_count()<<std::endl;
+    s<<"InterfaceDiscreteFunction = "<<interface_.use_count()<<std::endl;
+    s<<"BulkTuple = "<<bulktuple_.use_count()<<std::endl;
+    s<<"InterfaceTuple = "<<interfacetuple_.use_count()<<std::endl;
+    s<<"BulkDataOutput = "<<bulkoutput_.use_count()<<std::endl;
+    s<<"InterfaceDataOutput = "<<interfaceoutput_.use_count()<<std::endl;
+    s<<std::endl;
+  }
+
   private:
   CoupledMeshManagerType& meshmanager_;
   std::shared_ptr<BulkGridPartType> bulkgridpart_;

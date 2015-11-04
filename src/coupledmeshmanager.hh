@@ -395,6 +395,20 @@ class CoupledMeshManager
     return false;
   }
 
+  // check pointers status
+  void checkPointersStatus(const std::string& str="CoupledMeshManager",std::ostream& s=std::cout) const
+  {
+    s<<std::endl;
+    s<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :"<<std::endl;
+    s<<"BoundaryIDs = "<<boundaryids_<<std::endl;;
+    s<<"ElementIDs = "<<elementsids_<<std::endl;
+    s<<"BulkGrid = "<<bulkgrid_<<std::endl;
+    s<<"BulkIndicatorFunction = "<<bulkindicator_<<std::endl;
+    s<<"InterfaceGrid = "<<interfacegrid_<<std::endl;
+    s<<"BulkInterfaceGridMapper = "<<mapper_<<std::endl;
+    s<<std::endl;
+  }
+
   private:
   std::shared_ptr<std::vector<int>> boundaryids_;
   std::shared_ptr<std::vector<int>> elementsids_;
