@@ -10,8 +10,8 @@ namespace Dune
 namespace Fem
 {
 
-template<class VelocityOperatorImp,class CurvatureVelocityOperatorImp,class InterfaceOperatorImp,class InterfaceInverseOperatorImp,
-         class VelocityCurvatureOperatorImp>
+template<typename VelocityOperatorImp,typename CurvatureVelocityOperatorImp,typename InterfaceOperatorImp,
+         typename InterfaceInverseOperatorImp,typename VelocityCurvatureOperatorImp>
 class CoupledOperatorWrapper:public Operator<typename VelocityOperatorImp::DomainFunctionType,
                                              typename VelocityOperatorImp::DomainFunctionType>
 {

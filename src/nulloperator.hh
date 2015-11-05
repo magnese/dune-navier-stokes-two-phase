@@ -14,7 +14,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class LinearOperatorImp,typename... Args>
+template<typename LinearOperatorImp,typename... Args>
 class NullOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,typename LinearOperatorImp::RangeFunctionType>
 {
   public:

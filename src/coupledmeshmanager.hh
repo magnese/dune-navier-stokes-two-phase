@@ -28,7 +28,7 @@ namespace Fem
 {
 
 // mapper between bulk grid and interface grid
-template<class BulkGridImp,class InterfaceGridImp>
+template<typename BulkGridImp,typename InterfaceGridImp>
 class BulkInterfaceGridMapper
 {
   public:
@@ -103,7 +103,7 @@ class BulkInterfaceGridMapper
     entityinterface2bulk_.clear();
   }
 
-  template<class InterfaceFunction,class BulkFunction>
+  template<typename InterfaceFunction,typename BulkFunction>
   void addInterfaceDF2BulkDF(const InterfaceFunction& interfaceFunction,BulkFunction& bulkFunction) const
   {
     const auto interfaceLocalBlockSize(InterfaceFunction::DiscreteFunctionSpaceType::localBlockSize);
@@ -137,7 +137,7 @@ class RemeshingVolumeCriteria
     s<<"coeff_remesh = "<<coeff_<<(coeff_<1.0?" (WARNING: remesh disabled!)":"")<<std::endl;
   }
 
-  template<class GridType>
+  template<typename GridType>
   inline bool remshingIsNeeded(const GridType& grid) const
   {
     bool needed(false);
@@ -172,8 +172,8 @@ class RemeshingVolumeCriteria
 };
 
 // coupled mesh manager
-template<class BulkHostGridImp,class InterfaceHostGridImp,bool useCompoundManager,class CharlengthPolicyImp=UniformCharlength,
-         class RemeshingCriteriaImp=RemeshingVolumeCriteria>
+template<typename BulkHostGridImp,typename InterfaceHostGridImp,bool useCompoundManager,typename CharlengthPolicyImp=UniformCharlength,
+         typename RemeshingCriteriaImp=RemeshingVolumeCriteria>
 class CoupledMeshManager
 {
   public:
@@ -481,7 +481,7 @@ class CoupledMeshManager
     boundaryIDs()=tempIDs;
   }
 
-  template<class GT>
+  template<typename GT>
   inline void printGridInfo(const GT& grid) const
   {
     std::cout<<std::endl<<"Created grid (dimgrid = "<<GT::dimension<<") with "<<grid.size(0)<<" elements and "

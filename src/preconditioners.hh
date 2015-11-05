@@ -13,7 +13,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class Oper11T,class Oper12T,class Oper22T>
+template<typename Oper11T,typename Oper12T,typename Oper22T>
 class StokesPrecond:public Dune::Preconditioner<
   typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
                                                                       typename Oper12T::DomainSpaceType>>::DofStorageType,
@@ -106,7 +106,7 @@ class StokesPrecond:public Dune::Preconditioner<
 };
 
 
-template<class Oper11T,class Oper12T,class Oper22T,class Oper13T,class Oper33T>
+template<typename Oper11T,typename Oper12T,typename Oper22T,typename Oper13T,typename Oper33T>
 class ExtendedStokesPrecond:public Dune::Preconditioner<
   typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
                                                                       typename Oper12T::DomainSpaceType,
@@ -227,7 +227,7 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<
 };
 
 
-template<class Oper11T,class Oper12T,class Oper21T,class Oper22T>
+template<typename Oper11T,typename Oper12T,typename Oper21T,typename Oper22T>
 class IdPrecond:public Dune::Preconditioner<
   typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
                                                                       typename Oper12T::DomainSpaceType>>::DofStorageType,

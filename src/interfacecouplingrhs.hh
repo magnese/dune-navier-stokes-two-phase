@@ -14,7 +14,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class CurvatureDiscreteFunctionType,class VelocityDiscreteFunctionType,class BulkInterfaceGridMapperType>
+template<typename CurvatureDiscreteFunctionType,typename VelocityDiscreteFunctionType,typename BulkInterfaceGridMapperType>
 void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDiscreteFunctionType& velocitySolutiontm,
                              const BulkInterfaceGridMapperType& mapper)
 {

@@ -17,7 +17,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class LinearOperatorImp>
+template<typename LinearOperatorImp>
 class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,
                                                     typename LinearOperatorImp::RangeFunctionType>
 {
@@ -43,7 +43,7 @@ class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::
     op_.apply(u,w);
   }
 
-  template<class DT,class RT>
+  template<typename DT,typename RT>
   inline void operator()(const DT& u,RT& w) const
   {
     op_.apply(u,w);

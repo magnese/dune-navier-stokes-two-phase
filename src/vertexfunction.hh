@@ -22,7 +22,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class GridImp>
+template<typename GridImp>
 class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridImp::dimensionworld,VertexFunction<GridImp>>
 {
   public:
@@ -89,7 +89,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
     std::copy(vtx.begin(),vtx.end(),discreteFunction().dbegin());
     return *this;
   }
-  template<class DFT>
+  template<typename DFT>
   const ThisType& operator=(const DFT& vtx) const
   {
     std::copy(vtx.dbegin(),vtx.dend(),discreteFunction().dbegin());
@@ -106,7 +106,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
     }
     return *this;
   }
-  template<class DFT>
+  template<typename DFT>
   const ThisType& operator+=(const DFT& vtx) const
   {
     auto it(vtx.dbegin());
@@ -128,7 +128,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
     }
     return *this;
   }
-  template<class DFT>
+  template<typename DFT>
   const ThisType& operator-=(const DFT& vtx) const
   {
     auto it(vtx.dbegin());

@@ -7,7 +7,7 @@ namespace Dune
 {
 
 // indicator function of the inner part of the bulk grid
-template<class BulkGridImp>
+template<typename BulkGridImp>
 class IndicatorFunction
 {
   public:
@@ -22,7 +22,7 @@ class IndicatorFunction
   IndicatorFunction(const ThisType& )=delete;
 
   // check if an entity is inner or outer
-  template<class EntityType>
+  template<typename EntityType>
   inline bool isInner(const EntityType& entity) const
   {
     const auto idx(bulkgrid_.levelIndexSet(0).index(entity));
@@ -30,7 +30,7 @@ class IndicatorFunction
   }
 
   // return 1.0 if inner or 0.0 if outer
-  template<class EntityType>
+  template<typename EntityType>
   inline double operator()(const EntityType& entity) const
   {
     const auto idx(bulkgrid_.levelIndexSet(0).index(entity));

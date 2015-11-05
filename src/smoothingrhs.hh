@@ -9,7 +9,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class DiscreteFunctionImp>
+template<typename DiscreteFunctionImp>
 class SmoothingRHS
 {
   public:
@@ -41,7 +41,7 @@ class SmoothingRHS
     return sqrt(rhs_.scalarProductDofs(rhs_));
   }
 
-  template<class T,class M>
+  template<typename T,typename M>
   inline void assemble(const T& interfaceDisplacement,const M& bulkInterfaceGridMapper) const
   {
     rhs_.clear();

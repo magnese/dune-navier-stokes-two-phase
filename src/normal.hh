@@ -6,19 +6,19 @@
 namespace Dune
 {
 
-template<class ctype,int worlddim>
+template<typename ctype,int worlddim>
 class Normal
 {};
 
 // normal dim 2
-template<class ctype>
+template<typename ctype>
 class Normal<ctype,2>
 {
   public:
   typedef FieldVector<ctype,2> NormalVectorType;
 
   // compute the normal vector of a given entity
-  template<class EntityType>
+  template<typename EntityType>
   void operator()(const EntityType& entity,NormalVectorType& normalVector,const unsigned int& faceIdx)
   {
     normalVector[0]=(entity.geometry().corner(0)-entity.geometry().corner(1))[1];
@@ -30,14 +30,14 @@ class Normal<ctype,2>
 };
 
 // normal dim 3
-template<class ctype>
+template<typename ctype>
 class Normal<ctype,3>
 {
   public:
   typedef FieldVector<ctype,3> NormalVectorType;
 
   // compute the normal vector of a given entity
-  template<class EntityType>
+  template<typename EntityType>
   void operator()(const EntityType& entity,NormalVectorType& normalVector,const unsigned int& faceIdx)
   {
     NormalVectorType edge1(entity.geometry().corner(1)-entity.geometry().corner(0));

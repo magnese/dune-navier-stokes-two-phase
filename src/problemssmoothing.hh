@@ -8,7 +8,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class DiscreteSpaceImp,class CoupledMeshManagerImp>
+template<typename DiscreteSpaceImp,typename CoupledMeshManagerImp>
 class ParallelepipedGeometry
 {
   public:

@@ -15,7 +15,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class LinearOperatorImp>
+template<typename LinearOperatorImp>
 class BulkVelocityPressureOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,
                                                    typename LinearOperatorImp::RangeFunctionType>
 {

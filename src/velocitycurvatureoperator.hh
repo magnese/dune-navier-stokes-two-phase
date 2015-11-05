@@ -17,7 +17,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class LinearOperatorImp,class BulkInterfaceGridMapperImp>
+template<typename LinearOperatorImp,typename BulkInterfaceGridMapperImp>
 class VelocityCurvatureOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,
                                                 typename LinearOperatorImp::RangeFunctionType>
 {

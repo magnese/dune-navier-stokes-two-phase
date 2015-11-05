@@ -16,7 +16,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class LinearOperatorImp>
+template<typename LinearOperatorImp>
 class MassMatrix:public Operator<typename LinearOperatorImp::DomainFunctionType,typename LinearOperatorImp::RangeFunctionType>
 {
   public:

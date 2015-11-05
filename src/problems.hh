@@ -20,8 +20,8 @@ namespace Fem
 {
 
 // base problem
-template<class VelocityDiscreteSpaceImp,class PressureDiscreteSpaceImp,class CoupledMeshManagerImp,
-         template<class,class,class> class... VelocityBCImp>
+template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp,
+         template<typename,typename,typename> class... VelocityBCImp>
 class BaseProblem
 {
   public:
@@ -98,7 +98,7 @@ class BaseProblem
   {
     return std::get<1>(velocity_);
   }
-  template<class DF>
+  template<typename DF>
   inline void velocityIC(DF& df) const
   {
     if(istimedependent_)
@@ -120,7 +120,7 @@ class BaseProblem
   {
     return std::get<0>(velocity_);
   }
-  template<class DF>
+  template<typename DF>
   inline void velocitySolution(DF& df,const double& t) const
   {
     if(hasexactsolution_)
@@ -135,7 +135,7 @@ class BaseProblem
   {
     return std::get<1>(pressure_);
   }
-  template<class DF>
+  template<typename DF>
   inline void pressureIC(DF& df) const
   {
     if(istimedependent_)
@@ -149,7 +149,7 @@ class BaseProblem
   {
     return std::get<0>(pressure_);
   }
-  template<class DF>
+  template<typename DF>
   inline void pressureSolution(DF& df,const double& t) const
   {
     if(hasexactsolution_)
@@ -300,7 +300,7 @@ class BaseProblem
 };
 
 // Stokes test 1
-template<class VelocityDiscreteSpaceImp,class PressureDiscreteSpaceImp,class CoupledMeshManagerImp>
+template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
 class StokesTest1Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
 {
   public:
@@ -343,7 +343,7 @@ class StokesTest1Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
 };
 
 // Stokes test 2
-template<class VelocityDiscreteSpaceImp,class PressureDiscreteSpaceImp,class CoupledMeshManagerImp>
+template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
 class StokesTest2Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
 {
   public:
@@ -389,7 +389,7 @@ class StokesTest2Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
 };
 
 // stationary bubble
-template<class VelocityDiscreteSpaceImp,class PressureDiscreteSpaceImp,class CoupledMeshManagerImp>
+template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
 class StationaryBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
 {
   public:
@@ -440,7 +440,7 @@ class StationaryBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressu
 };
 
 // expanding bubble
-template<class VelocityDiscreteSpaceImp,class PressureDiscreteSpaceImp,class CoupledMeshManagerImp>
+template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
 class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
 {
   public:
@@ -505,7 +505,7 @@ class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressur
 };
 
 // shear flow
-template<class VelocityDiscreteSpaceImp,class PressureDiscreteSpaceImp,class CoupledMeshManagerImp>
+template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
 class ShearFlowProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
 {
   public:
@@ -541,7 +541,7 @@ class ShearFlowProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscr
 };
 
 // stationary Navier-Stokes
-template<class VelocityDiscreteSpaceImp,class PressureDiscreteSpaceImp,class CoupledMeshManagerImp>
+template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
 class StationaryNavierStokesProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,
                                                        DirichletCondition>
 {
@@ -598,7 +598,7 @@ class StationaryNavierStokesProblem:public BaseProblem<VelocityDiscreteSpaceImp,
 };
 
 // Navier-Stokes 2D
-template<class VelocityDiscreteSpaceImp,class PressureDiscreteSpaceImp,class CoupledMeshManagerImp>
+template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
 class NavierStokes2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
 {
   public:
@@ -645,7 +645,7 @@ class NavierStokes2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressure
 };
 
 // rising bubble 2D
-template<class VelocityDiscreteSpaceImp,class PressureDiscreteSpaceImp,class CoupledMeshManagerImp>
+template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
 class RisingBubble2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition,
                                                FreeSlipCondition>
 {

@@ -13,7 +13,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class Oper11T,class Oper12T,class Oper21T,class Oper22T>
+template<typename Oper11T,typename Oper12T,typename Oper21T,typename Oper22T>
 class OperatorWrapper:public Dune::LinearOperator<
   typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
                                                                       typename Oper12T::DomainSpaceType>>::DofStorageType,
@@ -124,7 +124,7 @@ class OperatorWrapper:public Dune::LinearOperator<
   const Oper22Type& oper22_;
 };
 
-template<class Oper11T,class Oper12T,class Oper21T,class Oper13T,class Oper31T>
+template<typename Oper11T,typename Oper12T,typename Oper21T,typename Oper13T,typename Oper31T>
 class ExtendedOperatorWrapper:public Dune::LinearOperator<
   typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
                                                                       typename Oper12T::DomainSpaceType,

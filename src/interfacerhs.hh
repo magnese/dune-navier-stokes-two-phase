@@ -10,7 +10,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class DiscreteFunctionImp>
+template<typename DiscreteFunctionImp>
 class InterfaceRHS
 {
   public:
@@ -42,7 +42,7 @@ class InterfaceRHS
     return sqrt(rhs_.scalarProductDofs(rhs_));
   }
 
-  template<class OperatorType>
+  template<typename OperatorType>
   void assemble(const OperatorType& op) const
   {
     rhs_.clear();

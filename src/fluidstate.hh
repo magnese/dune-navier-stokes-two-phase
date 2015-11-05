@@ -42,7 +42,7 @@ class OutputParameters:public DataOutputParameters
   {
     return startsavetime_;
   }
-  template<class DOT>
+  template<typename DOT>
   inline void saveState(const DOT& dataOutput) const
   {
     startcounter_=dataOutput.writeStep();
@@ -57,8 +57,8 @@ class OutputParameters:public DataOutputParameters
   mutable double startsavetime_;
 };
 
-template<class CoupledMeshManagerImp,class Traits=FemTraits<typename CoupledMeshManagerImp::BulkGridType,
-                                                            typename CoupledMeshManagerImp::InterfaceGridType>>
+template<typename CoupledMeshManagerImp,typename Traits=FemTraits<typename CoupledMeshManagerImp::BulkGridType,
+                                                                  typename CoupledMeshManagerImp::InterfaceGridType>>
 class FluidState
 {
   public:
@@ -152,13 +152,17 @@ class FluidState
     return *this;
   }
 
-  // obtain mesh manager
+  // get mesh manager
+  inline CoupledMeshManagerType& meshManager()
+  {
+    return meshmanager_;
+  }
   inline const CoupledMeshManagerType& meshManager() const
   {
     return meshmanager_;
   }
 
-  // obtain grid
+  // get grid
   inline BulkGridType& bulkGrid()
   {
     return meshmanager_.bulkGrid();
@@ -168,7 +172,7 @@ class FluidState
     return meshmanager_.interfaceGrid();
   }
 
-  // obtain grid parts
+  // get grid parts
   inline BulkGridPartType& bulkGridPart()
   {
     return *bulkgridpart_;
@@ -178,7 +182,7 @@ class FluidState
     return *interfacegridpart_;
   }
 
-  // obtain spaces
+  // get spaces
   inline const VelocityDiscreteSpaceType& velocitySpace() const
   {
     return *velocityspace_;
@@ -219,7 +223,7 @@ class FluidState
     return *interfacespace_;
   }
 
-  // obtain discrete functions
+  // get discrete functions
   inline VelocityDiscreteFunctionType& velocity()
   {
     return *velocity_;
@@ -297,8 +301,9 @@ class FluidState
   }
 
   // rebuild all quantities if the mesh is changed
-  void update()
+  bool update()
   {
+    bool meshIsChanged(false);
     // check if the mesh is changed
     if(sequence_!=meshmanager_.sequence())
     {
@@ -337,11 +342,13 @@ class FluidState
       printInfo();
       // update sequence number
       sequence_=meshmanager_.sequence();
+      meshIsChanged=true;
     }
+    return meshIsChanged;
   }
 
   // dump solutions on file
-  template<class TimeProviderType>
+  template<typename TimeProviderType>
   inline void dumpBulkSolutions(const TimeProviderType& timeProvider) const
   {
     #if PRESSURE_SPACE_TYPE == 2
@@ -357,7 +364,7 @@ class FluidState
     bulkoutput_->write(timeProvider);
     bulkoutputparameters_.saveState(*bulkoutput_);
   }
-  template<class TimeProviderType>
+  template<typename TimeProviderType>
   inline void dumpInterfaceSolutions(const TimeProviderType& timeProvider) const
   {
     interfaceoutput_->write(timeProvider);

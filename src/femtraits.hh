@@ -16,7 +16,7 @@ namespace Dune
 namespace Fem
 {
 
-template<class BulkGridImp,class InterfaceGridImp>
+template<typename BulkGridImp,typename InterfaceGridImp>
 struct FemTraits
 {
   // define grids

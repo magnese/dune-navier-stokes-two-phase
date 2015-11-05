@@ -51,7 +51,7 @@ class MeshSmoothing
     s<<"coeff_smooth = "<<coeff_<<(coeff_>0.0?"":" (WARNING: smooth disabled!)")<<std::endl;
   }
 
-  template<class InterfaceFunction>
+  template<typename InterfaceFunction>
   const DiscreteFunctionType& operator()(const InterfaceFunction& interfaceDisplacement)
   {
     update();
@@ -92,7 +92,7 @@ class MeshSmoothing
     }
   }
 
-  template<class InterfaceFunction>
+  template<typename InterfaceFunction>
   void smoothing(const InterfaceFunction& interfaceDisplacement)
   {
     // create timers

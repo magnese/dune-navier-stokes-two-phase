@@ -26,7 +26,7 @@ namespace Fem
 {
 
 // compute total mesh volume, min and max entity volume
-template<class GridType>
+template<typename GridType>
 std::array<double,3> meshVolumesInfo(const GridType& grid,const std::string& info="")
 {
   std::array<double,3> volumes({0.0,std::numeric_limits<double>::max(),std::numeric_limits<double>::min()});
@@ -49,7 +49,7 @@ std::array<double,3> meshVolumesInfo(const GridType& grid,const std::string& inf
 // dump interface volume
 static struct InterfaceVolumeInfo
 {
-  template<class GridType,class TimeProviderType>
+  template<typename GridType,typename TimeProviderType>
   void add(const GridType& grid,const TimeProviderType& timeProvider)
   {
     double volume(0.0);
@@ -73,7 +73,7 @@ static struct InterfaceVolumeInfo
 } interfaceVolumeInfo;
 
 // compute bulk inner, outer and total volume
-template<class GridType>
+template<typename GridType>
 std::array<double,3> bulkVolumesInfo(const GridType& grid,const std::vector<int>& elementsIDs)
 {
   std::array<double,3> volumes({0.0,0.0,0.0});
@@ -96,7 +96,7 @@ std::array<double,3> bulkVolumesInfo(const GridType& grid,const std::vector<int>
 // dump bulk inner volume
 static struct BulkInnerVolumeInfo
 {
-  template<class GridType,class TimeProviderType>
+  template<typename GridType,typename TimeProviderType>
   void add(const GridType& grid,const TimeProviderType& timeProvider,const std::vector<int>& elementsIDs)
   {
     Dune::IndicatorFunction<GridType> indicator(grid,elementsIDs);
@@ -126,7 +126,7 @@ static struct BulkInnerVolumeInfo
 } bulkInnerVolumeInfo;
 
 // check if bulk and interface are consistent
-template<class InterfaceGridType,class BulkGridType,class BulkInterfaceGridMapperType>
+template<typename InterfaceGridType,typename BulkGridType,typename BulkInterfaceGridMapperType>
 bool isBulkConsistentWithInterface(const InterfaceGridType& interfaceGrid,const BulkGridType& bulkGrid,
                                    const BulkInterfaceGridMapperType& mapper)
 {
@@ -161,7 +161,7 @@ bool isBulkConsistentWithInterface(const InterfaceGridType& interfaceGrid,const 
 }
 
 // check abs function range
-template<class DF>
+template<typename DF>
 std::array<typename DF::RangeFieldType,3> checkFunctionAbsRange(const DF& df)
 {
   typedef typename DF::RangeFieldType RangeFieldType;
@@ -181,7 +181,7 @@ std::array<typename DF::RangeFieldType,3> checkFunctionAbsRange(const DF& df)
 }
 
 // check function range
-template<class DF>
+template<typename DF>
 std::array<typename DF::RangeFieldType,3> checkFunctionRange(const DF& df)
 {
   typedef typename DF::RangeFieldType RangeFieldType;
@@ -203,7 +203,7 @@ std::array<typename DF::RangeFieldType,3> checkFunctionRange(const DF& df)
 // dump function range
 static struct FunctionRangeInfo
 {
-  template<class DF,class TimeProviderType>
+  template<typename DF,typename TimeProviderType>
   void add(const DF& df,const TimeProviderType& timeProvider)
   {
     std::array<double,2> values({std::numeric_limits<double>::max(),std::numeric_limits<double>::min()});
@@ -231,7 +231,7 @@ static struct FunctionRangeInfo
 // dump function max
 static struct FunctionMaxInfo
 {
-  template<class DF,class TimeProviderType>
+  template<typename DF,typename TimeProviderType>
   void add(const DF& df,const TimeProviderType& timeProvider)
   {
     double value(std::numeric_limits<double>::min());
@@ -254,7 +254,7 @@ static struct FunctionMaxInfo
 } functionMaxInfo;
 
 // dump Tex log
-template<class TimerType,class MeshManagerType>
+template<typename TimerType,typename MeshManagerType>
 void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const MeshManagerType& meshManager)
 {
   std::ofstream file(Parameter::getValue<std::string>("fem.prefix",".")+"/log.tex");
@@ -301,7 +301,7 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
 }
 
 // print discrete function boundary values with a certain ID
-template<class DF,class MeshManagerType>
+template<typename DF,typename MeshManagerType>
 void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& meshManager,const int& ID)
 {
   std::cout<<std::endl<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<ID<<std::endl;
