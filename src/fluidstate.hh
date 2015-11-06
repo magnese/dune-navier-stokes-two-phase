@@ -99,8 +99,10 @@ class FluidState
   typedef DataOutput<InterfaceGridType,InterfaceTupleType> InterfaceDataOutputType;
 
   // constructor
-  explicit FluidState(CoupledMeshManagerType& meshManager):
-    meshmanager_(meshManager),sequence_(0),bulkoutputparameters_("bulk-"),interfaceoutputparameters_("interface-")
+  explicit FluidState(int argc,char** argv,const GmshAlgorithmType& algorithm,const bool& verbosity,
+                      const bool& checkEntityWithNoVerticesInDomain):
+    meshmanager_(argc,argv,algorithm,verbosity,checkEntityWithNoVerticesInDomain),sequence_(0),bulkoutputparameters_("bulk-"),
+    interfaceoutputparameters_("interface-")
   {}
 
   // destructor
@@ -442,7 +444,7 @@ class FluidState
   }
 
   private:
-  CoupledMeshManagerType& meshmanager_;
+  CoupledMeshManagerType meshmanager_;
   std::shared_ptr<BulkGridPartType> bulkgridpart_;
   std::shared_ptr<InterfaceGridPartType> interfacegridpart_;
   std::shared_ptr<VelocityDiscreteSpaceType> velocityspace_;

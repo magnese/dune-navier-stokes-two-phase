@@ -22,26 +22,27 @@ namespace Dune
 namespace Fem
 {
 
-template<class CoupledMeshManagerImp>
+template<typename FluidStateImp>
 class MeshSmoothing
 {
   public:
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef MeshSmoothing<CoupledMeshManagerType> ThisType;
+  typedef FluidStateImp FluidStateType;
+  typedef MeshSmoothing<FluidStateType> ThisType;
 
   // define grid, function, space and grid part
-  typedef typename CoupledMeshManagerType::BulkGridType GridType;
+  typedef typename FluidStateType::BulkGridType GridType;
   typedef LeafGridPart<GridType> GridPartType;
   typedef FunctionSpace<double,double,GridType::dimensionworld,GridType::dimensionworld> ContinuosSpaceType;
   typedef LagrangeDiscreteFunctionSpace<ContinuosSpaceType,GridPartType,1> DiscreteSpaceType;
   typedef ISTLBlockVectorDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
 
   // define problem
+  typedef typename FluidStateType::CoupledMeshManagerType CoupledMeshManagerType;
   typedef ParallelepipedGeometry<DiscreteSpaceType,CoupledMeshManagerType> SmoothingProblemType;
 
   // constructor
-  explicit MeshSmoothing(CoupledMeshManagerType& meshManager):
-    meshmanager_(meshManager),problem_(meshmanager_),coeff_(Parameter::getValue<double>("CoeffSmoothing",1.0)),sequence_(0)
+  explicit MeshSmoothing(FluidStateType& fluidState):
+    fluidstate_(fluidState),problem_(fluidState.meshManager()),coeff_(Parameter::getValue<double>("CoeffSmoothing",1.0))
   {}
 
   MeshSmoothing(const ThisType& )=delete;
@@ -60,36 +61,34 @@ class MeshSmoothing
     else
     {
       displacement_->clear();
-      meshmanager_.mapper().addInterfaceDF2BulkDF(interfaceDisplacement,*displacement_);
+      fluidstate_.meshManager().mapper().addInterfaceDF2BulkDF(interfaceDisplacement,*displacement_);
     }
     return *displacement_;
   }
 
   private:
-  CoupledMeshManagerType& meshmanager_;
+  FluidStateType& fluidstate_;
   std::unique_ptr<GridPartType> gridpart_;
   std::unique_ptr<DiscreteSpaceType> space_;
   std::unique_ptr<DiscreteFunctionType> displacement_;
   SmoothingProblemType problem_;
   const double coeff_;
-  unsigned int sequence_;
 
-  void update()
+  bool update()
   {
     // check if the mesh is changed
-    if(sequence_!=meshmanager_.sequence())
+    bool meshIsChanged(fluidstate_.update());
+    // update space and displacement if the mesh is changed
+    if(meshIsChanged)
     {
       // reset pointers to avoid danglig references
       displacement_.reset();
       space_.reset();
-      gridpart_.reset();
-      // create grid part, space and displacement
-      gridpart_=std::unique_ptr<GridPartType>(new GridPartType(meshmanager_.bulkGrid()));
-      space_=std::unique_ptr<DiscreteSpaceType>(new DiscreteSpaceType(*gridpart_));
+      // create space and displacement
+      space_=std::unique_ptr<DiscreteSpaceType>(new DiscreteSpaceType(fluidstate_.bulkGridPart()));
       displacement_=std::unique_ptr<DiscreteFunctionType>(new DiscreteFunctionType("bulk displacement",*space_));
-      // update sequence number
-      sequence_=meshmanager_.sequence();
     }
+    return meshIsChanged;
   }
 
   template<typename InterfaceFunction>
@@ -110,7 +109,7 @@ class MeshSmoothing
     timerAssemble.start();
     typedef SmoothingRHS<DiscreteFunctionType> RHSType;
     RHSType RHS(*space_);
-    RHS.assemble(interfaceDisplacement,meshmanager_.mapper());
+    RHS.assemble(interfaceDisplacement,fluidstate_.meshManager().mapper());
     problem_.bc().applyToRHS(RHS.rhs());
     timerAssemble.stop();
     // impose zero displacement for the interface
@@ -119,7 +118,7 @@ class MeshSmoothing
     for(auto i=0;i!=numBlocks;++i)
       for(auto l=0;l!=localBlockSize;++l)
       {
-        const auto row((meshmanager_.mapper().vtxInterface2Bulk(i))*localBlockSize+l);
+        const auto row((fluidstate_.meshManager().mapper().vtxInterface2Bulk(i))*localBlockSize+l);
         op.systemMatrix().matrix().clearRow(row);
         op.systemMatrix().matrix().set(row,row,1.0);
       }

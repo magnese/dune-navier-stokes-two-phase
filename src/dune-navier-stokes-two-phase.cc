@@ -45,7 +45,7 @@ int main(int argc,char** argv)
     Dune::Fem::Parameter::append(argc,argv);
     Dune::Fem::Parameter::append((argc<2)?("/home/ma/m/ma2413/dune-repo/dune-navier-stokes-two-phase/src/parameter"):(argv[1]));
 
-    // create coupled grids
+    // create coupled grids and fluid state
     typedef Dune::GridSelector::GridType BulkHostGridType;
     constexpr auto worlddim(BulkHostGridType::dimensionworld);
     constexpr auto bulkGriddim(BulkHostGridType::dimension);
@@ -64,24 +64,21 @@ int main(int argc,char** argv)
     #else
     constexpr bool checkEntityWithNoVerticesInDomain(true);
     #endif
-    CoupledMeshManagerType meshManager(argc,argv,Dune::automatic,false,checkEntityWithNoVerticesInDomain);
-    meshManager.printInfo();
+    typedef Dune::Fem::FluidState<CoupledMeshManagerType> FluidStateType;
+    FluidStateType fluidState(argc,argv,Dune::automatic,false,checkEntityWithNoVerticesInDomain);
+    fluidState.meshManager().printInfo();
 
     // create mesh smoothing
-    typedef Dune::Fem::MeshSmoothing<CoupledMeshManagerType> MeshSmoothingType;
-    MeshSmoothingType smoothing(meshManager);
+    typedef Dune::Fem::MeshSmoothing<FluidStateType> MeshSmoothingType;
+    MeshSmoothingType smoothing(fluidState);
     smoothing.printInfo();
 
-    // create fluid state
-    typedef Dune::Fem::FluidState<CoupledMeshManagerType> FluidStateType;
-    FluidStateType fluidState(meshManager);
-
     // compute solution
-    typedef Dune::Fem::FemScheme<CoupledMeshManagerType> FemSchemeType;
-    FemSchemeType femScheme(meshManager);
+    typedef Dune::Fem::FemScheme<FluidStateType> FemSchemeType;
+    FemSchemeType femScheme(fluidState);
     femScheme.problem().printInfo();
     std::vector<double> errors;
-    Dune::Fem::compute<FluidStateType,FemSchemeType,MeshSmoothingType>(fluidState,femScheme,smoothing,errors);
+    Dune::Fem::compute<FemSchemeType,MeshSmoothingType>(femScheme,smoothing,errors);
 
     // output total running time
     timer.stop();

@@ -11,6 +11,7 @@
 #include <string>
 
 // dune includes
+#include <dune/common/timer.hh>
 #include <dune/common/exceptions.hh>
 #include <dune/geometry/referenceelements.hh>
 #include <dune/grid/common/gridfactory.hh>
@@ -228,11 +229,10 @@ class CoupledMeshManager
   public:
   // constructor
   explicit CoupledMeshManager(int argc,char** argv,const GmshAlgorithmType& algorithm,const bool& verbosity,
-                              const bool& checkEntityWithNoVerticesInDomain=false):
+                              const bool& checkEntityWithNoVerticesInDomain):
     manager_(argc,argv,algorithm,verbosity),sequence_(0),performentityverticescheck_(checkEntityWithNoVerticesInDomain)
   {
-    BulkHostGridType* bulkHostGridPtr(create());
-    finalize(bulkHostGridPtr);
+    init();
   }
 
   // copy constructor
@@ -306,65 +306,47 @@ class CoupledMeshManager
     return sequence_;
   }
 
-  void finalize(BulkHostGridType* bulkHostGridPtr)
+  bool remesh()
   {
-    if(bulkHostGridPtr!=nullptr)
-    {
-      // create bulk grid
-      bulkgrid_=std::make_shared<BulkGridType>(bulkHostGridPtr);
-      printGridInfo(bulkGrid());
-      // create bulk indicator function
-      bulkindicator_=std::make_shared<BulkIndicatorFunctionType>(bulkGrid(),elementsIDs());
-      // create interface host grid
-      InterfaceHostGridFactoryType interfaceHostGridFactory;
-      extractInterface(interfaceHostGridFactory);
-      InterfaceHostGridType* interfaceHostGridPtr(interfaceHostGridFactory.createGrid());
-      // create interface grid
-      interfacegrid_=std::make_shared<InterfaceGridType>(interfaceHostGridPtr);
-      printGridInfo(interfaceGrid());
-      // increase sequence number
-      ++sequence_;
-      if(performentityverticescheck_)
-        if(existEntityWithNoVerticesInDomain())
-          DUNE_THROW(InvalidStateException,"ERROR: exists an entity with all the vertices on the boundary -> LBB not satisfied!");
-    }
-  }
-
-  // create mesh
-  BulkHostGridType* create()
-  {
-    // create bulk host grid
-    BulkHostGridFactoryType bulkHostGridFactory;
-    boundaryids_=std::make_shared<std::vector<int>>();
-    elementsids_=std::make_shared<std::vector<int>>();
-    manager_.create(bulkHostGridFactory,boundaryIDs(),elementsIDs());
-    BulkHostGridType* bulkHostGridPtr(bulkHostGridFactory.createGrid());
-    // reorder boundary IDs
-    reorderBoundaryIDs(*bulkHostGridPtr,bulkHostGridFactory);
-    return bulkHostGridPtr;
-  }
-
-  // remesh
-  BulkHostGridType* remesh()
-  {
-    BulkHostGridType* bulkHostGridPtr(nullptr);
+    bool remeshPerformed(false);
     // check if the remeshing is supported
     if(GmshManagerType::remeshingSupported)
     {
       // check if the remeshing is necessary
       if(remeshingcriteria_.remshingIsNeeded(bulkGrid()))
       {
-        // create bulk host grid
+        // create timer
+        Timer timer(false);
+        timer.start();
+        // create bulk grid
         BulkHostGridFactoryType bulkHostGridFactory;
         boundaryids_=std::make_shared<std::vector<int>>();
         elementsids_=std::make_shared<std::vector<int>>();
         manager_.remesh(interfaceGrid(),bulkHostGridFactory,boundaryIDs(),elementsIDs());
-        bulkHostGridPtr=bulkHostGridFactory.createGrid();
+        bulkgrid_=std::make_shared<BulkGridType>(bulkHostGridFactory.createGrid());
+        printGridInfo(bulkGrid());
         // reorder boundary IDs
-        reorderBoundaryIDs(*bulkHostGridPtr,bulkHostGridFactory);
+        reorderBoundaryIDs(bulkHostGridFactory);
+        // create bulk indicator function
+        bulkindicator_=std::make_shared<BulkIndicatorFunctionType>(bulkGrid(),elementsIDs());
+        // create interface grid
+        InterfaceHostGridFactoryType interfaceHostGridFactory;
+        extractInterface(interfaceHostGridFactory);
+        interfacegrid_=std::make_shared<InterfaceGridType>(interfaceHostGridFactory.createGrid());
+        printGridInfo(interfaceGrid());
+        // increase sequence number
+        ++sequence_;
+        // perform vertex check
+        if(performentityverticescheck_)
+          if(existEntityWithNoVerticesInDomain())
+            DUNE_THROW(InvalidStateException,"ERROR: exists an entity with all the vertices on the boundary -> LBB not satisfied!");
+        // print remesh time
+        timer.stop();
+        std::cout<<"Remeshing time: "<<timer.elapsed()<<" seconds."<<std::endl;
+        remeshPerformed=true;
       }
     }
-    return bulkHostGridPtr;
+    return remeshPerformed;
   }
 
   double averageInterfaceVolume() const
@@ -421,6 +403,32 @@ class CoupledMeshManager
   unsigned int sequence_;
   const bool performentityverticescheck_;
 
+  void init()
+  {
+    // create bulk grid
+    BulkHostGridFactoryType bulkHostGridFactory;
+    boundaryids_=std::make_shared<std::vector<int>>();
+    elementsids_=std::make_shared<std::vector<int>>();
+    manager_.create(bulkHostGridFactory,boundaryIDs(),elementsIDs());
+    bulkgrid_=std::make_shared<BulkGridType>(bulkHostGridFactory.createGrid());
+    printGridInfo(bulkGrid());
+    // reorder boundary IDs
+    reorderBoundaryIDs(bulkHostGridFactory);
+    // create bulk indicator function
+    bulkindicator_=std::make_shared<BulkIndicatorFunctionType>(bulkGrid(),elementsIDs());
+    // create interface grid
+    InterfaceHostGridFactoryType interfaceHostGridFactory;
+    extractInterface(interfaceHostGridFactory);
+    interfacegrid_=std::make_shared<InterfaceGridType>(interfaceHostGridFactory.createGrid());
+    printGridInfo(interfaceGrid());
+    // increase sequence number
+    ++sequence_;
+    // perform vertex check
+    if(performentityverticescheck_)
+      if(existEntityWithNoVerticesInDomain())
+        DUNE_THROW(InvalidStateException,"ERROR: exists an entity with all the vertices on the boundary -> LBB not satisfied!");
+  }
+
   void extractInterface(InterfaceHostGridFactoryType& interfaceHostGridFactory)
   {
     // create new mapper
@@ -470,10 +478,10 @@ class CoupledMeshManager
     }
   }
 
-  void reorderBoundaryIDs(const BulkHostGridType& bulkHostGrid,const BulkHostGridFactoryType& bulkHostGridFactory)
+  void reorderBoundaryIDs(const BulkHostGridFactoryType& bulkHostGridFactory)
   {
     std::vector<int> tempIDs(boundaryIDs().size(),0);
-    auto bulkHostLeafGridView(bulkHostGrid.leafGridView());
+    auto bulkHostLeafGridView(bulkGrid().hostGrid().leafGridView());
     for(const auto entity:elements(bulkHostLeafGridView))
       for(const auto intersection:intersections(bulkHostLeafGridView,entity))
         if(intersection.boundary())

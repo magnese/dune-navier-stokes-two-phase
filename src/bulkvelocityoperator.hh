@@ -17,16 +17,15 @@ namespace Dune
 namespace Fem
 {
 
-template<class LinearOperatorImp,class TimeProviderImp,class ProblemImp>
+template<typename LinearOperatorImp,typename ProblemImp>
 class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,typename LinearOperatorImp::RangeFunctionType>
 {
   public:
   typedef LinearOperatorImp LinearOperatorType;
-  typedef TimeProviderImp TimeProviderType;
   typedef ProblemImp ProblemType;
   typedef typename LinearOperatorType::DomainFunctionType DomainFunctionType;
   typedef typename LinearOperatorType::RangeFunctionType RangeFunctionType;
-  typedef BulkVelocityOperator<LinearOperatorType,TimeProviderType,ProblemType> ThisType;
+  typedef BulkVelocityOperator<LinearOperatorType,ProblemType> ThisType;
   typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef DomainFunctionType DiscreteFunctionType;
   typedef typename DomainFunctionType::DiscreteFunctionSpaceType DomainSpaceType;
@@ -34,9 +33,8 @@ class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFun
   typedef DomainSpaceType DiscreteSpaceType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
-  explicit BulkVelocityOperator(const DiscreteSpaceType& space,const TimeProviderType& timeProvider,const ProblemType& problem,
-                                const DiscreteFunctionType& oldSolution):
-    space_(space),timeprovider_(timeProvider),op_("bulk velocity operator",space_,space_),problem_(problem),oldsolution_(oldSolution)
+  explicit BulkVelocityOperator(const DiscreteSpaceType& space,const ProblemType& problem,const DiscreteFunctionType& oldSolution):
+    space_(space),op_("bulk velocity operator",space_,space_),problem_(problem),oldsolution_(oldSolution)
   {}
 
   BulkVelocityOperator(const ThisType& )=delete;
@@ -70,7 +68,8 @@ class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFun
     return space_;
   }
 
-  void assemble() const
+  template<typename TimeProviderType>
+  void assemble(const TimeProviderType& timeProvider) const
   {
     DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
     op_.reserve(stencil);
@@ -140,7 +139,7 @@ class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFun
             RangeFieldType valueTime(0.0);
             for(auto k=0;k!=localBlockSize;++k)
               valueTime+=phi[j][k]*phi[i][k];
-            valueTime*=(rho/timeprovider_.deltaT());
+            valueTime*=(rho/timeProvider.deltaT());
             // add to the local matrix
             value+=valueConvective;
             value+=valueTime;
@@ -156,7 +155,6 @@ class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFun
 
   private:
   const DiscreteSpaceType& space_;
-  const TimeProviderType& timeprovider_;
   mutable LinearOperatorType op_;
   const ProblemType& problem_;
   // solution at the previous time step

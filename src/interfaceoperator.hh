@@ -19,21 +19,20 @@ namespace Dune
 namespace Fem
 {
 
-template<class LinearOperatorImp,class TimeProviderImp>
+template<typename LinearOperatorImp>
 class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,typename LinearOperatorImp::RangeFunctionType>
 {
   public:
   typedef LinearOperatorImp LinearOperatorType;
-  typedef TimeProviderImp TimeProviderType;
   typedef typename LinearOperatorType::DomainFunctionType DomainFunctionType;
   typedef typename LinearOperatorType::RangeFunctionType RangeFunctionType;
   typedef DomainFunctionType DiscreteFunctionType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
-  typedef InterfaceOperator<LinearOperatorType,TimeProviderType> ThisType;
+  typedef InterfaceOperator<LinearOperatorType> ThisType;
 
-  explicit InterfaceOperator(const DiscreteSpaceType& space,const TimeProviderType& timeProvider):
-    space_(space),timeprovider_(timeProvider),op_("interface operator",space_,space_)
+  explicit InterfaceOperator(const DiscreteSpaceType& space):
+    space_(space),op_("interface operator",space_,space_)
   {}
 
   InterfaceOperator(const ThisType& )=delete;
@@ -66,8 +65,8 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
     return op_;
   }
 
-  template<class BulkInterfaceGridMapperType>
-  void assemble(const BulkInterfaceGridMapperType& mapper) const
+  template<typename BulkInterfaceGridMapperType,typename TimeProviderType>
+  void assemble(const BulkInterfaceGridMapperType& mapper,const TimeProviderType& timeProvider) const
   {
     // allocate matrix
     DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
@@ -148,7 +147,7 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
               value+=phi[i][index+1]*normalVector[index];
             value*=weight*phi[j][0];
             localMatrix.add(i,j,value);
-            localMatrix.add(j,i,-1.0*value/(timeprovider_.deltaT()));
+            localMatrix.add(j,i,-1.0*value/(timeProvider.deltaT()));
           }
         }
       }
@@ -157,7 +156,6 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
 
   private:
   const DiscreteSpaceType& space_;
-  const TimeProviderType& timeprovider_;
   mutable LinearOperatorType op_;
 };
 

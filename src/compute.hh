@@ -11,17 +11,22 @@
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
+#include <dune/fem/solver/timeprovider.hh>
 
 namespace Dune
 {
 namespace Fem
 {
 
-template<class FluidStateType,class FemSchemeType,class MeshSmoothingType>
-void compute(FluidStateType& fluidState,FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vector<double>& errors)
+template<typename FemSchemeType,typename MeshSmoothingType>
+void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vector<double>& errors)
 {
-  // create time provider
-  typename FemSchemeType::TimeProviderType timeProvider;
+  // define fluid state
+  typedef typename FemSchemeType::FluidStateType FluidStateType;
+  auto& fluidState(femScheme.fluidState());
+
+  //create time provider
+  FixedStepTimeProvider<> timeProvider;
 
   // get parameters
   const double endTime(Dune::Fem::Parameter::getValue<double>("EndTime",0.1)+0.1*timeProvider.deltaT());
@@ -38,7 +43,7 @@ void compute(FluidStateType& fluidState,FemSchemeType& femScheme,MeshSmoothingTy
   if(femScheme.problem().isTimeDependent())
   {
     // compute initial curvature of the interface
-    femScheme.computeInterface(fluidState,timeProvider);
+    femScheme.computeInterface(timeProvider);
     // dump solution on file
     fluidState.dumpBulkSolutions(timeProvider);
     fluidState.dumpInterfaceSolutions(timeProvider);
@@ -57,7 +62,7 @@ void compute(FluidStateType& fluidState,FemSchemeType& femScheme,MeshSmoothingTy
     std::cout<<std::endl<<"Time step "<<timeProvider.timeStep()<<" (time = "<<timeProvider.time()<<" s)."<<std::endl;
 
     // do one step
-    femScheme(fluidState,timeProvider);
+    femScheme(timeProvider);
 
     // dump solution
     fluidState.dumpBulkSolutions(timeProvider);
@@ -132,7 +137,7 @@ void compute(FluidStateType& fluidState,FemSchemeType& femScheme,MeshSmoothingTy
     fluidState.bulkGrid().coordFunction()+=meshSmoothing(fluidState.displacement());
 
     // perform remesh (if needed)
-    femScheme.remesh();
+    fluidState.meshManager().remesh();
 
     // interpolate velocity onto the new grid (if necessary)
     if(!(femScheme.problem().isDensityNull()))

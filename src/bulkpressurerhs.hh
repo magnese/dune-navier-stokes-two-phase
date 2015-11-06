@@ -14,17 +14,16 @@ namespace Dune
 namespace Fem
 {
 
-template<class DiscreteFunctionImp,class TimeProviderImp>
+template<typename DiscreteFunctionImp>
 class BulkPressureRHS
 {
   public:
   typedef DiscreteFunctionImp DiscreteFunctionType;
-  typedef TimeProviderImp TimeProviderType;
-  typedef BulkPressureRHS<DiscreteFunctionType,TimeProviderType> ThisType;
+  typedef BulkPressureRHS<DiscreteFunctionType> ThisType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
 
-  explicit BulkPressureRHS(const DiscreteSpaceType& space,const TimeProviderType& timeProvider):
-    space_(space),timeprovider_(timeProvider),rhs_("pressure RHS",space_)
+  explicit BulkPressureRHS(const DiscreteSpaceType& space):
+    space_(space),rhs_("pressure RHS",space_)
   {}
 
   BulkPressureRHS(const ThisType& )=delete;
@@ -47,8 +46,8 @@ class BulkPressureRHS
     return sqrt(rhs_.scalarProductDofs(rhs_));
   }
 
-  template<class BC>
-  void assemble(const BC& bc) const
+  template<typename BC,typename TimeProviderType>
+  void assemble(const BC& bc,const TimeProviderType& timeProvider) const
   {
     // clear RHS
     rhs_.clear();
@@ -71,7 +70,7 @@ class BulkPressureRHS
         for(const auto intersection:intersections(static_cast<typename DiscreteFunctionType::GridPartType::GridViewType>(gridPart),entity))
           if(intersection.boundary())
           {
-            bc.localInterpolateBoundaryFunction(timeprovider_.time(),intersection,g);
+            bc.localInterpolateBoundaryFunction(timeProvider.time(),intersection,g);
             const auto normal(intersection.centerUnitOuterNormal());
             typedef CachingQuadrature<typename DiscreteFunctionType::GridPartType,1> QuadratureType;
             QuadratureType pointSet(gridPart,intersection,2*bc.domainSpace().order()+1,QuadratureType::INSIDE);
@@ -110,7 +109,6 @@ class BulkPressureRHS
 
   private:
   const DiscreteSpaceType& space_;
-  const TimeProviderType& timeprovider_;
   mutable DiscreteFunctionType rhs_;
 };
 

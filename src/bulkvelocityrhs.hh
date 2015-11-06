@@ -13,19 +13,17 @@ namespace Dune
 namespace Fem
 {
 
-template<class DiscreteFunctionImp,class TimeProviderImp,class ProblemImp>
+template<typename DiscreteFunctionImp,typename ProblemImp>
 class BulkVelocityRHS
 {
   public:
   typedef DiscreteFunctionImp DiscreteFunctionType;
-  typedef TimeProviderImp TimeProviderType;
   typedef ProblemImp ProblemType;
-  typedef BulkVelocityRHS<DiscreteFunctionType,TimeProviderType,ProblemType> ThisType;
+  typedef BulkVelocityRHS<DiscreteFunctionType,ProblemType> ThisType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
 
-  explicit BulkVelocityRHS(const DiscreteSpaceType& space,const TimeProviderType& timeProvider,const ProblemType& problem,
-                           const DiscreteFunctionType& oldSolution):
-    space_(space),timeprovider_(timeProvider),rhs_("velocity RHS",space_),problem_(problem),oldsolution_(oldSolution)
+  explicit BulkVelocityRHS(const DiscreteSpaceType& space,const ProblemType& problem,const DiscreteFunctionType& oldSolution):
+    space_(space),rhs_("velocity RHS",space_),problem_(problem),oldsolution_(oldSolution)
   {}
 
   BulkVelocityRHS(const ThisType& )=delete;
@@ -48,8 +46,8 @@ class BulkVelocityRHS
     return sqrt(rhs_.scalarProductDofs(rhs_));
   }
 
-  template<class T>
-  void assemble(const T& function) const
+  template<typename FunctionType,typename TimeProviderType>
+  void assemble(const FunctionType& function,const TimeProviderType& timeProvider) const
   {
     rhs_.clear();
 
@@ -68,7 +66,7 @@ class BulkVelocityRHS
       CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSet(entity,2*space_.order()+1);
       for(auto pt=0;pt!=pointSet.nop();++pt)
       {
-        const auto fValue(function(entity.geometry().global(pointSet.point(pt)),timeprovider_.time(),entity));
+        const auto fValue(function(entity.geometry().global(pointSet.point(pt)),timeProvider.time(),entity));
         baseSet.evaluateAll(pointSet.point(pt),phi);
         const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
 
@@ -85,7 +83,7 @@ class BulkVelocityRHS
             for(auto k=0;k!=localBlockSize;++k)
               for(auto kk=0;kk!=localSize;++kk)
                 temp+=localOldSolution[kk]*phi[kk][k]*phi[row][k];
-            temp*=(rho/timeprovider_.deltaT());
+            temp*=(rho/timeProvider.deltaT());
 
             value+=temp;
             value*=weight;
@@ -98,7 +96,6 @@ class BulkVelocityRHS
 
   private:
   const DiscreteSpaceType& space_;
-  const TimeProviderType& timeprovider_;
   mutable DiscreteFunctionType rhs_;
   const ProblemType& problem_;
   // solution at the previous time step
