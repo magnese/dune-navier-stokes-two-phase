@@ -9,6 +9,7 @@
 #include <functional>
 #include <algorithm>
 #include <ostream>
+#include <memory>
 
 // HAVE_BLAS
 #ifdef HAVE_BLAS
@@ -235,11 +236,11 @@ class GMSHCompoundManagerBase
   inline void create(GridFactory<BulkGridType>& bulkGridFactory,std::vector<int>& boundaryIDs,std::vector<int>& elementsIDs)
   {
     // load domain
-    domain()=new GModel();
+    domain()=std::make_shared<GModel>();
     domain()->setFactory("Gmsh");
     domain()->readGEO(domainfilename_);
     // load interface
-    interface()=new GModel();
+    interface()=std::make_shared<GModel>();
     interface()->setFactory("Gmsh");
     if(interfacefilename_.find(".geo")!=std::string::npos)
       interface()->readGEO(interfacefilename_);
@@ -249,7 +250,7 @@ class GMSHCompoundManagerBase
       imp().interfaceMesh2GModel(interface());
     }
     // load hole (if present)
-    hole()=new GModel();
+    hole()=std::make_shared<GModel>();
     hole()->setFactory("Gmsh");
     if(hashole_)
       hole()->readGEO(holefilename_);
@@ -264,7 +265,6 @@ class GMSHCompoundManagerBase
   void remesh(const InterfaceGridType& interfaceGrid,GridFactory<BulkGridType>& bulkGridFactory,std::vector<int>& boundaryIDs,
               std::vector<int>& elementsIDs)
   {
-    delete interface();
     imp().interfaceDune2GModel(interfaceGrid);
     CharlengthPolicyType charlengthPolicy(interfaceGrid);
     imp().createCompoundGeo([&](const GVertex& vtx){return charlengthPolicy(vtx,interfaceGrid);});
@@ -293,8 +293,6 @@ class GMSHCompoundManagerBase
 
   ~GMSHCompoundManagerBase()
   {
-    for(auto& model:gmodelptrs_)
-      delete model;
     GmshFinalize();
   }
 
@@ -303,19 +301,19 @@ class GMSHCompoundManagerBase
     return static_cast<Implementation&>(*this);
   }
 
-  inline GModel*& domain()
+  inline std::shared_ptr<GModel>& domain()
   {
     return gmodelptrs_[0];
   }
-  inline GModel*& interface()
+  inline std::shared_ptr<GModel>& interface()
   {
     return gmodelptrs_[1];
   }
-  inline GModel*& hole()
+  inline std::shared_ptr<GModel>& hole()
   {
     return gmodelptrs_[2];
   }
-  inline GModel*& compound()
+  inline std::shared_ptr<GModel>& compound()
   {
     return gmodelptrs_[3];
   }
@@ -352,7 +350,7 @@ class GMSHCompoundManagerBase
   const std::string domainfilename_;
   const std::string interfacefilename_;
   const std::string holefilename_;
-  std::array<GModel*,4> gmodelptrs_;
+  std::array<std::shared_ptr<GModel>,4> gmodelptrs_;
   bool hashole_;
 };
 
@@ -384,11 +382,9 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
 
   private:
   template<typename... Args>
-  void createCompoundGeo(const Args&... args)
+  void createCompoundGeo(Args&&... args)
   {
-    if(compound()!=nullptr)
-      delete compound();
-    compound()=new GModel();
+    compound()=std::make_shared<GModel>();
     compound()->setFactory("Gmsh");
     // add domain to compound gmodel
     std::vector<GEdge*> domainEdges(0);
@@ -409,7 +405,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     (compound()->addPlanarFace(innerLineLoop))->addPhysicalEntity(1);
   }
 
-  void addGModelToCompound(GModel*& model,std::vector<GEdge*>& edges,const std::function<double(const GVertex&)>& charlength)
+  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GEdge*>& edges,std::function<double(const GVertex&)>&& charlength)
   {
     long int vtxCounter(0);
     std::vector<GVertex*> vertices(0);
@@ -443,10 +439,10 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     }
   }
 
-  void interfaceMesh2GModel(GModel*& model)
+  void interfaceMesh2GModel(std::shared_ptr<GModel>& model)
   {
     // create new gmodel
-    GModel* newGModel(new GModel());
+    auto newGModel(std::make_shared<GModel>());
     newGModel->setFactory("Gmsh");
     // index all the mesh vertices in a continuous sequence starting at 1
     model->indexMeshVertices(true,0,true);
@@ -481,8 +477,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
         (newGModel->addLine(vertices[posVtx[0]],vertices[posVtx[1]]))->addPhysicalEntity(physicalID);
       }
     }
-    // free old mesh model and assign new gmodel
-    delete model;
+    // assign new gmodel
     model=newGModel;
   }
 
@@ -490,7 +485,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
   void interfaceDune2GModel(const InterfaceGridType& interfaceGrid)
   {
     // create new gmodel
-    interface()=new GModel();
+    interface()=std::make_shared<GModel>();
     interface()->setFactory("Gmsh");
     constexpr double charlength(1000);
     constexpr int physicalID(1);
@@ -595,11 +590,9 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
 
   private:
   template<typename... Args>
-  void createCompoundGeo(const Args&... args)
+  void createCompoundGeo(Args&&... args)
   {
-    if(compound()!=nullptr)
-      delete compound();
-    compound()=new GModel();
+    compound()=std::make_shared<GModel>();
     compound()->setFactory("Gmsh");
     // add domain to compound gmodel
     std::vector<GFace*> domainFaces(0);
@@ -620,7 +613,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     (compound()->addVolume(innerSurfaceLoop))->addPhysicalEntity(1);
   }
 
-  void addGModelToCompound(GModel*& model,std::vector<GFace*>& faces,const std::function<double(const GVertex&)>& charlength)
+  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GFace*>& faces,std::function<double(const GVertex&)>&& charlength)
   {
     std::vector<GVertex*> vertices(0);
     std::array<GVertex*,2> vtxPtr({nullptr,nullptr});
@@ -674,10 +667,10 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     }
   }
 
-  void interfaceMesh2GModel(GModel*& model)
+  void interfaceMesh2GModel(std::shared_ptr<GModel>& model)
   {
     // create new gmodel
-    GModel* newGModel(new GModel());
+    auto newGModel(std::make_shared<GModel>());
     newGModel->setFactory("Gmsh");
     // index all the mesh vertices in a continuous sequence starting at 1
     model->indexMeshVertices(true,0,true);
@@ -743,8 +736,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
         (newGModel->addPlanarFace(edgeLoop))->addPhysicalEntity(physicalID);
       }
     }
-    // free old mesh model and assign new gmodel
-    delete model;
+    // assign new gmodel
     model=newGModel;
   }
 
@@ -752,7 +744,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
   void interfaceDune2GModel(const InterfaceGridType& interfaceGrid)
   {
     // create new gmodel
-    interface()=new GModel();
+    interface()=std::make_shared<GModel>();
     interface()->setFactory("Gmsh");
     constexpr double charlength(1000);
     constexpr int physicalID(1);
