@@ -346,6 +346,18 @@ class GMSHCompoundManagerBase
     GmshSetOption("Mesh","Algorithm",static_cast<double>(algorithm));
   }
 
+  // check pointers status
+  void checkPointersStatus(const std::string& str="GMSHCompoundManager",std::ostream& s=std::cout) const
+  {
+    s<<std::endl;
+    s<<str<<" number of pointers for each object :"<<std::endl;
+    s<<"Domain = "<<domain().use_count()<<std::endl;;
+    s<<"Interface = "<<interface().use_count()<<std::endl;
+    s<<"Hole = "<<hole().use_count()<<std::endl;
+    s<<"Compound = "<<compound().use_count()<<std::endl;
+    s<<std::endl;
+  }
+
   private:
   const std::string domainfilename_;
   const std::string interfacefilename_;
