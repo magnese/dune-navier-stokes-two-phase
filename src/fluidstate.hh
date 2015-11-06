@@ -81,6 +81,7 @@ class FluidState
   typedef typename Traits::CurvatureDiscreteSpaceType CurvatureDiscreteSpaceType;
   typedef typename Traits::DisplacementDiscreteSpaceType DisplacementDiscreteSpaceType;
   typedef typename Traits::InterfaceDiscreteSpaceType InterfaceDiscreteSpaceType;
+  typedef typename Traits::BulkDisplacementDiscreteSpaceType BulkDisplacementDiscreteSpaceType;
   // define discrete functions
   typedef typename Traits::VelocityDiscreteFunctionType VelocityDiscreteFunctionType;
   typedef typename Traits::PressureDiscreteFunctionType PressureDiscreteFunctionType;
@@ -92,6 +93,7 @@ class FluidState
   typedef typename Traits::CurvatureDiscreteFunctionType CurvatureDiscreteFunctionType;
   typedef typename Traits::DisplacementDiscreteFunctionType DisplacementDiscreteFunctionType;
   typedef typename Traits::InterfaceDiscreteFunctionType InterfaceDiscreteFunctionType;
+  typedef typename Traits::BulkDisplacementDiscreteFunctionType BulkDisplacementDiscreteFunctionType;
   // define data outputs
   typedef std::tuple<const VelocityDiscreteFunctionType*,const PressureDumpDiscreteFunctionType*> BulkTupleType;
   typedef std::tuple<const CurvatureDiscreteFunctionType*,const DisplacementDiscreteFunctionType*> InterfaceTupleType;
@@ -133,6 +135,7 @@ class FluidState
       curvaturespace_=other.curvaturespace_;
       displacementspace_=other.displacementspace_;
       interfacespace_=other.interfacespace_;
+      bulkdisplacementspace_=other.bulkdisplacementspace_;
       velocity_=other.velocity_;
       pressure_=other.pressure_;
       #if PRESSURE_SPACE_TYPE == 2
@@ -145,6 +148,7 @@ class FluidState
       interface_=other.interface_;
       bulktuple_=other.bulktuple_;
       interfacetuple_=other.interfacetuple_;
+      bulkdisplacement_=other.bulkdisplacement_;
       bulkoutput_=other.bulkoutput_;
       interfaceoutput_=other.interfaceoutput_;
       sequence_=other.sequence_;
@@ -224,6 +228,10 @@ class FluidState
   {
     return *interfacespace_;
   }
+  inline const BulkDisplacementDiscreteSpaceType& bulkDisplacementSpace() const
+  {
+    return *bulkdisplacementspace_;
+  }
 
   // get discrete functions
   inline VelocityDiscreteFunctionType& velocity()
@@ -301,6 +309,14 @@ class FluidState
   {
     return *interface_;
   }
+  inline BulkDisplacementDiscreteFunctionType& bulkDisplacement()
+  {
+    return *bulkdisplacement_;
+  }
+  inline const BulkDisplacementDiscreteFunctionType& bulkDisplacement() const
+  {
+    return *bulkdisplacement_;
+  }
 
   // rebuild all quantities if the mesh is changed
   bool update()
@@ -324,6 +340,7 @@ class FluidState
       curvaturespace_=std::make_shared<CurvatureDiscreteSpaceType>(interfaceGridPart());
       displacementspace_=std::make_shared<DisplacementDiscreteSpaceType>(interfaceGridPart());
       interfacespace_=std::make_shared<InterfaceDiscreteSpaceType>(interfaceGridPart());
+      bulkdisplacementspace_=std::make_shared<BulkDisplacementDiscreteSpaceType>(bulkGridPart());
       // create discrete functions
       velocity_=std::make_shared<VelocityDiscreteFunctionType>("velocity",velocitySpace());
       pressure_=std::make_shared<PressureDiscreteFunctionType>("pressure",pressureSpace());
@@ -335,6 +352,7 @@ class FluidState
       curvature_=std::make_shared<CurvatureDiscreteFunctionType>("curvature",curvatureSpace());
       displacement_=std::make_shared<DisplacementDiscreteFunctionType>("displacement",displacementSpace());
       interface_=std::make_shared<InterfaceDiscreteFunctionType>("interface solution",interfaceSpace());
+      bulkdisplacement_=std::make_shared<BulkDisplacementDiscreteFunctionType>("bulk displacement",bulkDisplacementSpace());
       // create IO
       bulktuple_=std::make_shared<BulkTupleType>(&velocity(),&pressureDump());
       interfacetuple_=std::make_shared<InterfaceTupleType>(&curvature(),&displacement());
@@ -426,6 +444,7 @@ class FluidState
     s<<"CurvatureDiscreteSpace = "<<curvaturespace_.use_count()<<std::endl;
     s<<"DisplacementDiscreteSpace = "<<displacementspace_.use_count()<<std::endl;
     s<<"InterfaceDiscreteSpace = "<<interfacespace_.use_count()<<std::endl;
+    s<<"BulkDisplacementDiscreteSpace = "<<bulkdisplacementspace_.use_count()<<std::endl;
     s<<"VelocityDiscreteFunction = "<<velocity_.use_count()<<std::endl;
     s<<"PressureDiscreteFunction = "<<pressure_.use_count()<<std::endl;
     #if PRESSURE_SPACE_TYPE == 2
@@ -438,6 +457,7 @@ class FluidState
     s<<"InterfaceDiscreteFunction = "<<interface_.use_count()<<std::endl;
     s<<"BulkTuple = "<<bulktuple_.use_count()<<std::endl;
     s<<"InterfaceTuple = "<<interfacetuple_.use_count()<<std::endl;
+    s<<"BulkDisplacementDiscreteFunction = "<<bulkdisplacement_.use_count()<<std::endl;
     s<<"BulkDataOutput = "<<bulkoutput_.use_count()<<std::endl;
     s<<"InterfaceDataOutput = "<<interfaceoutput_.use_count()<<std::endl;
     s<<std::endl;
@@ -457,6 +477,7 @@ class FluidState
   std::shared_ptr<CurvatureDiscreteSpaceType> curvaturespace_;
   std::shared_ptr<DisplacementDiscreteSpaceType> displacementspace_;
   std::shared_ptr<InterfaceDiscreteSpaceType> interfacespace_;
+  std::shared_ptr<BulkDisplacementDiscreteSpaceType> bulkdisplacementspace_;
   std::shared_ptr<VelocityDiscreteFunctionType> velocity_;
   std::shared_ptr<PressureDiscreteFunctionType> pressure_;
   #if PRESSURE_SPACE_TYPE == 2
@@ -469,6 +490,7 @@ class FluidState
   std::shared_ptr<InterfaceDiscreteFunctionType> interface_;
   std::shared_ptr<BulkTupleType> bulktuple_;
   std::shared_ptr<InterfaceTupleType> interfacetuple_;
+  std::shared_ptr<BulkDisplacementDiscreteFunctionType> bulkdisplacement_;
   std::shared_ptr<BulkDataOutputType> bulkoutput_;
   std::shared_ptr<InterfaceDataOutputType> interfaceoutput_;
   unsigned int sequence_;
@@ -480,6 +502,7 @@ class FluidState
   {
     interfaceoutput_.reset();
     bulkoutput_.reset();
+    bulkdisplacement_.reset();
     interfacetuple_.reset();
     bulktuple_.reset();
     interface_.reset();
@@ -492,6 +515,7 @@ class FluidState
     #endif
     pressure_.reset();
     velocity_.reset();
+    bulkdisplacementspace_.reset();
     interfacespace_.reset();
     displacementspace_.reset();
     curvaturespace_.reset();

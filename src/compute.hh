@@ -8,6 +8,7 @@
 #include <cmath>
 
 // dune includes
+#include <dune/common/exceptions.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
@@ -130,20 +131,31 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     }
     #endif
 
-    // keep also the original fluid state in order to interpolate the velocity onto the new grid
+    // perform mesh smoothing
+    if(meshSmoothing.isEnabled())
+      meshSmoothing.apply();
+    else
+    {
+      fluidState.bulkDisplacement().clear();
+      fluidState.meshManager().mapper().addInterfaceDF2BulkDF(fluidState.displacement(),fluidState.bulkDisplacement());
+    }
+    fluidState.bulkGrid().coordFunction()+=fluidState.bulkDisplacement();
+
+    // perform remesh and keep also the original fluid state to interpolate the velocity onto the new grid
     auto oldFluidState(fluidState);
+    const auto remeshPerformed(fluidState.meshManager().remesh());
 
-    // preform mesh smoothing
-    fluidState.bulkGrid().coordFunction()+=meshSmoothing(fluidState.displacement());
-
-    // perform remesh (if needed)
-    fluidState.meshManager().remesh();
-
-    // interpolate velocity onto the new grid (if necessary)
+    // interpolate velocity onto the new grid
     if(!(femScheme.problem().isDensityNull()))
     {
       // rebuild all quantities if the mesh is changed
       fluidState.update();
+      // restore old bulk grid
+      //oldFluidState.interfaceGrid().coordFunction()-=oldFluidState.displacement();
+      if(meshSmoothing.isEnabled()||!remeshPerformed)
+        DUNE_THROW(InvalidStateException,"ERROR: for Navier-Stokes smoothing needs to be always OFF and remeshing always ON!");
+      else
+        oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
       // interpolate velocity onto the new grid
       const auto velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
       const auto& velocitySpace(fluidState.velocitySpace());

@@ -2,7 +2,6 @@
 #define DUNE_FEM_MESHSMOOTHING_HH
 
 #include <iostream>
-#include <memory>
 
 #include <dune/common/timer.hh>
 #include <dune/fem/io/parameter.hh>
@@ -29,92 +28,55 @@ class MeshSmoothing
   typedef FluidStateImp FluidStateType;
   typedef MeshSmoothing<FluidStateType> ThisType;
 
-  // define grid, function, space and grid part
-  typedef typename FluidStateType::BulkGridType GridType;
-  typedef LeafGridPart<GridType> GridPartType;
-  typedef FunctionSpace<double,double,GridType::dimensionworld,GridType::dimensionworld> ContinuosSpaceType;
-  typedef LagrangeDiscreteFunctionSpace<ContinuosSpaceType,GridPartType,1> DiscreteSpaceType;
-  typedef ISTLBlockVectorDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
-
-  // define problem
+  // define space, discrete function and problem
   typedef typename FluidStateType::CoupledMeshManagerType CoupledMeshManagerType;
+  typedef typename FluidStateType::BulkDisplacementDiscreteSpaceType DiscreteSpaceType;
+  typedef typename FluidStateType::BulkDisplacementDiscreteFunctionType DiscreteFunctionType;
   typedef ParallelepipedGeometry<DiscreteSpaceType,CoupledMeshManagerType> SmoothingProblemType;
 
   // constructor
   explicit MeshSmoothing(FluidStateType& fluidState):
-    fluidstate_(fluidState),problem_(fluidState.meshManager()),coeff_(Parameter::getValue<double>("CoeffSmoothing",1.0))
+    fluidstate_(fluidState),problem_(fluidState.meshManager()),coeff_(Parameter::getValue<double>("CoeffSmoothing",1.0)),
+    isenabled_(coeff_>0.0?true:false)
   {}
 
   MeshSmoothing(const ThisType& )=delete;
 
   inline void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"coeff_smooth = "<<coeff_<<(coeff_>0.0?"":" (WARNING: smooth disabled!)")<<std::endl;
+    s<<"coeff_smooth = "<<coeff_<<(isenabled_?"":" (WARNING: smooth disabled!)")<<std::endl;
   }
 
-  template<typename InterfaceFunction>
-  const DiscreteFunctionType& operator()(const InterfaceFunction& interfaceDisplacement)
+  inline bool isEnabled() const
   {
-    update();
-    if(coeff_>0.0)
-      smoothing(interfaceDisplacement);
-    else
-    {
-      displacement_->clear();
-      fluidstate_.meshManager().mapper().addInterfaceDF2BulkDF(interfaceDisplacement,*displacement_);
-    }
-    return *displacement_;
+    return isenabled_;
   }
 
-  private:
-  FluidStateType& fluidstate_;
-  std::unique_ptr<GridPartType> gridpart_;
-  std::unique_ptr<DiscreteSpaceType> space_;
-  std::unique_ptr<DiscreteFunctionType> displacement_;
-  SmoothingProblemType problem_;
-  const double coeff_;
-
-  bool update()
+  void apply()
   {
-    // check if the mesh is changed
-    bool meshIsChanged(fluidstate_.update());
-    // update space and displacement if the mesh is changed
-    if(meshIsChanged)
-    {
-      // reset pointers to avoid danglig references
-      displacement_.reset();
-      space_.reset();
-      // create space and displacement
-      space_=std::unique_ptr<DiscreteSpaceType>(new DiscreteSpaceType(fluidstate_.bulkGridPart()));
-      displacement_=std::unique_ptr<DiscreteFunctionType>(new DiscreteFunctionType("bulk displacement",*space_));
-    }
-    return meshIsChanged;
-  }
-
-  template<typename InterfaceFunction>
-  void smoothing(const InterfaceFunction& interfaceDisplacement)
-  {
+    // update fluid state
+    fluidstate_.update();
     // create timers
     Timer timerAssemble(false);
     Timer timerSolve(false);
     // assemble operator and impose BC
     timerAssemble.start();
     typedef SparseRowLinearOperator<DiscreteFunctionType,DiscreteFunctionType> SmoothingLinearOperatorType;
-    typedef SmoothingOperator<SmoothingLinearOperatorType> SmoothigOperatorType;
-    SmoothigOperatorType op(*space_,coeff_);
+    typedef SmoothingOperator<SmoothingLinearOperatorType> SmoothingOperatorType;
+    SmoothingOperatorType op(fluidstate_.bulkDisplacementSpace(),coeff_);
     op.assemble();
     problem_.bc().applyToOperator(op);
     timerAssemble.stop();
     // assemble RHS and impose BC
     timerAssemble.start();
     typedef SmoothingRHS<DiscreteFunctionType> RHSType;
-    RHSType RHS(*space_);
-    RHS.assemble(interfaceDisplacement,fluidstate_.meshManager().mapper());
+    RHSType RHS(fluidstate_.bulkDisplacementSpace());
+    RHS.assemble(fluidstate_.displacement(),fluidstate_.meshManager().mapper());
     problem_.bc().applyToRHS(RHS.rhs());
     timerAssemble.stop();
     // impose zero displacement for the interface
-    const auto localBlockSize(InterfaceFunction::DiscreteFunctionSpaceType::localBlockSize);
-    const auto numBlocks(interfaceDisplacement.blocks());
+    const auto localBlockSize(FluidStateType::DisplacementDiscreteSpaceType::localBlockSize);
+    const auto numBlocks(fluidstate_.displacement().blocks());
     for(auto i=0;i!=numBlocks;++i)
       for(auto l=0;l!=localBlockSize;++l)
       {
@@ -124,14 +86,20 @@ class MeshSmoothing
       }
     // solve
     timerSolve.start();
-    typedef UMFPACKOp<DiscreteFunctionType,SmoothigOperatorType> SmoothingInverseOperatorType;
+    typedef UMFPACKOp<DiscreteFunctionType,SmoothingOperatorType> SmoothingInverseOperatorType;
     SmoothingInverseOperatorType invOp(op);
-    invOp(RHS.rhs(),*displacement_);
+    invOp(RHS.rhs(),fluidstate_.bulkDisplacement());
     timerSolve.stop();
     // print timers
     std::cout<<"Assemble mesh smoothing operator time: "<<timerAssemble.elapsed()<<" seconds."<<std::endl;
     std::cout<<"Solve mesh smoothing time: "<<timerSolve.elapsed()<<" seconds."<<std::endl;
   }
+
+  private:
+  FluidStateType& fluidstate_;
+  SmoothingProblemType problem_;
+  const double coeff_;
+  const bool isenabled_;
 };
 
 }
