@@ -670,7 +670,7 @@ class RisingBubble2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressure
 
     velocityRHS()=[&](const VelocityDomainType& ,const double& ,const EntityType& entity)
     {
-      typename BaseType::VelocityRangeType value(-0.98);
+      typename BaseType::VelocityRangeType value({0.0,-0.98});
       value*=rho(entity);
       return value;
     };
