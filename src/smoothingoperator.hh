@@ -84,13 +84,13 @@ class SmoothingOperator:public Operator<typename LinearOperatorImp::DomainFuncti
       typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
 
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSet(entity,2*space_.order()+1);
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      for(const auto qp:quadrature)
       {
         // evaluate the jacobians of all basis functions
-        baseSet.evaluateAll(pointSet.point(pt),phi);
-        baseSet.jacobianAll(pointSet.point(pt),gradphi);
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
+        baseSet.evaluateAll(qp,phi);
+        baseSet.jacobianAll(qp,gradphi);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
         const auto localSize(localMatrix.rows());
         for(auto i=0;i!=localSize;++i)

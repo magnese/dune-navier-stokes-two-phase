@@ -63,12 +63,12 @@ class BulkVelocityRHS
       const auto& baseSet(space_.basisFunctionSet(entity));
       const auto rho(problem_.rho(entity));
 
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSet(entity,2*space_.order()+1);
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      for(const auto qp:quadrature)
       {
-        const auto fValue(function(entity.geometry().global(pointSet.point(pt)),timeProvider.time(),entity));
-        baseSet.evaluateAll(pointSet.point(pt),phi);
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
+        const auto fValue(function(entity.geometry().global(qp.position()),timeProvider.time(),entity));
+        baseSet.evaluateAll(qp,phi);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
         const auto numLocalBlocks(localRHS.numScalarDofs());
         const auto localSize(numLocalBlocks*localBlockSize);

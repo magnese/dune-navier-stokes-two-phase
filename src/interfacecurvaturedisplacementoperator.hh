@@ -107,12 +107,12 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
       const auto& domainBaseSet(localMatrix.domainBasisFunctionSet());
       const auto& rangeBaseSet(localMatrix.rangeBasisFunctionSet());
 
-      CachingQuadrature<typename DomainSpaceType::GridPartType,0> pointSet(entity,2*domainspace_.order()+1);
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      CachingQuadrature<typename DomainSpaceType::GridPartType,0> quadrature(entity,2*domainspace_.order()+1);
+      for(const auto qp:quadrature)
       {
-        domainBaseSet.evaluateAll(pointSet.point(pt),phiDomain);
-        rangeBaseSet.evaluateAll(pointSet.point(pt),phiRange);
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
+        domainBaseSet.evaluateAll(qp,phiDomain);
+        rangeBaseSet.evaluateAll(qp,phiRange);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
         const auto rows(localMatrix.rows());
         const auto columns(localMatrix.columns());

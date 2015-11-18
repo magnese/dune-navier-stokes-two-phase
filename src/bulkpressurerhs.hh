@@ -95,11 +95,11 @@ class BulkPressureRHS
       {
         auto localRHS(rhs_.localFunction(entity));
         const auto& baseSet(space_.basisFunctionSet(entity));
-        CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSet(entity,2*space_.order()+1);
-        for(auto pt=0;pt!=pointSet.nop();++pt)
+        CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+        for(const auto qp:quadrature)
         {
-          baseSet.evaluateAll(pointSet.point(pt),phi);
-          const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
+          baseSet.evaluateAll(qp,phi);
+          const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
           for(auto row=0;row!=localRHS.size();++row)
             localRHS[row]+=phi[row]*weight*coeff;
         }

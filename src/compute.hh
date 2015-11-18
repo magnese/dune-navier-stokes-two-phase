@@ -112,10 +112,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       for(const auto entity:fluidState.pressureDumpSpace())
       {
         auto localPressureDump(fluidState.pressureDump().localFunction(entity));
-        CachingQuadrature<typename FluidStateType::BulkGridPartType,0> pointSet(entity,13);
-        for(auto pt=0;pt!=pointSet.nop();++pt)
+        CachingQuadrature<typename FluidStateType::BulkGridPartType,0> quadrature(entity,13);
+        for(const auto qp:quadrature)
         {
-          const auto localPoint(pointSet.point(pt));
+          const auto localPoint(qp.position());
           typename FluidStateType::PressureDumpDiscreteFunctionType::RangeType valueDiscretePressure;
           localPressureDump.evaluate(localPoint,valueDiscretePressure);
           const auto globalPoint(entity.geometry().global(localPoint));
@@ -124,7 +124,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
             valueExactPressure=femScheme.problem().pressureSolution()(globalPoint,timeProvider.time(),outerEntity);
           else
             valueExactPressure=femScheme.problem().pressureSolution()(globalPoint,timeProvider.time(),innerEntity);
-          const auto weight(entity.geometry().integrationElement(localPoint)*pointSet.weight(pt));
+          const auto weight(entity.geometry().integrationElement(localPoint)*qp.weight());
           errors[5]+=pow(valueDiscretePressure-valueExactPressure,2)*weight;
         }
       }

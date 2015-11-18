@@ -84,13 +84,13 @@ class BulkVelocityPressureOperator:public Operator<typename LinearOperatorImp::D
       const auto& domainBaseSet(localMatrix.domainBasisFunctionSet());
       const auto& rangeBaseSet(localMatrix.rangeBasisFunctionSet());
 
-      CachingQuadrature<typename DomainSpaceType::GridPartType,0> pointSet(entity,2*domainspace_.order()+1);
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      CachingQuadrature<typename DomainSpaceType::GridPartType,0> quadrature(entity,2*domainspace_.order()+1);
+      for(const auto qp:quadrature)
       {
         // evaluate the jacobians of all basis functions
-        rangeBaseSet.evaluateAll(pointSet.point(pt),phi);
-        domainBaseSet.jacobianAll(pointSet.point(pt),gradphi);
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
+        rangeBaseSet.evaluateAll(qp,phi);
+        domainBaseSet.jacobianAll(qp,gradphi);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());

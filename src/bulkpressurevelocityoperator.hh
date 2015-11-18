@@ -9,6 +9,7 @@
 
 #include <string>
 #include <fstream>
+#include <vector>
 
 namespace Dune
 {
@@ -83,13 +84,13 @@ class BulkPressureVelocityOperator:public Operator<typename LinearOperatorImp::D
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& domainBaseSet(localMatrix.domainBasisFunctionSet());
       const auto& rangeBaseSet(localMatrix.rangeBasisFunctionSet());
-      CachingQuadrature<typename DomainSpaceType::GridPartType,0> pointSet(entity,2*domainspace_.order()+1);
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      CachingQuadrature<typename DomainSpaceType::GridPartType,0> quadrature(entity,2*domainspace_.order()+1);
+      for(const auto qp:quadrature)
       {
         // evaluate the jacobians of all basis functions
-        domainBaseSet.evaluateAll(pointSet.point(pt),phi);
-        rangeBaseSet.jacobianAll(pointSet.point(pt),gradphi);
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
+        domainBaseSet.evaluateAll(qp,phi);
+        rangeBaseSet.jacobianAll(qp,gradphi);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
         const auto rowLocalSize(localMatrix.rows());
         const auto columnLocalSize(localMatrix.columns());

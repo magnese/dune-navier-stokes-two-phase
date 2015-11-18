@@ -80,11 +80,11 @@ class MassMatrix:public Operator<typename LinearOperatorImp::DomainFunctionType,
     {
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSet(entity,2*space_.order()+1);
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      for(const auto qp:quadrature)
       {
-        baseSet.evaluateAll(pointSet.point(pt),phi);
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
+        baseSet.evaluateAll(qp,phi);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
         const auto localSize(localMatrix.rows());
         for(auto i=0;i!=localSize;++i)
         {

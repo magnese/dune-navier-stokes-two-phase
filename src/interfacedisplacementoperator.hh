@@ -91,11 +91,11 @@ class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
 
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSet(entity,2*space_.order()+1);
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      for(const auto qp:quadrature)
       {
-        baseSet.jacobianAll(pointSet.point(pt),gradphi);
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
+        baseSet.jacobianAll(qp,gradphi);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());

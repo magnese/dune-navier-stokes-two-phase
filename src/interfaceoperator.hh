@@ -98,12 +98,12 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
       // assemble local \vec{A_m} (position)
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSet(entity,2*space_.order()+1);
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      for(const auto qp:quadrature)
       {
         // evaluate basis functions and weight
-        baseSet.jacobianAll(pointSet.point(pt),gradphi);
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
+        baseSet.jacobianAll(qp,gradphi);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
         // fill \vec{A_m}
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());
@@ -121,19 +121,19 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
       }
       // assemble local \vec{N_m} (curvature_j-position_i)
       #if USE_LAGRANGE_QUADRATURE_POINTS
-      auto pointSetBis(space_.template subDiscreteFunctionSpace<0>().lagrangePointSet(entity));
-      const auto ptWeight(ReferenceElements<ctype,griddim>::general(entity.type()).volume()/static_cast<RangeFieldType>(pointSetBis.nop()));
+      auto pointSet(space_.template subDiscreteFunctionSpace<0>().lagrangePointSet(entity));
+      const auto ptWeight(ReferenceElements<ctype,griddim>::general(entity.type()).volume()/static_cast<RangeFieldType>(pointSet.nop()));
       #else
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSetBis(entity,2*space_.order()+1);
+      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSet(entity,2*space_.order()+1);
       #endif
-      for(auto pt=0;pt!=pointSetBis.nop();++pt)
+      for(auto pt=0;pt!=pointSet.nop();++pt)
       {
         // evaluate basis functions and weight
-        baseSet.evaluateAll(pointSetBis.point(pt),phi);
+        baseSet.evaluateAll(pointSet.point(pt),phi);
         #if USE_LAGRANGE_QUADRATURE_POINTS
-        const auto weight(entity.geometry().integrationElement(pointSetBis.point(pt))*ptWeight);
+        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*ptWeight);
         #else
-        const auto weight(entity.geometry().integrationElement(pointSetBis.point(pt))*pointSetBis.weight(pt));
+        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
         #endif
         // fill \vec{N_m}
         const auto columnLocalSize(localMatrix.columns());
