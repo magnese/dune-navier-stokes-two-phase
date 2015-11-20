@@ -48,11 +48,23 @@ class MassMatrix:public Operator<typename LinearOperatorImp::DomainFunctionType,
   }
 
   // dump system matrix into file
-  inline void print(const std::string& filename="mass_matrix.dat") const
+  void print(const std::string& filename="mass_matrix.dat") const
   {
     std::ofstream ofs(filename);
-    op_.matrix().print(ofs,1);
-    ofs.close();
+    const auto rows(op_.matrix().rows());
+    auto count(decltype(rows){0});
+    for(auto row=decltype(rows){0};row!=rows;++row)
+    {
+      while(count<(op_.matrix().numNonZeros()*(row+1)))
+      {
+        const auto entry(op_.matrix().realValue(count));
+        const auto value(entry.first);
+        const auto col(entry.second);
+        if((std::abs(value)>1.e-13)&&(col>-1))
+          ofs<<row+1<<" "<<col+1<<" "<<value<<std::endl;
+        ++count;
+      }
+    }
   }
 
   inline const DomainSpaceType& domainSpace() const

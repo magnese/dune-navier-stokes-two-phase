@@ -3,7 +3,6 @@
 
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
-#include <dune/common/unused.hh>
 
 #include <string>
 #include <fstream>
@@ -40,18 +39,29 @@ class NullOperator:public Operator<typename LinearOperatorImp::DomainFunctionTyp
   }
 
   // apply the operator
-  virtual inline void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
+  virtual inline void operator()(const DomainFunctionType& ,RangeFunctionType& w) const
   {
-    DUNE_UNUSED_PARAMETER(u);
     w.clear();
   }
 
   // dump system matrix into file
-  inline void print(const std::string& filename="null_matrix.dat") const
+  void print(const std::string& filename="null_matrix.dat") const
   {
     std::ofstream ofs(filename);
-    op_.matrix().print(ofs,1);
-    ofs.close();
+    const auto rows(op_.matrix().rows());
+    auto count(decltype(rows){0});
+    for(auto row=decltype(rows){0};row!=rows;++row)
+    {
+      while(count<(op_.matrix().numNonZeros()*(row+1)))
+      {
+        const auto entry(op_.matrix().realValue(count));
+        const auto value(entry.first);
+        const auto col(entry.second);
+        if((std::abs(value)>1.e-13)&&(col>-1))
+          ofs<<row+1<<" "<<col+1<<" "<<value<<std::endl;
+        ++count;
+      }
+    }
   }
 
   inline const DomainSpaceType& domainSpace() const

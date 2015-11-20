@@ -38,7 +38,6 @@ class BulkVelocityRHS
   {
     std::ofstream ofs(filename);
     rhs_.print(ofs);
-    ofs.close();
   }
 
   inline double norm() const

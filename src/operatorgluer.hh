@@ -69,7 +69,7 @@ class OperatorGluer:public Operator<
   }
 
   // dump system matrix into file
-  inline void print(const std::string& filename="glued_matrix.dat") const
+  void print(const std::string& filename="glued_matrix.dat") const
   {
     std::ofstream ofs(filename);
     const auto rows(op_.matrix().rows());
