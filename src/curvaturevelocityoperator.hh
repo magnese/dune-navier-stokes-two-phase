@@ -146,12 +146,12 @@ class CurvatureVelocityOperator:public Operator<typename LinearOperatorImp::Doma
 
       // loop over quadrature nodes
       typedef CachingQuadrature<BulkGridPartType,1> QuadratureType;
-      QuadratureType pointSet(bulkgridpart_,intersection,2*curvaturespace_.order()+1,QuadratureType::INSIDE);
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      QuadratureType quadrature(bulkgridpart_,intersection,2*curvaturespace_.order()+1,QuadratureType::INSIDE);
+      for(const auto qp:quadrature)
       {
-        curvatureBaseSet.evaluateAll(pointSet.localPoint(pt),phiCurvature);
-        velocityBaseSet.evaluateAll(pointSet.point(pt),phiVelocity);
-        const auto weight(intersection.geometry().integrationElement(pointSet.localPoint(pt))*pointSet.weight(pt));
+        curvatureBaseSet.evaluateAll(qp.localPosition(),phiCurvature);
+        velocityBaseSet.evaluateAll(qp,phiVelocity);
+        const auto weight(intersection.geometry().integrationElement(qp.localPosition())*qp.weight());
 
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());

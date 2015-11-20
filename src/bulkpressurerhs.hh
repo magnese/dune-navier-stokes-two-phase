@@ -72,12 +72,12 @@ class BulkPressureRHS
             bc.localInterpolateBoundaryFunction(timeProvider.time(),intersection,g);
             const auto normal(intersection.centerUnitOuterNormal());
             typedef CachingQuadrature<typename DiscreteFunctionType::GridPartType,1> QuadratureType;
-            QuadratureType pointSet(gridPart,intersection,2*bc.domainSpace().order()+1,QuadratureType::INSIDE);
-            for(auto pt=0;pt!=pointSet.nop();++pt)
+            QuadratureType quadrature(gridPart,intersection,2*bc.domainSpace().order()+1,QuadratureType::INSIDE);
+            for(const auto qp:quadrature)
             {
               typename BCDiscreteFunctionType::RangeType gValue;
-              gLocal.evaluate(pointSet.point(pt),gValue);
-              const auto weight(intersection.geometry().integrationElement(pointSet.localPoint(pt))*pointSet.weight(pt));
+              gLocal.evaluate(qp.position(),gValue);
+              const auto weight(intersection.geometry().integrationElement(qp.localPosition())*qp.weight());
               integral+=(normal*gValue)*weight;
             }
           }
