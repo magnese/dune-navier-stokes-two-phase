@@ -4,8 +4,6 @@
 //#define ALUGRID_SIMPLEX
 #define ALBERTAGRID
 
-#define HAVE_UMFPACK 1
-
 #define PRESSURE_SPACE_TYPE 0 // 0 P0, 1 P1, 2 P1+P0
 
 #define REMESH_TYPE 1 // 0 none, 1 uniform, 2 fixed, 3 adaptive
