@@ -227,6 +227,61 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<
 };
 
 
+template<typename OperT,template<class DFT,class OT,bool S> class InvOperT=UMFPACKOp>
+class DirectPrecond:
+  public Dune::Preconditioner<typename OperT::DiscreteFunctionType::DofStorageType,typename OperT::DiscreteFunctionType::DofStorageType>
+{
+  public:
+  typedef OperT OperType;
+  typedef typename OperType::DiscreteFunctionType DiscreteFunctionType;
+  typedef InvOperT<DiscreteFunctionType,OperType,false> InvOperType;
+  typedef typename DiscreteFunctionType::DofStorageType domain_type;
+  typedef domain_type range_type;
+  typedef typename domain_type::field_type field_type;
+  enum {category=SolverCategory::sequential};
+
+  // constructor
+  explicit inline DirectPrecond(const OperType& op):
+    op_(op),invop_(op_),size_(op_.domainSpace().size()),d_(size_,0),x_(size_,0)
+  {}
+
+  inline void pre(domain_type& ,range_type& )
+  {
+    invop_.prepare();
+  }
+
+  void apply(domain_type& x,const range_type& d)
+  {
+    // extract pointers to the vectors
+    const double* dPtr(d_.data());
+    double* xPtr(x_.data());
+
+    // copy d into d_
+    for(auto i=decltype(size_){0};i!=size_;++i)
+      d_[i]=d[i];
+
+    // solve system
+    invop_.apply(dPtr,xPtr);
+
+    // copy x_into x
+    for(auto i=decltype(size_){0};i!=size_;++i)
+      x[i]=x_[i];
+  }
+
+  inline void post(domain_type& )
+  {
+    invop_.finalize();
+  }
+
+  private:
+  const OperType& op_;
+  InvOperType invop_;
+  std::size_t size_;
+  std::vector<double> d_;
+  std::vector<double> x_;
+};
+
+
 template<typename Oper11T,typename Oper12T,typename Oper21T,typename Oper22T>
 class IdPrecond:public Dune::Preconditioner<
   typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
