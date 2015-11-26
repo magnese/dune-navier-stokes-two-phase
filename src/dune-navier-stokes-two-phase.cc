@@ -6,6 +6,8 @@
 
 #define PRESSURE_SPACE_TYPE 0 // 0 P0, 1 P1, 2 P1+P0
 
+#define PRECONDITIONER_TYPE 0 // 0 blocks UMFPACK, 1 full UMFPACK, 2 full SPQR
+
 #define REMESH_TYPE 1 // 0 none, 1 uniform, 2 fixed, 3 adaptive
 
 #define PROBLEM_NUMBER 2 // 0 StokesTest1, 1 StokesTest2, 2 StationaryBubble, 3 ExpandingBubble, 4 ShearFlow

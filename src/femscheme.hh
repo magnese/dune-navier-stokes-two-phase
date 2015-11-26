@@ -13,6 +13,7 @@
 #include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/istl/solvers.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
+#include <dune/fem/solver/spqrsolver.hh>
 
 // local includes
 #include "problems.hh"
@@ -20,6 +21,7 @@
 #include "nullrhs.hh"
 #include "massmatrix.hh"
 #include "operatorwrapper.hh"
+#include "operatorgluer.hh"
 #include "coupledoperatorwrapper.hh"
 #include "preconditioners.hh"
 
@@ -316,8 +318,27 @@ class FemScheme
     typedef OperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,
                             VelocityPressureOperatorType,PressureOperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureOp);
+    #if PRECONDITIONER_TYPE == 0
     typedef StokesPrecond<VelocityOperatorType,PressureVelocityOperatorType,BulkMassMatrixOperatorType> BulkPreconditionerType;
     BulkPreconditionerType bulkPreconditioner(velocityOp,pressureVelocityOp,bulkMassMatrixOp);
+    #elif PRECONDITIONER_TYPE == 1
+    pressureOp.assemble();
+    typedef OperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,PressureOperatorType>
+      OperatorGluerType;
+    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureOp);
+    opGluer.assemble();
+    opGluer.applyDoctoring();
+    typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
+    BulkPreconditionerType bulkPreconditioner(opGluer);
+    #else
+    pressureOp.assemble();
+    typedef OperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,PressureOperatorType>
+      OperatorGluerType;
+    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureOp);
+    opGluer.assemble();
+    typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
+    BulkPreconditionerType bulkPreconditioner(opGluer);
+    #endif
     #else
     typedef ExtendedOperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,VelocityPressureOperatorType,
                                     PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> BulkOperatorWrapperType;
