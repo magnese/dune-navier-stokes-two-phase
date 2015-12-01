@@ -1,13 +1,11 @@
 #ifndef DUNE_FEM_INTERFACEOPERATOR_HH
 #define DUNE_FEM_INTERFACEOPERATOR_HH
 
-#define USE_LAGRANGE_QUADRATURE_POINTS 1
-
 #include <dune/geometry/referenceelements.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
-
+#include <dune/fem/quadrature/lumpingquadrature.hh>
 #include "normal.hh"
 
 #include <fstream>
@@ -92,7 +90,6 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
     std::vector<LocalFunctionJacobianRangeType> gradphi(space_.blockMapper().maxNumDofs()*blockSize);
     // extract dimensions
     constexpr auto worlddim(DiscreteSpaceType::GridType::dimensionworld);
-    constexpr auto griddim(DiscreteSpaceType::GridType::dimension);
     constexpr auto rangedim(DiscreteSpaceType::FunctionSpaceType::dimRange);
     // define normal
     typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
@@ -132,21 +129,12 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
         }
       }
       // assemble local \vec{N_m} (curvature_j-position_i)
-      #if USE_LAGRANGE_QUADRATURE_POINTS
-      auto pointSet(space_.template subDiscreteFunctionSpace<0>().lagrangePointSet(entity));
-      const auto ptWeight(ReferenceElements<ctype,griddim>::general(entity.type()).volume()/static_cast<RangeFieldType>(pointSet.nop()));
-      #else
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> pointSet(entity,2*space_.order()+1);
-      #endif
-      for(auto pt=0;pt!=pointSet.nop();++pt)
+      CachingLumpingQuadrature<typename DiscreteSpaceType::GridPartType,0> lumpingQuadrature(entity);
+      for(const auto qp:lumpingQuadrature)
       {
         // evaluate basis functions and weight
-        baseSet.evaluateAll(pointSet.point(pt),phi);
-        #if USE_LAGRANGE_QUADRATURE_POINTS
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*ptWeight);
-        #else
-        const auto weight(entity.geometry().integrationElement(pointSet.point(pt))*pointSet.weight(pt));
-        #endif
+        baseSet.evaluateAll(qp,phi);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
         // fill \vec{N_m}
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());
