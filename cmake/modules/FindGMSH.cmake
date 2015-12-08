@@ -66,13 +66,13 @@ if(GMSH_FOUND)
     CACHE STRING "Compile Flags used by DUNE when compiling with GMSH programs")
   set(GMSH_DUNE_LIBRARIES ${GMSH_LIBRARIES}
     CACHE STRING "Libraries used by DUNE when linking GMSH programs")
-else(GMSH_FOUND)
+else()
   # log errornous result
   file(APPEND ${CMAKE_BINARY_DIR}${CMAKES_FILES_DIRECTORY}/CMakeError.log
     "Determing location of GMSH failed:\n"
     "Include directory: ${GMSH_INCLUDE_DIRS}\n"
     "Library directory: ${GMSH_LIBRARIES}\n\n")
-endif(GMSH_FOUND)
+endif()
 
 #set HAVE_GMSH for config.h
 set(HAVE_GMSH ${GMSH_FOUND})
@@ -82,4 +82,4 @@ if(GMSH_FOUND)
   dune_register_package_flags(
     LIBRARIES "${GMSH_LIBRARIES}"
     INCLUDE_DIRS "${GMSH_INCLUDE_DIRS}")
-endif(GMSH_FOUND)
+endif()
