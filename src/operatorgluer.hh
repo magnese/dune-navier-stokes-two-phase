@@ -46,7 +46,7 @@ class OperatorGluer:public Operator<
   typedef DomainFunctionType DiscreteFunctionType;
   typedef SparseRowLinearOperator<DomainFunctionType,RangeFunctionType> LinearOperatorType;
   typedef OperatorGluer<Op11Type,Op12Type,Op21Type,Op22Type> ThisType;
-  typedef Operator<DomainSpace1Type,DomainSpace2Type> BaseType;
+  typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
   // constructor
@@ -101,8 +101,7 @@ class OperatorGluer:public Operator<
   void assemble() const
   {
     // reserve matrix
-    const auto maxNumNonZeros(std::max(std::max(mat11_.numNonZeros(),mat12_.numNonZeros()),
-                                       std::max(mat21_.numNonZeros(),mat22_.numNonZeros())));
+    const auto maxNumNonZeros(std::max(mat11_.numNonZeros()+mat12_.numNonZeros(),mat21_.numNonZeros()+mat22_.numNonZeros()));
     SimpleStencil<DomainSpaceType,RangeSpaceType> stencil(maxNumNonZeros);
     op_.reserve(stencil);
     op_.clear();
