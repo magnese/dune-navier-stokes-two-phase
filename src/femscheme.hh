@@ -344,10 +344,27 @@ class FemScheme
                                     PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,
                                    velocityPressureAdditionalOp);
+    #if PRECONDITIONER_TYPE == 0
     typedef ExtendedStokesPrecond<VelocityOperatorType,PressureVelocityOperatorType,BulkMassMatrixOperatorType,
                                   PressureAdditionalVelocityOperatorType,BulkMassMatrixAdditionalOperatorType> BulkPreconditionerType;
     BulkPreconditionerType bulkPreconditioner(velocityOp,pressureVelocityOp,bulkMassMatrixOp,pressureAdditionalVelocityOp,
                                               bulkMassMatrixAdditionalOp);
+    #elif PRECONDITIONER_TYPE == 1
+    typedef ExtendedOperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,
+                                  PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> OperatorGluerType;
+    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,velocityPressureAdditionalOp);
+    opGluer.assemble();
+    opGluer.applyDoctoring();
+    typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
+    BulkPreconditionerType bulkPreconditioner(opGluer);
+    #else
+    typedef ExtendedOperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,
+                                  PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> OperatorGluerType;
+    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,velocityPressureAdditionalOp);
+    opGluer.assemble();
+    typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
+    BulkPreconditionerType bulkPreconditioner(opGluer);
+    #endif
     #endif
 
     typedef Dune::RestartedGMResSolver<typename BulkDiscreteFunctionType::DofStorageType> BulkLinearInverseOperatorType;
