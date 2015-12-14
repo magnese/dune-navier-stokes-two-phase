@@ -39,15 +39,15 @@ class StokesPrecond:public Dune::Preconditioner<
   enum {category=SolverCategory::sequential};
 
   // constructor
-  explicit inline StokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22):
+  explicit StokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22):
     op11_(op11),op12_(op12),op22_(op22),invop11_(op11),invop22_(op22),d1_(op11_.domainSpace().size(),0),x1_(op11_.domainSpace().size(),0),
     d2_(op12_.domainSpace().size(),0),x2_(op12_.domainSpace().size(),0)
   {}
 
-  inline ~StokesPrecond()
+  ~StokesPrecond()
   {}
 
-  inline void pre(domain_type& ,range_type& )
+  void pre(domain_type& ,range_type& )
   {
     invop11_.prepare();
     invop22_.prepare();
@@ -87,7 +87,7 @@ class StokesPrecond:public Dune::Preconditioner<
       x[pos]=(*it);
   }
 
-  inline void post(domain_type& )
+  void post(domain_type& )
   {
     invop11_.finalize();
     invop22_.finalize();
@@ -138,17 +138,17 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<
   enum {category=SolverCategory::sequential};
 
   // constructor
-  explicit inline ExtendedStokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22,const Oper13Type& op13,
+  explicit ExtendedStokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22,const Oper13Type& op13,
                                         const Oper33Type& op33):
     op11_(op11),op12_(op12),op22_(op22),op13_(op13),op33_(op33),invop11_(op11),invop22_(op22),invop33_(op33),
     d1_(op11_.domainSpace().size(),0),x1_(op11_.domainSpace().size(),0),d2_(op12_.domainSpace().size(),0),x2_(op12_.domainSpace().size(),0),
     d3_(op13_.domainSpace().size(),0),x3_(op13_.domainSpace().size(),0)
   {}
 
-  inline ~ExtendedStokesPrecond()
+  ~ExtendedStokesPrecond()
   {}
 
-  inline void pre(domain_type& ,range_type& )
+  void pre(domain_type& ,range_type& )
   {
     invop11_.prepare();
     invop22_.prepare();
@@ -202,7 +202,7 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<
       x[pos]=(*it);
   }
 
-  inline void post(domain_type& )
+  void post(domain_type& )
   {
     invop11_.finalize();
     invop22_.finalize();
@@ -241,11 +241,11 @@ class DirectPrecond:
   enum {category=SolverCategory::sequential};
 
   // constructor
-  explicit inline DirectPrecond(const OperType& op):
+  explicit DirectPrecond(const OperType& op):
     op_(op),invop_(op_),size_(op_.domainSpace().size()),d_(size_,0),x_(size_,0)
   {}
 
-  inline void pre(domain_type& ,range_type& )
+  void pre(domain_type& ,range_type& )
   {
     invop_.prepare();
   }
@@ -268,7 +268,7 @@ class DirectPrecond:
       x[i]=x_[i];
   }
 
-  inline void post(domain_type& )
+  void post(domain_type& )
   {
     invop_.finalize();
   }
@@ -309,19 +309,19 @@ class IdPrecond:public Dune::Preconditioner<
   enum {category=SolverCategory::sequential};
 
   // constructor
-  explicit inline IdPrecond(const Oper11Type& ,const Oper12Type& ,const Oper21Type& ,const Oper22Type& )
+  explicit IdPrecond(const Oper11Type& ,const Oper12Type& ,const Oper21Type& ,const Oper22Type& )
   {}
 
-  inline void pre(domain_type& ,range_type& )
+  void pre(domain_type& ,range_type& )
   {}
 
-  inline void apply(domain_type& x,const range_type& d)
+  void apply(domain_type& x,const range_type& d)
   {
     for(auto i=0;i!=d.size();++i)
       x[i]=d[i];
   }
 
-  inline void post(domain_type& )
+  void post(domain_type& )
   {}
 };
 

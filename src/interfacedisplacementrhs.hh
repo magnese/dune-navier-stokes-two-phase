@@ -26,19 +26,19 @@ class InterfaceDisplacementRHS
 
   InterfaceDisplacementRHS(const ThisType& )=delete;
 
-  inline DiscreteFunctionType& rhs() const
+  DiscreteFunctionType& rhs() const
   {
     return rhs_;
   }
 
   // dump rhs vector into file
-  inline void print(const std::string& filename="interface_displacement_rhs.dat") const
+  void print(const std::string& filename="interface_displacement_rhs.dat") const
   {
     std::ofstream ofs(filename);
     rhs_.print(ofs);
   }
 
-  inline double norm() const
+  double norm() const
   {
     return sqrt(rhs_.scalarProductDofs(rhs_));
   }

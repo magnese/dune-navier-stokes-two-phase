@@ -33,13 +33,13 @@ class NullOperator:public Operator<typename LinearOperatorImp::DomainFunctionTyp
 
   NullOperator(const ThisType& )=delete;
 
-  inline LinearOperatorType& systemMatrix() const
+  LinearOperatorType& systemMatrix() const
   {
     return op_;
   }
 
   // apply the operator
-  virtual inline void operator()(const DomainFunctionType& ,RangeFunctionType& w) const
+  virtual void operator()(const DomainFunctionType& ,RangeFunctionType& w) const
   {
     w.clear();
   }
@@ -64,12 +64,12 @@ class NullOperator:public Operator<typename LinearOperatorImp::DomainFunctionTyp
     }
   }
 
-  inline const DomainSpaceType& domainSpace() const
+  const DomainSpaceType& domainSpace() const
   {
     return domainspace_;
   }
 
-  inline const RangeSpaceType& rangeSpace() const
+  const RangeSpaceType& rangeSpace() const
   {
     return rangespace_;
   }

@@ -42,62 +42,62 @@ class BulkInterfaceGridMapper
     vtxbulk2interface_(0),vtxinterface2bulk_(0)
   {}
 
-  inline std::vector<std::size_t>& vtxBulk2Interface()
+  std::vector<std::size_t>& vtxBulk2Interface()
   {
     return vtxbulk2interface_;
   }
 
-  inline const std::vector<std::size_t>& vtxBulk2Interface() const
+  const std::vector<std::size_t>& vtxBulk2Interface() const
   {
     return vtxbulk2interface_;
   }
 
-  inline std::size_t& vtxBulk2Interface(const std::size_t& i)
+  std::size_t& vtxBulk2Interface(const std::size_t& i)
   {
     return vtxbulk2interface_[i];
   }
 
-  inline const std::size_t& vtxBulk2Interface(const std::size_t& i) const
+  const std::size_t& vtxBulk2Interface(const std::size_t& i) const
   {
     return vtxbulk2interface_[i];
   }
 
-  inline std::vector<std::size_t>& vtxInterface2Bulk()
+  std::vector<std::size_t>& vtxInterface2Bulk()
   {
     return vtxinterface2bulk_;
   }
 
-  inline const std::vector<std::size_t>& vtxInterface2Bulk() const
+  const std::vector<std::size_t>& vtxInterface2Bulk() const
   {
     return vtxinterface2bulk_;
   }
 
-  inline std::size_t& vtxInterface2Bulk(const std::size_t& i)
+  std::size_t& vtxInterface2Bulk(const std::size_t& i)
   {
     return vtxinterface2bulk_[i];
   }
 
-  inline const std::size_t& vtxInterface2Bulk(const std::size_t& i) const
+  const std::size_t& vtxInterface2Bulk(const std::size_t& i) const
   {
     return vtxinterface2bulk_[i];
   }
 
-  inline void addBulkEntity2Mapping(const BulkEntityType& entity,const unsigned int& faceLocalIdx)
+  void addBulkEntity2Mapping(const BulkEntityType& entity,const unsigned int& faceLocalIdx)
   {
      entityinterface2bulk_.push_back(std::make_pair(entity.seed(),faceLocalIdx));
   }
 
-  inline const BulkEntitySeedType& entitySeedInterface2Bulk(const std::size_t& i) const
+  const BulkEntitySeedType& entitySeedInterface2Bulk(const std::size_t& i) const
   {
     return entityinterface2bulk_[i].first;
   }
 
-  inline const unsigned int& faceLocalIdxInterface2Bulk(const std::size_t& i) const
+  const unsigned int& faceLocalIdxInterface2Bulk(const std::size_t& i) const
   {
     return entityinterface2bulk_[i].second;
   }
 
-  inline void free()
+  void free()
   {
     vtxbulk2interface_.clear();
     vtxinterface2bulk_.clear();
@@ -133,13 +133,13 @@ class RemeshingVolumeCriteria
     coeff_(Parameter::getValue<double>("CoeffRemeshing",3.0))
   {}
 
-  inline void printInfo(std::ostream& s=std::cout) const
+  void printInfo(std::ostream& s=std::cout) const
   {
     s<<"coeff_remesh = "<<coeff_<<(coeff_<1.0?" (WARNING: remesh disabled!)":"")<<std::endl;
   }
 
   template<typename GridType>
-  inline bool remshingIsNeeded(const GridType& grid) const
+  bool remshingIsNeeded(const GridType& grid) const
   {
     bool needed(false);
     if(coeff_>1.0)
@@ -241,67 +241,67 @@ class CoupledMeshManager
   // copy assignament
   ThisType& operator=(const ThisType& )=default;
 
-  inline void printInfo(std::ostream& s=std::cout) const
+  void printInfo(std::ostream& s=std::cout) const
   {
     manager_.printInfo(s);
     remeshingcriteria_.printInfo(s);
   }
 
-  inline BulkGridType& bulkGrid()
+  BulkGridType& bulkGrid()
   {
     return *bulkgrid_;
   }
-  inline const BulkGridType& bulkGrid() const
+  const BulkGridType& bulkGrid() const
   {
     return *bulkgrid_;
   }
-  inline const BulkIndicatorFunctionType& bulkIndicatorFunction() const
+  const BulkIndicatorFunctionType& bulkIndicatorFunction() const
   {
     return *bulkindicator_;
   }
-  inline InterfaceGridType& interfaceGrid()
+  InterfaceGridType& interfaceGrid()
   {
     return *interfacegrid_;
   }
-  inline const InterfaceGridType& interfaceGrid() const
+  const InterfaceGridType& interfaceGrid() const
   {
     return *interfacegrid_;
   }
-  inline BulkInterfaceGridMapperType& mapper()
+  BulkInterfaceGridMapperType& mapper()
   {
     return *mapper_;
   }
-  inline const BulkInterfaceGridMapperType& mapper() const
+  const BulkInterfaceGridMapperType& mapper() const
   {
     return *mapper_;
   }
-  inline GmshManagerType& manager()
+  GmshManagerType& manager()
   {
     return manager_;
   }
-  inline const GmshManagerType& manager() const
+  const GmshManagerType& manager() const
   {
     return manager_;
   }
-  inline std::vector<int>& boundaryIDs()
+  std::vector<int>& boundaryIDs()
   {
     return *boundaryids_;
   }
-  inline const std::vector<int>& boundaryIDs() const
+  const std::vector<int>& boundaryIDs() const
   {
     return *boundaryids_;
   }
-  inline std::vector<int>& elementsIDs()
+  std::vector<int>& elementsIDs()
   {
     return *elementsids_;
   }
-  inline const std::vector<int>& elementsIDs() const
+  const std::vector<int>& elementsIDs() const
   {
     return *elementsids_;
   }
 
   // the sequence numebr increase each time the mesh changes
-  inline const unsigned int& sequence() const
+  const unsigned int& sequence() const
   {
     return sequence_;
   }
@@ -490,7 +490,7 @@ class CoupledMeshManager
   }
 
   template<typename GT>
-  inline void printGridInfo(const GT& grid) const
+  void printGridInfo(const GT& grid) const
   {
     std::cout<<std::endl<<"Created grid (dimgrid = "<<GT::dimension<<") with "<<grid.size(0)<<" elements and "
       <<grid.size(GT::dimension)<<" vertices."<<std::endl<<std::endl;;

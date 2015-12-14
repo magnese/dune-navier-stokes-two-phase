@@ -35,7 +35,7 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
 
   InterfaceOperator(const ThisType& )=delete;
 
-  virtual inline void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
+  virtual void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
   {
     op_.apply(u,w);
   }
@@ -60,17 +60,17 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
     }
   }
 
-  inline const DiscreteSpaceType& domainSpace() const
+  const DiscreteSpaceType& domainSpace() const
   {
     return space_;
   }
 
-  inline const DiscreteSpaceType& rangeSpace() const
+  const DiscreteSpaceType& rangeSpace() const
   {
     return space_;
   }
 
-  inline const LinearOperatorType& systemMatrix() const
+  const LinearOperatorType& systemMatrix() const
   {
     return op_;
   }

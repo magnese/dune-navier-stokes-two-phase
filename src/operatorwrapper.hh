@@ -45,7 +45,7 @@ class OperatorWrapper:public Dune::LinearOperator<
   typedef typename Oper11Type::RangeFunctionType RangeFunction1Type;
 
   // constructor
-  inline OperatorWrapper(const Oper11Type& oper11,const Oper12Type& oper12,const Oper21Type& oper21,const Oper22Type& oper22):
+  OperatorWrapper(const Oper11Type& oper11,const Oper12Type& oper12,const Oper21Type& oper21,const Oper22Type& oper22):
     oper11_(oper11),oper12_(oper12),oper21_(oper21),oper22_(oper22)
   {}
 
@@ -162,7 +162,7 @@ class ExtendedOperatorWrapper:public Dune::LinearOperator<
   typedef typename Oper31Type::RangeFunctionType RangeFunction3Type;
 
   // constructor
-  inline ExtendedOperatorWrapper(const Oper11Type& oper11,const Oper12Type& oper12,const Oper21Type& oper21,const Oper13Type& oper13,
+  ExtendedOperatorWrapper(const Oper11Type& oper11,const Oper12Type& oper12,const Oper21Type& oper21,const Oper13Type& oper13,
                                  const Oper31Type& oper31):
     oper11_(oper11),oper12_(oper12),oper21_(oper21),oper13_(oper13),oper31_(oper31)
   {}

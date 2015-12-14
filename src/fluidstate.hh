@@ -26,24 +26,24 @@ class OutputParameters:public DataOutputParameters
     prefix_(prefix),startcounter_(0),startcall_(0),startsavetime_(0.0)
   {}
 
-  inline std::string prefix() const
+  std::string prefix() const
   {
     return prefix_;
   }
-  inline int startcounter() const
+  int startcounter() const
   {
     return startcounter_;
   }
-  inline int startcall() const
+  int startcall() const
   {
     return startcall_;
   }
-  inline double startsavetime() const
+  double startsavetime() const
   {
     return startsavetime_;
   }
   template<typename DOT>
-  inline void saveState(const DOT& dataOutput) const
+  void saveState(const DOT& dataOutput) const
   {
     startcounter_=dataOutput.writeStep();
     startcall_=dataOutput.writeCalls();
@@ -159,161 +159,161 @@ class FluidState
   }
 
   // get mesh manager
-  inline CoupledMeshManagerType& meshManager()
+  CoupledMeshManagerType& meshManager()
   {
     return meshmanager_;
   }
-  inline const CoupledMeshManagerType& meshManager() const
+  const CoupledMeshManagerType& meshManager() const
   {
     return meshmanager_;
   }
 
   // get grid
-  inline BulkGridType& bulkGrid()
+  BulkGridType& bulkGrid()
   {
     return meshmanager_.bulkGrid();
   }
-  inline InterfaceGridType& interfaceGrid()
+  InterfaceGridType& interfaceGrid()
   {
     return meshmanager_.interfaceGrid();
   }
 
   // get grid parts
-  inline BulkGridPartType& bulkGridPart()
+  BulkGridPartType& bulkGridPart()
   {
     return *bulkgridpart_;
   }
-  inline InterfaceGridPartType& interfaceGridPart()
+  InterfaceGridPartType& interfaceGridPart()
   {
     return *interfacegridpart_;
   }
 
   // get spaces
-  inline const VelocityDiscreteSpaceType& velocitySpace() const
+  const VelocityDiscreteSpaceType& velocitySpace() const
   {
     return *velocityspace_;
   }
-  inline const PressureDiscreteSpaceType& pressureSpace() const
+  const PressureDiscreteSpaceType& pressureSpace() const
   {
     return *pressurespace_;
   }
   #if PRESSURE_SPACE_TYPE != 2
-  inline const PressureDumpDiscreteSpaceType& pressureDumpSpace() const
+  const PressureDumpDiscreteSpaceType& pressureDumpSpace() const
   {
     return *pressurespace_;
   }
   #else
-  inline const PressureAdditionalDiscreteSpaceType& pressureAdditionalSpace() const
+  const PressureAdditionalDiscreteSpaceType& pressureAdditionalSpace() const
   {
     return *pressureadditionalspace_;
   }
-  inline const PressureDumpDiscreteSpaceType& pressureDumpSpace() const
+  const PressureDumpDiscreteSpaceType& pressureDumpSpace() const
   {
     return *pressuredumpspace_;
   }
   #endif
-  inline const BulkDiscreteSpaceType& bulkSpace() const
+  const BulkDiscreteSpaceType& bulkSpace() const
   {
     return *bulkspace_;
   }
-  inline const CurvatureDiscreteSpaceType& curvatureSpace() const
+  const CurvatureDiscreteSpaceType& curvatureSpace() const
   {
     return *curvaturespace_;
   }
-  inline const DisplacementDiscreteSpaceType& displacementSpace() const
+  const DisplacementDiscreteSpaceType& displacementSpace() const
   {
     return *displacementspace_;
   }
-  inline const InterfaceDiscreteSpaceType& interfaceSpace() const
+  const InterfaceDiscreteSpaceType& interfaceSpace() const
   {
     return *interfacespace_;
   }
-  inline const BulkDisplacementDiscreteSpaceType& bulkDisplacementSpace() const
+  const BulkDisplacementDiscreteSpaceType& bulkDisplacementSpace() const
   {
     return *bulkdisplacementspace_;
   }
 
   // get discrete functions
-  inline VelocityDiscreteFunctionType& velocity()
+  VelocityDiscreteFunctionType& velocity()
   {
     return *velocity_;
   }
-  inline const VelocityDiscreteFunctionType& velocity() const
+  const VelocityDiscreteFunctionType& velocity() const
   {
     return *velocity_;
   }
-  inline PressureDiscreteFunctionType& pressure()
+  PressureDiscreteFunctionType& pressure()
   {
     return *pressure_;
   }
-  inline const PressureDiscreteFunctionType& pressure() const
+  const PressureDiscreteFunctionType& pressure() const
   {
     return *pressure_;
   }
   #if PRESSURE_SPACE_TYPE != 2
-  inline PressureDumpDiscreteFunctionType& pressureDump()
+  PressureDumpDiscreteFunctionType& pressureDump()
   {
     return *pressure_;
   }
-  inline const PressureDumpDiscreteFunctionType& pressureDump() const
+  const PressureDumpDiscreteFunctionType& pressureDump() const
   {
     return *pressure_;
   }
   #else
-  inline PressureAdditionalDiscreteFunctionType& pressureAdditional()
+  PressureAdditionalDiscreteFunctionType& pressureAdditional()
   {
     return *pressureadditional_;
   }
-  inline const PressureAdditionalDiscreteFunctionType& pressureAdditional() const
+  const PressureAdditionalDiscreteFunctionType& pressureAdditional() const
   {
     return *pressureadditional_;
   }
-  inline PressureDumpDiscreteFunctionType& pressureDump()
+  PressureDumpDiscreteFunctionType& pressureDump()
   {
     return *pressuredump_;
   }
-  inline const PressureDumpDiscreteFunctionType& pressureDump() const
+  const PressureDumpDiscreteFunctionType& pressureDump() const
   {
     return *pressuredump_;
   }
   #endif
-  inline BulkDiscreteFunctionType& bulkSolution()
+  BulkDiscreteFunctionType& bulkSolution()
   {
     return *bulk_;
   }
-  inline const BulkDiscreteFunctionType& bulkSolution() const
+  const BulkDiscreteFunctionType& bulkSolution() const
   {
     return *bulk_;
   }
-  inline CurvatureDiscreteFunctionType& curvature()
+  CurvatureDiscreteFunctionType& curvature()
   {
     return *curvature_;
   }
-  inline const CurvatureDiscreteFunctionType& curvature() const
+  const CurvatureDiscreteFunctionType& curvature() const
   {
     return *curvature_;
   }
-  inline DisplacementDiscreteFunctionType& displacement()
+  DisplacementDiscreteFunctionType& displacement()
   {
     return *displacement_;
   }
-  inline const DisplacementDiscreteFunctionType& displacement() const
+  const DisplacementDiscreteFunctionType& displacement() const
   {
     return *displacement_;
   }
-  inline InterfaceDiscreteFunctionType& interfaceSolution()
+  InterfaceDiscreteFunctionType& interfaceSolution()
   {
     return *interface_;
   }
-  inline const InterfaceDiscreteFunctionType& interfaceSolution() const
+  const InterfaceDiscreteFunctionType& interfaceSolution() const
   {
     return *interface_;
   }
-  inline BulkDisplacementDiscreteFunctionType& bulkDisplacement()
+  BulkDisplacementDiscreteFunctionType& bulkDisplacement()
   {
     return *bulkdisplacement_;
   }
-  inline const BulkDisplacementDiscreteFunctionType& bulkDisplacement() const
+  const BulkDisplacementDiscreteFunctionType& bulkDisplacement() const
   {
     return *bulkdisplacement_;
   }
@@ -369,7 +369,7 @@ class FluidState
 
   // dump solutions on file
   template<typename TimeProviderType>
-  inline void dumpBulkSolutions(const TimeProviderType& timeProvider) const
+  void dumpBulkSolutions(const TimeProviderType& timeProvider) const
   {
     #if PRESSURE_SPACE_TYPE == 2
     for(const auto entity:entities(pressure()))
@@ -385,7 +385,7 @@ class FluidState
     bulkoutputparameters_.saveState(*bulkoutput_);
   }
   template<typename TimeProviderType>
-  inline void dumpInterfaceSolutions(const TimeProviderType& timeProvider) const
+  void dumpInterfaceSolutions(const TimeProviderType& timeProvider) const
   {
     interfaceoutput_->write(timeProvider);
     interfaceoutputparameters_.saveState(*interfaceoutput_);

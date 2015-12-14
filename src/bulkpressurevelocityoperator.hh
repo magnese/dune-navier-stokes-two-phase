@@ -36,13 +36,13 @@ class BulkPressureVelocityOperator:public Operator<typename LinearOperatorImp::D
 
   BulkPressureVelocityOperator(const ThisType& )=delete;
 
-  inline LinearOperatorType& systemMatrix() const
+  LinearOperatorType& systemMatrix() const
   {
     return op_;
   }
 
   // apply the operator
-  virtual inline void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
+  virtual void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
   {
     op_.apply(u,w);
   }
@@ -67,12 +67,12 @@ class BulkPressureVelocityOperator:public Operator<typename LinearOperatorImp::D
     }
   }
 
-  inline const DomainSpaceType& domainSpace() const
+  const DomainSpaceType& domainSpace() const
   {
     return domainspace_;
   }
 
-  inline const RangeSpaceType& rangeSpace() const
+  const RangeSpaceType& rangeSpace() const
   {
     return rangespace_;
   }

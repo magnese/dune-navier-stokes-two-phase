@@ -99,7 +99,7 @@ enum GmshAlgorithmType {automatic=2,delaunay=5,frontal=6,meshadapt=1};
 struct FixedCharlength
 {
   template<typename... Args>
-  inline FixedCharlength(const Args&... )
+  FixedCharlength(const Args&... )
   {}
 
   static void printInfo(std::ostream& s=std::cout)
@@ -108,7 +108,7 @@ struct FixedCharlength
   }
 
   template<typename... Args>
-  inline double operator()(const GVertex& vtx,const Args&...) const
+  double operator()(const GVertex& vtx,const Args&...) const
   {
     return vtx.prescribedMeshSizeAtVertex();
   }
@@ -138,7 +138,7 @@ struct UniformCharlength
   }
 
   template<typename... Args>
-  inline double operator()(const Args&... ) const
+  double operator()(const Args&... ) const
   {
     return charlength_;
   }
@@ -170,7 +170,7 @@ struct AdaptiveCharlength
   }
 
   template<typename VertexType,typename InterfaceGridType>
-  inline double operator()(const VertexType& vtx,const InterfaceGridType& interfaceGrid) const
+  double operator()(const VertexType& vtx,const InterfaceGridType& interfaceGrid) const
   {
     double dist(8.0*charlength_);
     const auto interfaceGridLeafView(interfaceGrid.leafGridView());
@@ -196,21 +196,21 @@ class GMSHSimpleManager
     filename_(Fem::Parameter::getValue<std::string>("CompoundFileName","compound.msh"))
   {}
 
-  inline void printInfo(std::ostream& s=std::cout) const
+  void printInfo(std::ostream& s=std::cout) const
   {
     s<<"Compound mesh filename: "<<filename_<<std::endl;
     s<<"Remesh type = none"<<std::endl;
   }
 
   template<typename BulkGridType,typename... Args>
-  inline void create(GridFactory<BulkGridType>& bulkGridFactory,std::vector<int>& boundaryIDs,std::vector<int>& elementsIDs,
+  void create(GridFactory<BulkGridType>& bulkGridFactory,std::vector<int>& boundaryIDs,std::vector<int>& elementsIDs,
                      const Args&...)
   {
     GmshReader<BulkGridType>::read(bulkGridFactory,filename_,boundaryIDs,elementsIDs);
   }
 
   template<typename... Args>
-  inline void remesh(const Args&...)
+  void remesh(const Args&...)
   {}
 
   static constexpr bool remeshingSupported=false;
@@ -224,7 +224,7 @@ template<unsigned int dim,typename CharlengthPolicyImp,typename Imp>
 class GMSHCompoundManagerBase
 {
   public:
-  inline void printInfo(std::ostream& s=std::cout) const
+  void printInfo(std::ostream& s=std::cout) const
   {
     s<<"Domain mesh filename: "<<domainfilename_<<std::endl;
     s<<"Interface mesh filename: "<<interfacefilename_<<std::endl;
@@ -233,7 +233,7 @@ class GMSHCompoundManagerBase
   }
 
   template<typename BulkGridType>
-  inline void create(GridFactory<BulkGridType>& bulkGridFactory,std::vector<int>& boundaryIDs,std::vector<int>& elementsIDs)
+  void create(GridFactory<BulkGridType>& bulkGridFactory,std::vector<int>& boundaryIDs,std::vector<int>& elementsIDs)
   {
     // load domain
     domain()=std::make_shared<GModel>();
@@ -296,24 +296,24 @@ class GMSHCompoundManagerBase
     GmshFinalize();
   }
 
-  inline Implementation& imp()
+  Implementation& imp()
   {
     return static_cast<Implementation&>(*this);
   }
 
-  inline std::shared_ptr<GModel>& domain()
+  std::shared_ptr<GModel>& domain()
   {
     return gmodelptrs_[0];
   }
-  inline std::shared_ptr<GModel>& interface()
+  std::shared_ptr<GModel>& interface()
   {
     return gmodelptrs_[1];
   }
-  inline std::shared_ptr<GModel>& hole()
+  std::shared_ptr<GModel>& hole()
   {
     return gmodelptrs_[2];
   }
-  inline std::shared_ptr<GModel>& compound()
+  std::shared_ptr<GModel>& compound()
   {
     return gmodelptrs_[3];
   }
@@ -321,27 +321,27 @@ class GMSHCompoundManagerBase
   static constexpr unsigned int worlddim=dim;
 
   public:
-  inline bool& hasHole()
+  bool& hasHole()
   {
     return hashole_;
   }
-  inline void writeInterfaceGeo(const std::string& fileName="interface.geo")
+  void writeInterfaceGeo(const std::string& fileName="interface.geo")
   {
     interface()->writeGEO(fileName,true,false);
   }
-  inline void writeInterfaceMsh(const std::string& fileName="interface.msh")
+  void writeInterfaceMsh(const std::string& fileName="interface.msh")
   {
     interface()->writeMSH(fileName,2.2,false,false);
   }
-  inline void writeCompoundGeo(const std::string& fileName="compound.geo")
+  void writeCompoundGeo(const std::string& fileName="compound.geo")
   {
     compound()->writeGEO(fileName,true,false);
   }
-  inline void writeCompoundMsh(const std::string& fileName="compound.msh")
+  void writeCompoundMsh(const std::string& fileName="compound.msh")
   {
     compound()->writeMSH(fileName,2.2,false,false);
   }
-  inline void setAlgorithm(const GmshAlgorithmType& algorithm)
+  void setAlgorithm(const GmshAlgorithmType& algorithm)
   {
     GmshSetOption("Mesh","Algorithm",static_cast<double>(algorithm));
   }
@@ -388,7 +388,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
 
   public:
   template<typename... Args>
-  inline GMSHCompoundManager(Args&&... args):
+  GMSHCompoundManager(Args&&... args):
     BaseType(args...)
   {}
 
@@ -596,7 +596,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
 
   public:
   template<typename... Args>
-  inline GMSHCompoundManager(Args&&... args):
+  GMSHCompoundManager(Args&&... args):
     BaseType(args...)
   {}
 

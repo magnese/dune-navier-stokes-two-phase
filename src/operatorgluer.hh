@@ -50,20 +50,20 @@ class OperatorGluer:public Operator<
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
   // constructor
-  inline OperatorGluer(const Op11Type& op11,const Op12Type& op12,const Op21Type& op21,const Op22Type& op22):
+  OperatorGluer(const Op11Type& op11,const Op12Type& op12,const Op21Type& op21,const Op22Type& op22):
     mat11_(op11.systemMatrix().matrix()),mat12_(op12.systemMatrix().matrix()),mat21_(op21.systemMatrix().matrix()),
     mat22_(op22.systemMatrix().matrix()),space_(op11.domainSpace().gridPart()),op_("gluer operator",space_,space_)
   {}
 
   OperatorGluer(const ThisType& )=delete;
 
-  inline const LinearOperatorType& systemMatrix() const
+  const LinearOperatorType& systemMatrix() const
   {
     return op_;
   }
 
   // apply the operator
-  virtual inline void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
+  virtual void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
   {
     op_.apply(u,w);
   }
@@ -88,12 +88,12 @@ class OperatorGluer:public Operator<
     }
   }
 
-  inline const DomainSpaceType& domainSpace() const
+  const DomainSpaceType& domainSpace() const
   {
     return space_;
   }
 
-  inline const RangeSpaceType& rangeSpace() const
+  const RangeSpaceType& rangeSpace() const
   {
     return space_;
   }
@@ -210,7 +210,7 @@ class ExtendedOperatorGluer:public Operator<
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
   // constructor
-  inline ExtendedOperatorGluer(const Op11Type& op11,const Op12Type& op12,const Op21Type& op21,const Op13Type& op13,const Op31Type& op31):
+  ExtendedOperatorGluer(const Op11Type& op11,const Op12Type& op12,const Op21Type& op21,const Op13Type& op13,const Op31Type& op31):
     mat11_(op11.systemMatrix().matrix()),mat12_(op12.systemMatrix().matrix()),mat21_(op21.systemMatrix().matrix()),
     mat13_(op13.systemMatrix().matrix()),mat31_(op31.systemMatrix().matrix()),space_(op11.domainSpace().gridPart()),
     op_("extended gluer operator",space_,space_)
@@ -218,13 +218,13 @@ class ExtendedOperatorGluer:public Operator<
 
   ExtendedOperatorGluer(const ThisType& )=delete;
 
-  inline const LinearOperatorType& systemMatrix() const
+  const LinearOperatorType& systemMatrix() const
   {
     return op_;
   }
 
   // apply the operator
-  virtual inline void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
+  virtual void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
   {
     op_.apply(u,w);
   }
@@ -249,12 +249,12 @@ class ExtendedOperatorGluer:public Operator<
     }
   }
 
-  inline const DomainSpaceType& domainSpace() const
+  const DomainSpaceType& domainSpace() const
   {
     return space_;
   }
 
-  inline const RangeSpaceType& rangeSpace() const
+  const RangeSpaceType& rangeSpace() const
   {
     return space_;
   }

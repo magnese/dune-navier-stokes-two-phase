@@ -49,13 +49,13 @@ class VelocityCurvatureOperator:public Operator<typename LinearOperatorImp::Doma
 
   VelocityCurvatureOperator(const ThisType& )=delete;
 
-  inline const LinearOperatorType& systemMatrix() const
+  const LinearOperatorType& systemMatrix() const
   {
     return op_;
   }
 
   // apply the operator
-  virtual inline void operator()(const VelocityFunctionType& u,CurvatureFunctionType& w) const
+  virtual void operator()(const VelocityFunctionType& u,CurvatureFunctionType& w) const
   {
     op_.apply(u,w);
   }
@@ -80,12 +80,12 @@ class VelocityCurvatureOperator:public Operator<typename LinearOperatorImp::Doma
     }
   }
 
-  inline const VelocitySpaceType& domainSpace() const
+  const VelocitySpaceType& domainSpace() const
   {
     return velocityspace_;
   }
 
-  inline const CurvatureSpaceType& rangeSpace() const
+  const CurvatureSpaceType& rangeSpace() const
   {
     return curvaturespace_;
   }

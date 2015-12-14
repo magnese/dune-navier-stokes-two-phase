@@ -42,12 +42,12 @@ class MeshSmoothing
 
   MeshSmoothing(const ThisType& )=delete;
 
-  inline void printInfo(std::ostream& s=std::cout) const
+  void printInfo(std::ostream& s=std::cout) const
   {
     s<<"coeff_smooth = "<<coeff_<<(isenabled_?"":" (WARNING: smooth disabled!)")<<std::endl;
   }
 
-  inline bool isEnabled() const
+  bool isEnabled() const
   {
     return isenabled_;
   }

@@ -37,12 +37,12 @@ class MassMatrix:public Operator<typename LinearOperatorImp::DomainFunctionType,
 
   MassMatrix(const ThisType& )=delete;
 
-  inline const LinearOperatorType& systemMatrix() const
+  const LinearOperatorType& systemMatrix() const
   {
     return op_;
   }
 
-  virtual inline void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
+  virtual void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
   {
     op_.apply(u,w);
   }
@@ -67,12 +67,12 @@ class MassMatrix:public Operator<typename LinearOperatorImp::DomainFunctionType,
     }
   }
 
-  inline const DomainSpaceType& domainSpace() const
+  const DomainSpaceType& domainSpace() const
   {
     return space_;
   }
 
-  inline const RangeSpaceType& rangeSpace() const
+  const RangeSpaceType& rangeSpace() const
   {
     return space_;
   }

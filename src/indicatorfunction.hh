@@ -23,7 +23,7 @@ class IndicatorFunction
 
   // check if an entity is inner or outer
   template<typename EntityType>
-  inline bool isInner(const EntityType& entity) const
+  bool isInner(const EntityType& entity) const
   {
     const auto idx(bulkgrid_.levelIndexSet(0).index(entity));
     return elementids_[idx]==1?true:false;
@@ -31,7 +31,7 @@ class IndicatorFunction
 
   // return 1.0 if inner or 0.0 if outer
   template<typename EntityType>
-  inline double operator()(const EntityType& entity) const
+  double operator()(const EntityType& entity) const
   {
     const auto idx(bulkgrid_.levelIndexSet(0).index(entity));
     return elementids_[idx]==1?1.0:0.0;

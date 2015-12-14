@@ -81,104 +81,104 @@ class BaseProblem
     };
   }
 
-  inline const bool& isTimeDependent() const
+  const bool& isTimeDependent() const
   {
     return istimedependent_;
   }
-  inline const bool& hasExactSolution() const
+  const bool& hasExactSolution() const
   {
     return hasexactsolution_;
   }
 
-  inline VelocityFunctionType& velocityIC()
+  VelocityFunctionType& velocityIC()
   {
     return std::get<1>(velocity_);
   }
-  inline const VelocityFunctionType& velocityIC() const
+  const VelocityFunctionType& velocityIC() const
   {
     return std::get<1>(velocity_);
   }
   template<typename DF>
-  inline void velocityIC(DF& df) const
+  void velocityIC(DF& df) const
   {
     if(istimedependent_)
       interpolateAnalyticalFunction(velocityIC(),df,0.0);
   }
-  inline VelocityFunctionType& velocityRHS()
+  VelocityFunctionType& velocityRHS()
   {
     return std::get<2>(velocity_);
   }
-  inline const VelocityFunctionType& velocityRHS() const
+  const VelocityFunctionType& velocityRHS() const
   {
     return std::get<2>(velocity_);
   }
-  inline VelocityFunctionType& velocitySolution()
+  VelocityFunctionType& velocitySolution()
   {
     return std::get<0>(velocity_);
   }
-  inline const VelocityFunctionType& velocitySolution() const
+  const VelocityFunctionType& velocitySolution() const
   {
     return std::get<0>(velocity_);
   }
   template<typename DF>
-  inline void velocitySolution(DF& df,const double& t) const
+  void velocitySolution(DF& df,const double& t) const
   {
     if(hasexactsolution_)
       interpolateAnalyticalFunction(velocitySolution(),df,t);
   }
 
-  inline PressureFunctionType& pressureIC()
+  PressureFunctionType& pressureIC()
   {
     return std::get<1>(pressure_);
   }
-  inline const PressureFunctionType& pressureIC() const
+  const PressureFunctionType& pressureIC() const
   {
     return std::get<1>(pressure_);
   }
   template<typename DF>
-  inline void pressureIC(DF& df) const
+  void pressureIC(DF& df) const
   {
     if(istimedependent_)
       interpolateAnalyticalFunction(pressureIC(),df,0.0);
   }
-  inline PressureFunctionType& pressureSolution()
+  PressureFunctionType& pressureSolution()
   {
     return std::get<0>(pressure_);
   }
-  inline const PressureFunctionType& pressureSolution() const
+  const PressureFunctionType& pressureSolution() const
   {
     return std::get<0>(pressure_);
   }
   template<typename DF>
-  inline void pressureSolution(DF& df,const double& t) const
+  void pressureSolution(DF& df,const double& t) const
   {
     if(hasexactsolution_)
       interpolateAnalyticalFunction(pressureSolution(),df,t);
   }
 
-  inline double mu(const EntityType& entity) const
+  double mu(const EntityType& entity) const
   {
     const auto& indicator(meshmanager_.bulkIndicatorFunction());
     return muinner_*indicator(entity)+muouter_*(1.0-indicator(entity));
   }
-  inline double deltaMu() const
+  double deltaMu() const
   {
     return muouter_-muinner_;
   }
-  inline double gamma() const
+  double gamma() const
   {
     return gamma_;
   }
-  inline double rho(const EntityType& entity) const
+  double rho(const EntityType& entity) const
   {
     const auto& indicator(meshmanager_.bulkIndicatorFunction());
     return rhoinner_*indicator(entity)+rhoouter_*(1.0-indicator(entity));
   }
-  inline double deltaRho() const
+  double deltaRho() const
   {
     return rhoouter_-rhoinner_;
   }
-  inline bool isDensityNull() const
+  bool isDensityNull() const
   {
     return nulldensity_;
   }
@@ -242,7 +242,7 @@ class BaseProblem
     template<typename Tuple,std::size_t pos,typename... Args>
     struct Caller
     {
-      inline Caller(Tuple&& t,Args&&... args)
+      Caller(Tuple&& t,Args&&... args)
       {
         std::get<pos-1>(t).applyToOperator(args...);
         Caller<Tuple,pos-1,Args...>(t,args...);
@@ -251,7 +251,7 @@ class BaseProblem
     template<typename Tuple,typename... Args>
     struct Caller<Tuple,0,Args...>
     {
-      inline Caller(Tuple&& ,Args&&... )
+      Caller(Tuple&& ,Args&&... )
       {}
     };
   };
@@ -266,7 +266,7 @@ class BaseProblem
     template<typename Tuple,std::size_t pos,typename... Args>
     struct Caller
     {
-      inline Caller(Tuple&& t,Args&&... args)
+      Caller(Tuple&& t,Args&&... args)
       {
         std::get<pos-1>(t).applyToRHS(args...);
         Caller<Tuple,pos-1,Args...>(t,args...);
@@ -275,7 +275,7 @@ class BaseProblem
     template<typename Tuple,typename... Args>
     struct Caller<Tuple,0,Args...>
     {
-      inline Caller(Tuple&& ,Args&&... )
+      Caller(Tuple&& ,Args&&... )
       {}
     };
   };
@@ -287,13 +287,13 @@ class BaseProblem
   }
 
   template<typename... Args>
-  inline void applyBCToOperator(Args&&... args)
+  void applyBCToOperator(Args&&... args)
   {
     ApplyBCToOperator apply(velocitybcs_,args...);
   }
 
   template<typename... Args>
-  inline void applyBCToRHS(Args&&... args)
+  void applyBCToRHS(Args&&... args)
   {
     ApplyBCToRHS apply(velocitybcs_,args...);
   }
@@ -430,7 +430,7 @@ class StationaryBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressu
   }
 
   template<typename... Args>
-  inline double exactRadius(const Args&... ) const
+  double exactRadius(const Args&... ) const
   {
     return 0.5;
   }
@@ -494,7 +494,7 @@ class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressur
     velocityBC().addBC(9,velocitySolution());
   }
 
-  inline double exactRadius(const double& t) const
+  double exactRadius(const double& t) const
   {
     return pow(pow(r0_,worlddim)+alpha_*t*static_cast<double>(worlddim),1.0/static_cast<double>(worlddim));
   }

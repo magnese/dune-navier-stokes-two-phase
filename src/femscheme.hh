@@ -155,21 +155,21 @@ class FemScheme
   FemScheme(const ThisType& )=delete;
 
   // get fluid state
-  inline const FluidStateType& fluidState() const
+  const FluidStateType& fluidState() const
   {
     return fluidstate_;
   }
-  inline FluidStateType& fluidState()
+  FluidStateType& fluidState()
   {
     return fluidstate_;
   }
 
   // get problem
-  inline const ProblemType& problem() const
+  const ProblemType& problem() const
   {
     return problem_;
   }
-  inline ProblemType& problem()
+  ProblemType& problem()
   {
     return problem_;
   }

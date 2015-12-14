@@ -42,7 +42,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
   InterfaceCurvatureDisplacementOperator(const ThisType& )=delete;
 
   // apply the operator
-  virtual inline void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
+  virtual void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
   {
     op_.apply(u,w);
   }
@@ -67,17 +67,17 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
     }
   }
 
-  inline const LinearOperatorType& systemMatrix() const
+  const LinearOperatorType& systemMatrix() const
   {
     return op_;
   }
 
-  inline const DomainSpaceType& domainSpace() const
+  const DomainSpaceType& domainSpace() const
   {
     return domainspace_;
   }
 
-  inline const RangeSpaceType& rangeSpace() const
+  const RangeSpaceType& rangeSpace() const
   {
     return rangespace_;
   }
@@ -149,7 +149,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
   struct Selector<1,R>
   {
     template<typename P,typename C,typename N>
-    inline R operator()(const P& range,const C& domain,const N& normal,const std::size_t& i,const std::size_t& j) const
+    R operator()(const P& range,const C& domain,const N& normal,const std::size_t& i,const std::size_t& j) const
     {
       return domain[j]*(range[i]*normal);
     }
@@ -159,7 +159,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
   struct Selector<DomainSpaceType::GridType::dimensionworld,R>
   {
     template<typename P,typename C,typename N>
-    inline R operator()(const P& range,const C& domain,const N& normal,const std::size_t& i,const std::size_t& j) const
+    R operator()(const P& range,const C& domain,const N& normal,const std::size_t& i,const std::size_t& j) const
     {
       return range[i]*(domain[j]*normal);
     }

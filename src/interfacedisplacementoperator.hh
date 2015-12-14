@@ -38,13 +38,13 @@ class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::
   {}
 
   // apply the operator
-  virtual inline void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
+  virtual void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
   {
     op_.apply(u,w);
   }
 
   template<typename DT,typename RT>
-  inline void operator()(const DT& u,RT& w) const
+  void operator()(const DT& u,RT& w) const
   {
     op_.apply(u,w);
   }
@@ -69,17 +69,17 @@ class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::
     }
   }
 
-  inline const DiscreteSpaceType& domainSpace() const
+  const DiscreteSpaceType& domainSpace() const
   {
     return space_;
   }
 
-  inline const DiscreteSpaceType& rangeSpace() const
+  const DiscreteSpaceType& rangeSpace() const
   {
     return space_;
   }
 
-  inline const LinearOperatorType& systemMatrix() const
+  const LinearOperatorType& systemMatrix() const
   {
     return op_;
   }

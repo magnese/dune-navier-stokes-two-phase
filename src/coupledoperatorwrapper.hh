@@ -39,20 +39,20 @@ class CoupledOperatorWrapper:public Operator<typename VelocityOperatorImp::Domai
 
   CoupledOperatorWrapper(const ThisType& )=delete;
 
-  inline const DomainSpaceType& domainSpace() const
+  const DomainSpaceType& domainSpace() const
   {
     return velocityop_.domainSpace();
   }
 
-  inline const RangeSpaceType& rangeSpace() const
+  const RangeSpaceType& rangeSpace() const
   {
     return velocityop_.rangeSpace();
   }
 
-  inline void assemble() const
+  void assemble() const
   {}
 
-  virtual inline void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
+  virtual void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
   {
     // w = velocityOperator*u
     velocityop_(u,w);

@@ -9,7 +9,7 @@ namespace Dune
 namespace Fem
 {
 
-template <class DiscreteFunctionImp,typename... Args>
+template<typename DiscreteFunctionImp,typename... Args>
 class NullRHS
 {
   public:
@@ -24,25 +24,25 @@ class NullRHS
 
   NullRHS(const ThisType& )=delete;
 
-  inline DiscreteFunctionType& rhs() const
+  DiscreteFunctionType& rhs() const
   {
     return rhs_;
   }
 
   // dump rhs vector into file
-  inline void print(const std::string& filename="null_rhs.dat") const
+  void print(const std::string& filename="null_rhs.dat") const
   {
     std::ofstream ofs(filename);
     rhs_.print(ofs);
   }
 
-  inline double norm() const
+  double norm() const
   {
     return 0;
   }
 
   template<typename... Argss>
-  inline void assemble(const Argss&... ) const
+  void assemble(const Argss&... ) const
   {
     rhs_.clear();
   }

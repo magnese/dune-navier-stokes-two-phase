@@ -53,15 +53,15 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
 
   VertexFunction(const ThisType& )=delete;
 
-  inline GridPartType& gridPart() const
+  GridPartType& gridPart() const
   {
     return gridpart_;
   }
-  inline DiscreteSpaceType& space() const
+  DiscreteSpaceType& space() const
   {
     return space_;
   }
-  inline DiscreteFunctionType& discreteFunction() const
+  DiscreteFunctionType& discreteFunction() const
   {
     return coord_;
   }
@@ -140,18 +140,18 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
     return *this;
   }
 
-  inline void evaluate(const HostEntityType& entity,unsigned int corner,RangeVectorType& y) const
+  void evaluate(const HostEntityType& entity,unsigned int corner,RangeVectorType& y) const
   {
     const auto& referenceElement(ReferenceElements<ctype,griddim>::general((gridPart().template begin<0>())->type()));
     discreteFunction().localFunction(entity).evaluate(referenceElement.position(corner,griddim),y);
   }
 
-  inline void evaluate(const HostVertexType& vertex,unsigned int corner,RangeVectorType& y) const
+  void evaluate(const HostVertexType& vertex,unsigned int corner,RangeVectorType& y) const
   {
     coord_.evaluate(vertex.geometry().corner(corner),y);;
   }
 
-  inline void adapt() const
+  void adapt() const
   {
     DUNE_THROW(NotImplemented,"VertexFunction::adapt() not implemented");
   }

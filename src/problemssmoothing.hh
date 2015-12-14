@@ -64,7 +64,7 @@ class ParallelepipedGeometry
                    });
   }
 
-  inline BoundaryConditionType& bc()
+  BoundaryConditionType& bc()
   {
     return bc_;
   }
