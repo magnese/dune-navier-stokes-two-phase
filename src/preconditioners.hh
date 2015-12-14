@@ -317,7 +317,7 @@ class IdPrecond:public Dune::Preconditioner<
 
   void apply(domain_type& x,const range_type& d)
   {
-    for(auto i=0;i!=d.size();++i)
+    for(auto i=decltype(d.size()){0};i!=d.size();++i)
       x[i]=d[i];
   }
 

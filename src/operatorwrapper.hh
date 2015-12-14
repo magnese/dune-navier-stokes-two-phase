@@ -233,7 +233,7 @@ class ExtendedOperatorWrapper:public Dune::LinearOperator<
     range_type temp(b);
     apply(x,temp);
     const auto size(oper11_.domainSpace().size()+oper12_.domainSpace().size()+oper13_.domainSpace().size());
-    for(auto i=0;i!=size;++i)
+    for(auto i=decltype(size){0};i!=size;++i)
       b[i]+=alpha*temp[i];
   }
 

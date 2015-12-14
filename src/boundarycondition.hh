@@ -226,7 +226,7 @@ class BoundaryCondition
         {
           const auto faceLocalIdx(intersection.indexInInside());
           blockMapper.onSubEntity(entity,faceLocalIdx,1,globalBlockDofsFilter);
-          for(auto i=0;i!=globalIdxs.size();++i)
+          for(auto i=decltype(globalIdxs.size()){0};i!=globalIdxs.size();++i)
             if(globalBlockDofsFilter[i])
               blocksIDs_[globalIdxs[i]]=boundaryID;
         }

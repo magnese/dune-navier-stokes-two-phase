@@ -320,7 +320,7 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
           if(boundaryIDs[intersection.boundarySegmentIndex()]==ID)
           {
             blockMapper.onSubEntity(entity,intersection.indexInInside(),1,globalBlockDofsFilter);
-            for(auto i=0;i!=globalIdxs.size();++i)
+            for(auto i=decltype(globalIdxs.size()){0};i!=globalIdxs.size();++i)
               if(globalBlockDofsFilter[i])
                 std::cout<<"\t"<<*(df.block(globalIdxs[i]));
             std::cout<<std::endl;

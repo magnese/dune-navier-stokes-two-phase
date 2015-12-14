@@ -164,7 +164,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         auto localVelocity(fluidState.velocity().localFunction(entity));
         const auto& lagrangePointSet(velocitySpace.lagrangePointSet(entity));
         std::size_t row(0);
-        for(auto pt=0;pt!=lagrangePointSet.nop();++pt)
+        for(auto pt=decltype(lagrangePointSet.nop()){0};pt!=lagrangePointSet.nop();++pt)
         {
           typename FluidStateType::VelocityDiscreteFunctionType::RangeType temp;
           oldFluidState.velocity().evaluate(entity.geometry().global(lagrangePointSet.point(pt)),temp);

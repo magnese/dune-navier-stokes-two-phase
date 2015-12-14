@@ -366,7 +366,7 @@ class CoupledMeshManager
       if(entity.hasBoundaryIntersections())
       {
         // count how many faces are boundary faces
-        auto count(0);
+        int count(0);
         for(const auto intersection:intersections(gridLeafView,entity))
           if(intersection.boundary())
             ++count;

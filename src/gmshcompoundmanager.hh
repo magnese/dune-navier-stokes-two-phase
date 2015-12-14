@@ -463,7 +463,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     std::vector<long int> verticesMap(model->getMaxVertexNumber()+1,0);
     constexpr double charlength(1000);
     // add vertices
-    for(decltype(verticesMap.size()) i=1;i!=verticesMap.size();++i)
+    for(auto i=decltype(verticesMap.size()){1};i!=verticesMap.size();++i)
     {
       auto vtxPtr(model->getMeshVertexByTag(i));
       if(vtxPtr!=nullptr)
@@ -481,7 +481,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     constexpr int physicalID(1);
     for(auto edgeIt=model->firstEdge();edgeIt!=model->lastEdge();++edgeIt)
     {
-      for(decltype((*edgeIt)->lines.size()) i=0;i!=(*edgeIt)->lines.size();++i)
+      for(auto i=decltype((*edgeIt)->lines.size()){0};i!=(*edgeIt)->lines.size();++i)
       {
         auto linePtr((*edgeIt)->lines[i]);
         posVtx[0]=verticesMap[linePtr->getVertex(0)->getNum()];
@@ -529,7 +529,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     long int vtxCounter(0);
     std::vector<long int> verticesMap(compound()->getMaxVertexNumber()+1,0);
     // insert vertices in the grid factory
-    for(auto i=1;i!=verticesMap.size();++i)
+    for(auto i=decltype(verticesMap.size()){1};i!=verticesMap.size();++i)
     {
       auto vtxPtr(compound()->getMeshVertexByTag(i));
       if(vtxPtr!=nullptr)
@@ -551,7 +551,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     for(auto faceIt=compound()->firstFace();faceIt!=compound()->lastFace();++faceIt)
     {
       const auto entityID(((*faceIt)->getPhysicalEntities())[0]);
-      for(auto i=0;i!=(*faceIt)->triangles.size();++i)
+      for(auto i=decltype((*faceIt)->triangles.size()){0};i!=(*faceIt)->triangles.size();++i)
       {
         auto simplexPtr((*faceIt)->triangles[i]);
         for(auto j=0;j!=(worlddim+1);++j)
@@ -567,7 +567,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     {
       const auto boundaryID(((*edgeIt)->getPhysicalEntities())[0]);
       if(boundaryID>1)
-        for(auto i=0;i!=(*edgeIt)->lines.size();++i)
+        for(auto i=decltype((*edgeIt)->lines.size()){0};i!=(*edgeIt)->lines.size();++i)
         {
           auto linePtr((*edgeIt)->lines[i]);
           for(auto j=0;j!=worlddim;++j)
@@ -692,7 +692,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     std::vector<std::pair<long int,EdgeList>> verticesMap(model->getMaxVertexNumber()+1,std::make_pair(0,EdgeList()));
     constexpr double charlength(1000);
     // add vertices
-    for(decltype(verticesMap.size()) i=1;i!=verticesMap.size();++i)
+    for(auto i=decltype(verticesMap.size()){1};i!=verticesMap.size();++i)
     {
       auto vtxPtr(model->getMeshVertexByTag(i));
       if(vtxPtr!=nullptr)
@@ -712,14 +712,14 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     std::map<long int,GEdge*> edgesMap;
     for(auto faceIt=model->firstFace();faceIt!=model->lastFace();++faceIt)
     {
-      for(decltype((*faceIt)->triangles.size()) i=0;i!=(*faceIt)->triangles.size();++i)
+      for(auto i=decltype((*faceIt)->triangles.size()){0};i!=(*faceIt)->triangles.size();++i)
       {
         auto simplexPtr((*faceIt)->triangles[i]);
         // loop over edges
         for(auto l=0;l!=worlddim;++l)
         {
           // get index of the 2 vertices
-          for(auto k=0;k!=2;++k)
+          for(int k=0;k!=2;++k)
             idVtx[k]=simplexPtr->getVertex((l+k)%worlddim)->getNum();
           // check if the edge has already been inserted
           auto edge0It(verticesMap[idVtx[0]].second.begin());
@@ -799,7 +799,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     long int vtxCounter(0);
     std::vector<long int> verticesMap(compound()->getMaxVertexNumber()+1,0);
     // insert vertices in the grid factory
-    for(auto i=1;i!=verticesMap.size();++i)
+    for(auto i=decltype(verticesMap.size()){1};i!=verticesMap.size();++i)
     {
       auto vtxPtr(compound()->getMeshVertexByTag(i));
       if(vtxPtr!=nullptr)
@@ -822,7 +822,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     for(auto regionIt=compound()->firstRegion();regionIt!=compound()->lastRegion();++regionIt)
     {
       const auto entityID(((*regionIt)->getPhysicalEntities())[0]);
-      for(auto i=0;i!=(*regionIt)->tetrahedra.size();++i)
+      for(auto i=decltype((*regionIt)->tetrahedra.size()){0};i!=(*regionIt)->tetrahedra.size();++i)
       {
         auto simplexPtr((*regionIt)->tetrahedra[i]);
         for(auto j=0;j!=(worlddim+1);++j)
@@ -838,7 +838,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     {
       const auto boundaryID(((*faceIt)->getPhysicalEntities())[0]);
       if(boundaryID>1)
-        for(auto i=0;i!=(*faceIt)->triangles.size();++i)
+        for(auto i=decltype((*faceIt)->triangles.size()){0};i!=(*faceIt)->triangles.size();++i)
         {
           auto trianglePtr((*faceIt)->triangles[i]);
           for(auto j=0;j!=worlddim;++j)

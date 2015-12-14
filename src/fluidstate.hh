@@ -377,7 +377,7 @@ class FluidState
       auto localPressure(pressure().localFunction(entity));
       auto localPressureAdditional(pressureAdditional().localFunction(entity));
       auto localPressureDump(pressureDump().localFunction(entity));
-      for(auto i=0;i!=localPressureDump.size();++i)
+      for(auto i=decltype(localPressureDump.size()){0};i!=localPressureDump.size();++i)
         localPressureDump[i]=localPressure[i]+localPressureAdditional[0];
     }
     #endif

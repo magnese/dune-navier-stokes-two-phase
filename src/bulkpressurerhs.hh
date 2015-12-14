@@ -99,7 +99,7 @@ class BulkPressureRHS
         {
           baseSet.evaluateAll(qp,phi);
           const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
-          for(auto row=0;row!=localRHS.size();++row)
+          for(auto row=decltype(localRHS.size()){0};row!=localRHS.size();++row)
             localRHS[row]+=phi[row]*weight*coeff;
         }
       }
