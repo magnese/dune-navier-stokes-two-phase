@@ -49,14 +49,10 @@ std::array<double,3> meshVolumesInfo(const GridType& grid,const std::string& inf
 // dump interface volume
 static struct InterfaceVolumeInfo
 {
-  template<typename GridType,typename TimeProviderType>
-  void add(const GridType& grid,const TimeProviderType& timeProvider)
+  template<typename CoupledMeshManagerType,typename TimeProviderType>
+  void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    double volume(0.0);
-    auto leafGridView(grid.leafGridView());
-    for(const auto entity:elements(leafGridView))
-      volume+=std::abs(entity.geometry().volume());
-    values_.emplace_back(timeProvider.time(),volume);
+    values_.emplace_back(timeProvider.time(),meshManager.interfaceLength());
   }
 
   ~InterfaceVolumeInfo()
@@ -72,40 +68,13 @@ static struct InterfaceVolumeInfo
   std::list<std::pair<double,double>> values_;
 } interfaceVolumeInfo;
 
-// compute bulk inner, outer and total volume
-template<typename GridType>
-std::array<double,3> bulkVolumesInfo(const GridType& grid,const std::vector<int>& elementsIDs)
-{
-  std::array<double,3> volumes({0.0,0.0,0.0});
-  Dune::IndicatorFunction<GridType> indicator(grid,elementsIDs);
-  auto leafGridView(grid.leafGridView());
-  for(const auto entity:elements(leafGridView))
-    if(indicator.isInner(entity))
-      volumes[0]+=std::abs(entity.geometry().volume());
-    else
-      volumes[1]+=std::abs(entity.geometry().volume());
-  volumes[2]=volumes[0]+volumes[1];
-  std::cout<<std::endl<<"[DEBUG]"<<std::endl;
-  std::cout<<"\t Bulk inner volume = "<<volumes[0]<<std::endl;
-  std::cout<<"\t Bulk outer volume = "<<volumes[1]<<std::endl;
-  std::cout<<"\t Bulk total volume = "<<volumes[2]<<std::endl;
-  std::cout<<"[DEBUG]"<<std::endl<<std::endl;
-  return volumes;
-}
-
 // dump bulk inner volume
 static struct BulkInnerVolumeInfo
 {
-  template<typename GridType,typename TimeProviderType>
-  void add(const GridType& grid,const TimeProviderType& timeProvider,const std::vector<int>& elementsIDs)
+  template<typename CoupledMeshManagerType,typename TimeProviderType>
+  void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    Dune::IndicatorFunction<GridType> indicator(grid,elementsIDs);
-    double volume(0.0);
-    auto leafGridView(grid.leafGridView());
-    for(const auto entity:elements(leafGridView))
-      if(indicator.isInner(entity))
-        volume+=std::abs(entity.geometry().volume());
-    values_.emplace_back(timeProvider.time(),volume);
+    values_.emplace_back(timeProvider.time(),meshManager.bulkInnerVolume());
   }
 
   ~BulkInnerVolumeInfo()
@@ -132,7 +101,7 @@ bool isBulkConsistentWithInterface(const InterfaceGridType& interfaceGrid,const 
 {
   // perform an interface walkthrough
   const auto bulkGriddim(BulkGridType::dimension);
-  auto interfaceLeafGridView(interfaceGrid.leafGridView());
+  const auto interfaceLeafGridView(interfaceGrid.leafGridView());
   for(const auto interfaceEntity:elements(interfaceLeafGridView))
   {
     // extract the corresponding bulk entity

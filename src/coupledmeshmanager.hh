@@ -349,14 +349,23 @@ class CoupledMeshManager
     return remeshPerformed;
   }
 
-  double averageInterfaceVolume() const
+  double bulkInnerVolume() const
   {
-    double averageVolume(0.0);
-    const auto gridLeafView(interfaceGrid().leafGridView());
-    for(const auto entity:elements(gridLeafView))
-      averageVolume+=std::abs(entity.geometry().volume());
-    averageVolume/=static_cast<double>(interfaceGrid().size(0));
-    return averageVolume;
+    double volume(0.0);
+    const auto bulkLeafGridView(bulkGrid().leafGridView());
+    for(const auto entity:elements(bulkLeafGridView))
+      if(bulkIndicatorFunction().isInner(entity))
+        volume+=std::abs(entity.geometry().volume());
+    return volume;
+  }
+
+  double interfaceLength() const
+  {
+    double length(0.0);
+    const auto interfaceLeafGridView(interfaceGrid().leafGridView());
+    for(const auto entity:elements(interfaceLeafGridView))
+      length+=std::abs(entity.geometry().volume());
+    return length;
   }
 
   bool existEntityWithNoVerticesInDomain() const
