@@ -1,5 +1,5 @@
-#ifndef DUNE_FEM_FEM_TRAITS_HH
-#define DUNE_FEM_FEM_TRAITS_HH
+#ifndef DUNE_FEM_FEMTRAITS_HH
+#define DUNE_FEM_FEMTRAITS_HH
 
 // dune includes
 #include <dune/fem/gridpart/leafgridpart.hh>
@@ -70,4 +70,4 @@ struct FemTraits
 }
 }
 
-#endif
+#endif // DUNE_FEM_FEMTRAITS_HH

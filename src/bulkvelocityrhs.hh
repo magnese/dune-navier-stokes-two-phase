@@ -54,7 +54,7 @@ class BulkVelocityRHS
     const auto localBlockSize(DiscreteSpaceType::localBlockSize);
     std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
 
-    // perform a grid walkthrough and assemble the global matrix
+    // perform a grid walkthrough and assemble the RHS
     for(const auto entity:space_)
     {
       auto localRHS(rhs_.localFunction(entity));

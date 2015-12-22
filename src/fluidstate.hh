@@ -1,5 +1,5 @@
-#ifndef DUNE_FEM_FLUID_STATE_HH
-#define DUNE_FEM_FLUID_STATE_HH
+#ifndef DUNE_FEM_FLUIDSTATE_HH
+#define DUNE_FEM_FLUIDSTATE_HH
 
 // C++ includes
 #include <memory>
@@ -533,4 +533,5 @@ class FluidState
 
 }
 }
-#endif
+
+#endif // DUNE_FEM_FLUIDSTATE_HH
