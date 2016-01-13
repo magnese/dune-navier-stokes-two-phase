@@ -11,6 +11,7 @@
 #include <dune/common/exceptions.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/misc/l2norm.hh>
+#include <dune/fem/misc/h1norm.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/solver/timeprovider.hh>
 
@@ -78,37 +79,25 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       typename FluidStateType::PressureDumpDiscreteFunctionType pressureExactSolution("pressure exact solution",
                                                                                       fluidState.pressureDumpSpace());
       femScheme.problem().pressureSolution(pressureExactSolution,timeProvider.time());
-      // compute L2 errors
-      L2Norm<typename FluidStateType::BulkGridPartType> norm(fluidState.bulkGridPart());
-      errors[1]+=pow(norm.distance(velocityExactSolution,fluidState.velocity()),2);
-      errors[3]+=pow(norm.distance(pressureExactSolution,fluidState.pressureDump()),2);
-      // compute Linfinity errors
+      // compute L2 interpolated velocity error
+      L2Norm<typename FluidStateType::BulkGridPartType> normL2(fluidState.bulkGridPart());
+      errors[1]+=pow(normL2.distance(velocityExactSolution,fluidState.velocity()),2);
+      // compute H1 interpolated velocity error
+      H1Norm<typename FluidStateType::BulkGridPartType> normH1(fluidState.bulkGridPart());
+      errors[2]+=pow(normH1.distance(velocityExactSolution,fluidState.velocity()),2);
+      // compute Linfinity interpolated velocity error
       auto exactVelocityIt(velocityExactSolution.dbegin());
       for(auto velocityIt=fluidState.velocity().dbegin();velocityIt!=fluidState.velocity().dend();++velocityIt,++exactVelocityIt)
-        errors[2]=std::max(errors[2],std::abs(*velocityIt-*exactVelocityIt));
-      auto exactPressureIt(pressureExactSolution.dbegin());
-      for(auto pressureIt=fluidState.pressureDump().dbegin();pressureIt!=fluidState.pressureDump().dend();++pressureIt,++exactPressureIt)
-        errors[4]=std::max(errors[4],std::abs(*pressureIt-*exactPressureIt));
-    }
-
-    // update interface grid
-    fluidState.interfaceGrid().coordFunction()+=fluidState.displacement();
-
-    // compute radius error and L2 pressure error not interpolated
-    #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3
-    if(computeErrors)
-    {
-      // compute radius error
-      const auto interfaceGridLeafView(fluidState.interfaceGrid().leafGridView());
-      for(const auto vertex:vertices(interfaceGridLeafView))
-        errors[0]=std::max(errors[0],std::abs(femScheme.problem().exactRadius(timeProvider.time())-vertex.geometry().center().two_norm()));
+        errors[3]=std::max(errors[3],std::abs(*velocityIt-*exactVelocityIt));
+      // compute L2 pressure error
+      #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3
       // store an inner and an outer entity, needed for indicator function
       const auto innerEntity(fluidState.bulkGrid().entity(fluidState.meshManager().mapper().entitySeedInterface2Bulk(0)));
       auto intersectionIt(fluidState.bulkGridPart().ibegin(innerEntity));
       while(intersectionIt->indexInInside()!=fluidState.meshManager().mapper().faceLocalIdxInterface2Bulk(0))
         ++intersectionIt;
       const auto outerEntity(intersectionIt->outside());
-      // compute L2 pressure error not interpolated
+      // compute error
       for(const auto entity:fluidState.pressureDumpSpace())
       {
         auto localPressureDump(fluidState.pressureDump().localFunction(entity));
@@ -116,20 +105,36 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         for(const auto qp:quadrature)
         {
           const auto localPoint(qp.position());
-          typename FluidStateType::PressureDumpDiscreteFunctionType::RangeType valueDiscretePressure;
-          localPressureDump.evaluate(localPoint,valueDiscretePressure);
+          typename FluidStateType::PressureDumpDiscreteFunctionType::RangeType value;
+          localPressureDump.evaluate(localPoint,value);
           const auto globalPoint(entity.geometry().global(localPoint));
-          typename FluidStateType::PressureDiscreteFunctionType::RangeType valueExactPressure;
           if(globalPoint.two_norm()>femScheme.problem().exactRadius(timeProvider.time()))
-            valueExactPressure=femScheme.problem().pressureSolution()(globalPoint,timeProvider.time(),outerEntity);
+            value-=femScheme.problem().pressureSolution()(globalPoint,timeProvider.time(),outerEntity);
           else
-            valueExactPressure=femScheme.problem().pressureSolution()(globalPoint,timeProvider.time(),innerEntity);
+            value-=femScheme.problem().pressureSolution()(globalPoint,timeProvider.time(),innerEntity);
           const auto weight(entity.geometry().integrationElement(localPoint)*qp.weight());
-          errors[5]+=pow(valueDiscretePressure-valueExactPressure,2)*weight;
+          errors[4]+=value.two_norm2()*weight;
         }
       }
+      #endif
+      // compute Linfinity interpolated pressure error
+      auto exactPressureIt(pressureExactSolution.dbegin());
+      for(auto pressureIt=fluidState.pressureDump().dbegin();pressureIt!=fluidState.pressureDump().dend();++pressureIt,++exactPressureIt)
+        errors[5]=std::max(errors[5],std::abs(*pressureIt-*exactPressureIt));
     }
-    #endif
+
+    // update interface grid
+    fluidState.interfaceGrid().coordFunction()+=fluidState.displacement();
+
+    // compute Linfinity radius error
+    if(computeErrors)
+    {
+      #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3
+      const auto interfaceGridLeafView(fluidState.interfaceGrid().leafGridView());
+      for(const auto vertex:vertices(interfaceGridLeafView))
+        errors[0]=std::max(errors[0],std::abs(femScheme.problem().exactRadius(timeProvider.time())-vertex.geometry().center().two_norm()));
+      #endif
+    }
 
     // perform mesh smoothing
     if(meshSmoothing.isEnabled())
@@ -179,8 +184,8 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   if(computeErrors)
   {
     errors[1]=pow(errors[1]*timeProvider.deltaT(),0.5);
-    errors[3]=pow(errors[3]*timeProvider.deltaT(),0.5);
-    errors[5]=pow(errors[5]*timeProvider.deltaT(),0.5);
+    errors[2]=pow(errors[2]*timeProvider.deltaT(),0.5);
+    errors[4]=pow(errors[4]*timeProvider.deltaT(),0.5);
     std::cout<<std::endl<<"Errors:"<<std::endl;
     std::cout.precision(5);
     std::cout<<std::scientific;
@@ -188,12 +193,12 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     std::cout<<"||X-x||_{L^oo} = "<<errors[0]<<std::endl;
     #endif
     std::cout<<"||U-Iu||_{L^2} = "<<errors[1]<<std::endl;
-    std::cout<<"||U-Iu||_{L^oo} = "<<errors[2]<<std::endl;
-    std::cout<<"||P-Ip||_{L^2} = "<<errors[3]<<std::endl;
-    std::cout<<"||P-Ip||_{L^oo} = "<<errors[4]<<std::endl;
+    std::cout<<"||U-Iu||_{H^1} = "<<errors[2]<<std::endl;
+    std::cout<<"||U-Iu||_{L^oo} = "<<errors[3]<<std::endl;
     #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3
-    std::cout<<"||P-p||_{L^2} = "<<errors[5]<<std::endl;
+    std::cout<<"||P-p||_{L^2} = "<<errors[4]<<std::endl;
     #endif
+    std::cout<<"||P-Ip||_{L^oo} = "<<errors[5]<<std::endl;
     std::cout.unsetf(std::ios_base::floatfield);
   }
 }

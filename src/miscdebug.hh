@@ -247,8 +247,8 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
     file<<"\\begin{tabular}{llllllllll}"<<std::endl;
     file<<"\\hline"<<std::endl;
     file<<"$K_\\Gamma$ & $\\|\\vec{X}-\\vec{x}\\|_{L^\\infty}$ & $\\|\\vec{U}-I^h_{2}\\vec{u}\\|_{L^2(\\Omega_T)}$"
-      <<" & $\\|\\vec{U}-I^h_{2}\\vec{u}\\|_{L^\\infty}$ & $\\|P-I^h_{0}p\\|_{L^2(\\Omega_T)}$ & $\\|P-I^h_{0}p\\|_{L^\\infty}$"
-      <<" & $\\|P-p\\|_{L^2(\\Omega_T)}$ & $CPU[s]$ & $K_\\Omega^T$\\\\"<<std::endl;
+      <<" & $\\|\\vec{U}-I^h_{2}\\vec{u}\\|_{H^1(\\Omega_T)}$ & $\\|\\vec{U}-I^h_{2}\\vec{u}\\|_{L^\\infty}$"
+      <<" & $\\|P-p\\|_{L^2(\\Omega_T)}$ & $\\|P-I^h_{0}p\\|_{L^\\infty}$ & CPU[s] & $K_\\Omega^T$\\\\"<<std::endl;
     file<<"\\hline"<<std::endl;
     file.precision(5);
     file<<std::scientific;
