@@ -495,7 +495,7 @@ class CoupledMeshManager
       for(const auto intersection:intersections(bulkHostLeafGridView,entity))
         if(intersection.boundary())
           tempIDs[intersection.boundarySegmentIndex()]=boundaryIDs()[bulkHostGridFactory.insertionIndex(intersection)];
-    boundaryIDs()=tempIDs;
+    boundaryIDs()=std::move(tempIDs);
   }
 
   template<typename GT>
