@@ -432,7 +432,7 @@ class StationaryBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressu
   template<typename... Args>
   double exactRadius(const Args&... ) const
   {
-    return 0.5;
+    return r0_;
   }
 
   private:
