@@ -114,7 +114,7 @@ class BulkInterfaceGridMapper
     {
       const auto blockPos(vtxinterface2bulk_[i]);
       for(auto l=0;l!=interfaceLocalBlockSize;++l,++interfaceIt)
-        (*bulkFunction.block(blockPos))[l]+=*interfaceIt;
+        bulkFunction.dofVector()[blockPos][l]+=*interfaceIt;
     }
   }
 
