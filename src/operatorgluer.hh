@@ -334,7 +334,10 @@ class ExtendedOperatorGluer:public Operator<
 
   void applyDoctoring() const
   {
-    const auto row(mat11_.cols());
+    auto row(mat11_.cols());
+    op_.matrix().clearRow(row);
+    op_.matrix().set(row,row,1.0);
+    row+=mat12_.cols();
     op_.matrix().clearRow(row);
     op_.matrix().set(row,row,1.0);
   }
