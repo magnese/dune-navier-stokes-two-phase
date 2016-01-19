@@ -327,7 +327,6 @@ class FemScheme
       OperatorGluerType;
     OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureOp);
     opGluer.assemble();
-    opGluer.applyDoctoring();
     typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #else
@@ -354,7 +353,6 @@ class FemScheme
                                   PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> OperatorGluerType;
     OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,velocityPressureAdditionalOp);
     opGluer.assemble();
-    opGluer.applyDoctoring();
     typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #else

@@ -6,6 +6,7 @@
 #include <dune/istl/preconditioner.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 
+#include <type_traits>
 #include <vector>
 
 namespace Dune
@@ -241,12 +242,15 @@ class DirectPrecond:
   enum {category=SolverCategory::sequential};
 
   // constructor
-  explicit DirectPrecond(const OperType& op):
-    op_(op),invop_(op_),size_(op_.domainSpace().size()),d_(size_,0),x_(size_,0)
+  explicit DirectPrecond(OperType& op):
+    op_(op),invop_(op_),usedoctoring_(std::is_same<InvOperType,UMFPACKOp<DiscreteFunctionType,OperType,false>>::value),
+    size_(op_.domainSpace().size()),d_(size_,0),x_(size_,0)
   {}
 
   void pre(domain_type& ,range_type& )
   {
+    if(usedoctoring_)
+      op_.applyDoctoring();
     invop_.prepare();
   }
 
@@ -259,6 +263,10 @@ class DirectPrecond:
     // copy d into d_
     for(auto i=decltype(size_){0};i!=size_;++i)
       d_[i]=d[i];
+
+    // apply doctoring to RHS
+    if(usedoctoring_)
+      op_.applyDoctoringRHS(d_);
 
     // solve system
     invop_.apply(dPtr,xPtr);
@@ -274,8 +282,9 @@ class DirectPrecond:
   }
 
   private:
-  const OperType& op_;
+  OperType& op_;
   InvOperType invop_;
+  const bool usedoctoring_;
   std::size_t size_;
   std::vector<double> d_;
   std::vector<double> x_;

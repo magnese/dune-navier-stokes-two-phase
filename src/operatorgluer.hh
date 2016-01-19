@@ -161,6 +161,13 @@ class OperatorGluer:public Operator<
     op_.matrix().set(row,row,1.0);
   }
 
+  template<typename RHSType>
+  void applyDoctoringRHS(RHSType& rhs) const
+  {
+    const auto row(mat11_.cols());
+    rhs[row]=0.0;
+  }
+
   private:
   const Matrix11Type& mat11_;
   const Matrix12Type& mat12_;
@@ -340,6 +347,15 @@ class ExtendedOperatorGluer:public Operator<
     row+=mat12_.cols();
     op_.matrix().clearRow(row);
     op_.matrix().set(row,row,1.0);
+  }
+
+  template<typename RHSType>
+  void applyDoctoringRHS(RHSType& rhs) const
+  {
+    auto row(mat11_.cols());
+    rhs[row]=0.0;
+    row+=mat12_.cols();
+    rhs[row]=0.0;
   }
 
   private:
