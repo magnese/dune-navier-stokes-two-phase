@@ -101,7 +101,8 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       for(const auto entity:fluidState.pressureDumpSpace())
       {
         auto localPressureDump(fluidState.pressureDump().localFunction(entity));
-        CachingQuadrature<typename FluidStateType::BulkGridPartType,0> quadrature(entity,13);
+        constexpr unsigned int order(FluidStateType::BulkGridType::dimensionworld<3?13:10);
+        CachingQuadrature<typename FluidStateType::BulkGridPartType,0> quadrature(entity,order);
         for(const auto qp:quadrature)
         {
           const auto localPoint(qp.position());
