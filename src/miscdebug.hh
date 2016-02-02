@@ -12,13 +12,13 @@
 #include <cstdlib>
 #include <vector>
 #include <fstream>
-#include <list>
 #include <utility>
 
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/function/common/rangegenerators.hh>
 
 #include "indicatorfunction.hh"
+#include "gnuplotwriter.hh"
 
 namespace Dune
 {
@@ -49,50 +49,46 @@ std::array<double,3> meshVolumesInfo(const GridType& grid,const std::string& inf
 // dump interface volume
 static struct InterfaceVolumeInfo
 {
+  InterfaceVolumeInfo():
+    writer_("interface_volume")
+  {}
+
   template<typename CoupledMeshManagerType,typename TimeProviderType>
   void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    values_.emplace_back(timeProvider.time(),meshManager.interfaceLength());
+    writer_.add(timeProvider.time(),meshManager.interfaceLength());
   }
 
-  ~InterfaceVolumeInfo()
-  {
-    if(values_.size()!=0)
-    {
-      std::ofstream file(Parameter::getValue<std::string>("fem.prefix",".")+"/interface_volume.dat");
-      for(const auto& value:values_)
-        file<<value.first<<" "<<value.second<<std::endl;
-    }
-  }
-
-  std::list<std::pair<double,double>> values_;
+  GnuplotWriter writer_;
 } interfaceVolumeInfo;
 
 // dump bulk inner volume
-static struct BulkInnerVolumeInfo
+static struct BulkNormalizedInnerVolumeInfo
 {
+  BulkNormalizedInnerVolumeInfo():
+    writer_("bulk_normalized_inner_volume")
+  {}
+
   template<typename CoupledMeshManagerType,typename TimeProviderType>
   void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    values_.emplace_back(timeProvider.time(),meshManager.bulkInnerVolume());
+    writer_.add(timeProvider.time(),meshManager.bulkInnerVolume());
   }
 
-  ~BulkInnerVolumeInfo()
+  ~BulkNormalizedInnerVolumeInfo()
   {
-    if(values_.size()!=0)
+    // normalize by intial volume
+    auto& values=writer_.get();
+    if(values.size()!=0)
     {
-      // normalize by intial volume
-      const auto initialVolume(values_.front().second);
-      for(auto& value:values_)
+      const auto initialVolume(values.front().second);
+      for(auto& value:values)
         value.second/=initialVolume;
-      std::ofstream file(Parameter::getValue<std::string>("fem.prefix",".")+"/bulk_inner_volume.dat");
-      for(const auto& value:values_)
-        file<<value.first<<" "<<value.second<<std::endl;
     }
   }
 
-  std::list<std::pair<double,double>> values_;
-} bulkInnerVolumeInfo;
+  GnuplotWriter writer_;
+} bulkNormalizedInnerVolumeInfo;
 
 // check if bulk and interface are consistent
 template<typename InterfaceGridType,typename BulkGridType,typename BulkInterfaceGridMapperType>
@@ -172,6 +168,10 @@ std::array<typename DF::RangeFieldType,3> checkFunctionRange(const DF& df)
 // dump function range
 static struct FunctionRangeInfo
 {
+  FunctionRangeInfo():
+    writer_("function_range")
+  {}
+
   template<typename DF,typename TimeProviderType>
   void add(const DF& df,const TimeProviderType& timeProvider)
   {
@@ -181,45 +181,29 @@ static struct FunctionRangeInfo
       values[0]=std::min(dof,values[0]);
       values[1]=std::max(dof,values[1]);
     }
-    values_.emplace_back(timeProvider.time(),values[1]-values[0]);
+    writer_.add(timeProvider.time(),values[1]-values[0]);
   }
 
-  ~FunctionRangeInfo()
-  {
-    if(values_.size()!=0)
-    {
-      std::ofstream file(Parameter::getValue<std::string>("fem.prefix",".")+"/function_range.dat");
-      for(const auto& value:values_)
-        file<<value.first<<" "<<value.second<<std::endl;
-    }
-  }
-
-  std::list<std::pair<double,double>> values_;
+  GnuplotWriter writer_;
 } functionRangeInfo;
 
 // dump function max
 static struct FunctionMaxInfo
 {
+  FunctionMaxInfo():
+    writer_("function_max")
+  {}
+
   template<typename DF,typename TimeProviderType>
   void add(const DF& df,const TimeProviderType& timeProvider)
   {
     double value(std::numeric_limits<double>::min());
     for(const auto dof:dofs(df))
       value=std::max(std::abs(dof),value);
-    values_.emplace_back(timeProvider.time(),value);
+    writer_.add(timeProvider.time(),std::move(value));
   }
 
-  ~FunctionMaxInfo()
-  {
-    if(values_.size()!=0)
-    {
-      std::ofstream file(Parameter::getValue<std::string>("fem.prefix",".")+"/function_max.dat");
-      for(const auto& value:values_)
-        file<<value.first<<" "<<value.second<<std::endl;
-    }
-  }
-
-  std::list<std::pair<double,double>> values_;
+  GnuplotWriter writer_;
 } functionMaxInfo;
 
 // dump Tex log
@@ -254,10 +238,7 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
     file<<std::scientific;
     file<<meshManager.interfaceGrid().size(0)<<" & ";
     for(const auto& err:errors)
-      if(err<1.e-13)
-        file<<0<<" & ";
-      else
-        file<<err<<" & ";
+      file<<(err<1.e-13?0:err)<<" & ";
     file.unsetf(std::ios_base::floatfield);
     file<<timer.elapsed()<<" & "<<meshManager.bulkGrid().size(0)<<"\\\\"<<std::endl;
     file<<"\\hline"<<std::endl;
