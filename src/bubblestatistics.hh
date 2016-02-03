@@ -33,13 +33,14 @@ static class BubbleStatistics
     const auto bulkInnerVolume(fluidState.meshManager().bulkInnerVolume());
     const auto interfaceLength(fluidState.meshManager().interfaceLength());
     constexpr auto worlddim(FluidStateType::BulkGridType::dimensionworld);
-    circularitywriter_.add(circularity<worlddim>(bulkInnerVolume,interfaceLength),timeProvider.time());
+    circularitywriter_.add(timeProvider.time(),circularity<worlddim>(bulkInnerVolume,interfaceLength));
     // compute heigth barycenter
-    barycenterwriter_.add(barycentricVerticalIntegral(fluidState.meshManager().bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
-                                                      fluidState.meshManager().bulkIndicatorFunction()),timeProvider.time());
+    barycenterwriter_.add(timeProvider.time(),barycentricVerticalIntegral(
+                                                fluidState.meshManager().bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
+                                                fluidState.meshManager().bulkIndicatorFunction()));
     // compute rising velocity barycenter
-    velocitywriter_.add(barycentricVerticalIntegral(fluidState.velocity(),bulkInnerVolume,fluidState.meshManager().bulkIndicatorFunction()),
-                                                    timeProvider.time());
+    velocitywriter_.add(timeProvider.time(),
+                        barycentricVerticalIntegral(fluidState.velocity(),bulkInnerVolume,fluidState.meshManager().bulkIndicatorFunction()));
   }
 
   void printInfo() const
@@ -48,19 +49,19 @@ static class BubbleStatistics
     const auto& circularities(circularitywriter_.get());
     auto minCircularity(circularities.front());
     for(const auto& entry:circularities)
-      if(entry.first<minCircularity.first)
+      if(entry.second<minCircularity.second)
         minCircularity=entry;
-    std::cout<<"Minimum circularity = "<<minCircularity.first<<" (time = "<<minCircularity.second<<" s)."<<std::endl;
+    std::cout<<"Minimum circularity = "<<minCircularity.second<<" (time = "<<minCircularity.first<<" s)."<<std::endl;
     // print max rising velocity
     const auto& velocities(velocitywriter_.get());
     auto maxRisingVelocity(velocities.front());
     for(const auto& entry:velocities)
-      if(entry.first>maxRisingVelocity.first)
+      if(entry.second>maxRisingVelocity.second)
         maxRisingVelocity=entry;
-    std::cout<<"Maximum rising velocity barycenter  = "<<maxRisingVelocity.first<<" (time = "<<maxRisingVelocity.second<<" s)."<<std::endl;
+    std::cout<<"Maximum rising velocity barycenter  = "<<maxRisingVelocity.second<<" (time = "<<maxRisingVelocity.first<<" s)."<<std::endl;
     // print final heigth barycenter
     const auto& finalBarycenter(barycenterwriter_.get().back());
-    std::cout<<"Final heigth barycenter  = "<<finalBarycenter.first<<" (time = "<<finalBarycenter.second<<" s)."<<std::endl;
+    std::cout<<"Final heigth barycenter  = "<<finalBarycenter.second<<" (time = "<<finalBarycenter.first<<" s)."<<std::endl;
   }
 
   private:
