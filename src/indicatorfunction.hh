@@ -14,6 +14,9 @@ class IndicatorFunction
   typedef BulkGridImp BulkGridType;
   typedef IndicatorFunction<BulkGridType> ThisType;
 
+  typedef typename BulkGridType::template Codim<0>::Entity BulkEntityType;
+  typedef typename BulkGridType::HostGrid::template Codim<0>::Entity HostEntityType;
+
   // constructor
   explicit IndicatorFunction(const BulkGridType& bulkGrid,const std::vector<int>& elementIDs):
     bulkgrid_(bulkGrid),elementids_(elementIDs)
@@ -21,20 +24,25 @@ class IndicatorFunction
 
   IndicatorFunction(const ThisType& )=delete;
 
-  // check if an entity is inner or outer
-  template<typename EntityType>
-  bool isInner(const EntityType& entity) const
+  // check if the host entity is inner or outer
+  bool isInner(const HostEntityType& entity) const
+  {
+    const auto idx(bulkgrid_.hostGrid().levelIndexSet(0).index(entity));
+    return elementids_[idx]==1?true:false;
+  }
+
+  // check if the bulk entity is inner or outer
+  bool isInner(const BulkEntityType& entity) const
   {
     const auto idx(bulkgrid_.levelIndexSet(0).index(entity));
     return elementids_[idx]==1?true:false;
   }
 
-  // return 1.0 if inner or 0.0 if outer
+  // return 1.0 if the entity is inner or 0.0 if outer
   template<typename EntityType>
   double operator()(const EntityType& entity) const
   {
-    const auto idx(bulkgrid_.levelIndexSet(0).index(entity));
-    return elementids_[idx]==1?1.0:0.0;
+    return static_cast<double>(isInner(entity));
   }
 
   private:
