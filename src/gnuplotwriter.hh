@@ -25,6 +25,11 @@ struct GnuplotWriter
     return values_;
   }
 
+  const std::list<std::pair<double,double>>& get() const
+  {
+    return values_;
+  }
+
   void add(double&& first,double&& second)
   {
     if(values_.size()==0)

@@ -51,11 +51,11 @@ class BulkPressureRHS
     // clear RHS
     rhs_.clear();
 
-    // create discrete function to inteprolate BC
+    // create discrete function to interpolate BC
     typedef ISTLBlockVectorDiscreteFunction<typename BC::DomainSpaceType> BCDiscreteFunctionType;
     BCDiscreteFunctionType g("g",bc.domainSpace());
 
-    // compute domain volume and \int_{\parital\Omega} I\vec g . \vec n
+    // compute domain volume and \int_{\partial\Omega} I\vec g . \vec n
     typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
     const auto& gridPart(space_.gridPart());
     RangeFieldType vol(0.0);
