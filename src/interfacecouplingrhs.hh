@@ -43,7 +43,7 @@ void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDi
   typename NormalType::NormalVectorType normalVector;
 
   // loop over interface entities
-  for(const auto interfaceEntity:curvatureSpace)
+  for(const auto& interfaceEntity:curvatureSpace)
   {
     // extract the corresponding bulk grid entity
     const auto idxInterface(interfaceGrid.leafIndexSet().index(interfaceEntity));
@@ -70,7 +70,7 @@ void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDi
     // loop over quadrature nodes
     typedef CachingQuadrature<typename VelocityDiscreteFunctionType::GridPartType,1> QuadratureType;
     QuadratureType quadrature(bulkGridPart,intersection,2*curvatureSpace.order()+1,QuadratureType::INSIDE);
-    for(const auto qp:quadrature)
+    for(const auto& qp:quadrature)
     {
       curvatureBaseSet.evaluateAll(qp.localPosition(),phiCurvature);
       velocityBaseSet.evaluateAll(qp,phiVelocity);

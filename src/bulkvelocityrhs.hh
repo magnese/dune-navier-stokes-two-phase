@@ -55,7 +55,7 @@ class BulkVelocityRHS
     std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
 
     // perform a grid walkthrough and assemble the RHS
-    for(const auto entity:space_)
+    for(const auto& entity:space_)
     {
       auto localRHS(rhs_.localFunction(entity));
       const auto localOldSolution(oldsolution_.localFunction(entity));
@@ -63,7 +63,7 @@ class BulkVelocityRHS
       const auto rho(problem_.rho(entity));
 
       CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
-      for(const auto qp:quadrature)
+      for(const auto& qp:quadrature)
       {
         const auto fValue(function(entity.geometry().global(qp.position()),timeProvider.time(),entity));
         baseSet.evaluateAll(qp,phi);

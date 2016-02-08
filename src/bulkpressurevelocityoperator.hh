@@ -91,13 +91,13 @@ class BulkPressureVelocityOperator:public Operator<typename LinearOperatorImp::D
     std::vector<RangeJacobianRangeType> gradphi(rangespace_.blockMapper().maxNumDofs()*rangeLocalBlockSize);
 
     // perform a grid walkthrough and assemble the global matrix
-    for(const auto entity:domainspace_)
+    for(const auto& entity:domainspace_)
     {
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& domainBaseSet(localMatrix.domainBasisFunctionSet());
       const auto& rangeBaseSet(localMatrix.rangeBasisFunctionSet());
       CachingQuadrature<typename DomainSpaceType::GridPartType,0> quadrature(entity,2*domainspace_.order()+1);
-      for(const auto qp:quadrature)
+      for(const auto& qp:quadrature)
       {
         // evaluate the jacobians of all basis functions
         domainBaseSet.evaluateAll(qp,phi);

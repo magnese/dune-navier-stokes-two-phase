@@ -97,7 +97,7 @@ class BoundaryCondition
   void applyToOperator(Args&&... args)
   {
     updateDOFs();
-    for(const auto entity:domainSpace())
+    for(const auto& entity:domainSpace())
       asImp().setDOFsMatrix(entity,args...);
   }
 
@@ -106,7 +106,7 @@ class BoundaryCondition
   {
     updateDOFs();
     DiscreteFunctionType g("g",w.space());
-    for(const auto entity:domainSpace())
+    for(const auto& entity:domainSpace())
       asImp().setDOFsRHS(entity,w,g,args...);
   }
 
@@ -195,7 +195,7 @@ class BoundaryCondition
       // set blocksIDs
       blocksIDs_.clear();
       blocksIDs_.resize(domainSpace().blockMapper().size(),-1);
-      for(const auto entity:domainSpace())
+      for(const auto& entity:domainSpace())
       {
         if(entity.hasBoundaryIntersections())
           setBlocksIDs(entity);
@@ -217,7 +217,7 @@ class BoundaryCondition
     blockMapper.map(entity,globalIdxs);
     std::vector<bool> globalBlockDofsFilter(blockMapper.numDofs(entity));
 
-    for(const auto intersection:intersections(static_cast<typename GridPartType::GridViewType>(*gridpart_),entity))
+    for(const auto& intersection:intersections(static_cast<typename GridPartType::GridViewType>(*gridpart_),entity))
     {
       if(intersection.boundary())
       {

@@ -147,7 +147,7 @@ class RemeshingVolumeCriteria
       double maxVolume(std::numeric_limits<double>::min());
       double minVolume(std::numeric_limits<double>::max());
       auto leafGridView(grid.leafGridView());
-      for(const auto entity:elements(leafGridView))
+      for(const auto& entity:elements(leafGridView))
       {
         const auto volume(std::abs(entity.geometry().volume()));
         minVolume=std::min(volume,minVolume);
@@ -353,7 +353,7 @@ class CoupledMeshManager
   {
     double volume(0.0);
     const auto bulkLeafGridView(bulkGrid().leafGridView());
-    for(const auto entity:elements(bulkLeafGridView))
+    for(const auto& entity:elements(bulkLeafGridView))
       if(bulkIndicatorFunction().isInner(entity))
         volume+=std::abs(entity.geometry().volume());
     return volume;
@@ -363,7 +363,7 @@ class CoupledMeshManager
   {
     double length(0.0);
     const auto interfaceLeafGridView(interfaceGrid().leafGridView());
-    for(const auto entity:elements(interfaceLeafGridView))
+    for(const auto& entity:elements(interfaceLeafGridView))
       length+=std::abs(entity.geometry().volume());
     return length;
   }
@@ -371,12 +371,12 @@ class CoupledMeshManager
   bool existEntityWithNoVerticesInDomain() const
   {
     const auto gridLeafView(bulkGrid().leafGridView());
-    for(const auto entity:elements(gridLeafView))
+    for(const auto& entity:elements(gridLeafView))
       if(entity.hasBoundaryIntersections())
       {
         // count how many faces are boundary faces
         int count(0);
-        for(const auto intersection:intersections(gridLeafView,entity))
+        for(const auto& intersection:intersections(gridLeafView,entity))
           if(intersection.boundary())
             ++count;
         // if the number of boundary faces is equal to worlddim it means that this entity has all vertices on the boundary
@@ -451,12 +451,12 @@ class CoupledMeshManager
     std::vector<unsigned int> faceConnectivity(bulkGriddim);
     // loop over bulk entities
     auto bulkLeafGridView(bulkGrid().leafGridView());
-    for(const auto entity:elements(bulkLeafGridView))
+    for(const auto& entity:elements(bulkLeafGridView))
     {
       const auto& refElement(ReferenceElements<typename BulkGridType::ctype,bulkGriddim>::general(entity.type()));
       if(bulkindicator_->isInner(entity))
       {
-        for(const auto intersection:intersections(bulkLeafGridView,entity))
+        for(const auto& intersection:intersections(bulkLeafGridView,entity))
         {
           if(intersection.neighbor())
           {
@@ -491,8 +491,8 @@ class CoupledMeshManager
   {
     std::vector<int> tempIDs(boundaryIDs().size(),0);
     auto bulkHostLeafGridView(bulkGrid().hostGrid().leafGridView());
-    for(const auto entity:elements(bulkHostLeafGridView))
-      for(const auto intersection:intersections(bulkHostLeafGridView,entity))
+    for(const auto& entity:elements(bulkHostLeafGridView))
+      for(const auto& intersection:intersections(bulkHostLeafGridView,entity))
         if(intersection.boundary())
           tempIDs[intersection.boundarySegmentIndex()]=boundaryIDs()[bulkHostGridFactory.insertionIndex(intersection)];
     boundaryIDs()=std::move(tempIDs);

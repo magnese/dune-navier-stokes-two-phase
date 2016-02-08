@@ -98,12 +98,12 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         ++intersectionIt;
       const auto outerEntity(intersectionIt->outside());
       // compute error
-      for(const auto entity:fluidState.pressureDumpSpace())
+      for(const auto& entity:fluidState.pressureDumpSpace())
       {
         auto localPressureDump(fluidState.pressureDump().localFunction(entity));
         constexpr unsigned int order(FluidStateType::BulkGridType::dimensionworld<3?13:10);
         CachingQuadrature<typename FluidStateType::BulkGridPartType,0> quadrature(entity,order);
-        for(const auto qp:quadrature)
+        for(const auto& qp:quadrature)
         {
           const auto localPoint(qp.position());
           typename FluidStateType::PressureDumpDiscreteFunctionType::RangeType value;
@@ -132,7 +132,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     {
       #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3
       const auto interfaceGridLeafView(fluidState.interfaceGrid().leafGridView());
-      for(const auto vertex:vertices(interfaceGridLeafView))
+      for(const auto& vertex:vertices(interfaceGridLeafView))
         errors[0]=std::max(errors[0],std::abs(femScheme.problem().exactRadius(timeProvider.time())-vertex.geometry().center().two_norm()));
       #endif
     }
@@ -165,7 +165,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       // interpolate velocity onto the new grid
       const auto velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
       const auto& velocitySpace(fluidState.velocitySpace());
-      for(const auto entity:velocitySpace)
+      for(const auto& entity:velocitySpace)
       {
         auto localVelocity(fluidState.velocity().localFunction(entity));
         const auto& lagrangePointSet(velocitySpace.lagrangePointSet(entity));

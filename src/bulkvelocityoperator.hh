@@ -94,7 +94,7 @@ class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFun
     std::vector<LocalFunctionJacobianRangeType> gradphi(space_.blockMapper().maxNumDofs()*localBlockSize);
 
     // perform a grid walkthrough and assemble the global matrix
-    for(const auto entity:space_)
+    for(const auto& entity:space_)
     {
       const auto localOldSolution(oldsolution_.localFunction(entity));
       auto localMatrix(op_.localMatrix(entity,entity));
@@ -104,7 +104,7 @@ class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFun
       const auto rho(problem_.rho(entity));
 
       CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
-      for(const auto qp:quadrature)
+      for(const auto& qp:quadrature)
       {
         // evaluate the jacobians of all basis functions
         baseSet.evaluateAll(qp,phi);

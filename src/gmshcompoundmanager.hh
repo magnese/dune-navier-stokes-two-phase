@@ -123,7 +123,7 @@ struct UniformCharlength
   {
     // average volume
     const auto interfaceGridLeafView(interfaceGrid.leafGridView());
-    for(const auto entity:elements(interfaceGridLeafView))
+    for(const auto& entity:elements(interfaceGridLeafView))
       charlength_+=std::abs(entity.geometry().volume());
     charlength_/=static_cast<double>(interfaceGrid.size(0));
     // in 3D charlenght is not the average volume but the edge length of an
@@ -155,7 +155,7 @@ struct AdaptiveCharlength
   {
     // average volume
     const auto interfaceGridLeafView(interfaceGrid.leafGridView());
-    for(const auto entity:elements(interfaceGridLeafView))
+    for(const auto& entity:elements(interfaceGridLeafView))
       charlength_+=std::abs(entity.geometry().volume());
     charlength_/=static_cast<double>(interfaceGrid.size(0));
     // in 3D charlenght is not the average volume but the edge length of an
@@ -174,7 +174,7 @@ struct AdaptiveCharlength
   {
     double dist(8.0*charlength_);
     const auto interfaceGridLeafView(interfaceGrid.leafGridView());
-    for(const auto vertex:vertices(interfaceGridLeafView))
+    for(const auto& vertex:vertices(interfaceGridLeafView))
     {
       FieldVector<double,3> temp({vtx.x(),vtx.y(),vtx.z()});
       for(auto i=0;i!=InterfaceGridType::dimensionworld;i++)
@@ -505,7 +505,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     typename InterfaceGridType::LeafGridView interfaceLeafGridView(interfaceGrid.leafGridView());
     std::vector<GVertex*> vertices(interfaceLeafGridView.size(worlddim-1),nullptr);
     std::array<long int,worlddim> posVtx;
-    for(const auto entity:elements(interfaceLeafGridView))
+    for(const auto& entity:elements(interfaceLeafGridView))
     {
       for(auto i=0;i!=worlddim;++i)
       {
@@ -766,7 +766,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     std::vector<GEdge*> edges(interfaceLeafGridView.size(worlddim-2),nullptr);
     std::array<long int,worlddim> posVtx;
     std::array<long int,worlddim> posEdge;
-    for(const auto entity:elements(interfaceLeafGridView))
+    for(const auto& entity:elements(interfaceLeafGridView))
     {
       const auto& refElement(ReferenceElements<typename InterfaceGridType::ctype,worlddim-1>::general(entity.type()));
       for(auto i=0;i!=worlddim;++i)

@@ -31,7 +31,7 @@ std::array<double,3> meshVolumesInfo(const GridType& grid,const std::string& inf
 {
   std::array<double,3> volumes({0.0,std::numeric_limits<double>::max(),std::numeric_limits<double>::min()});
   auto leafGridView(grid.leafGridView());
-  for(const auto entity:elements(leafGridView))
+  for(const auto& entity:elements(leafGridView))
   {
     const auto volume(std::abs(entity.geometry().volume()));
     volumes[0]+=volume;
@@ -98,7 +98,7 @@ bool isBulkConsistentWithInterface(const InterfaceGridType& interfaceGrid,const 
   // perform an interface walkthrough
   const auto bulkGriddim(BulkGridType::dimension);
   const auto interfaceLeafGridView(interfaceGrid.leafGridView());
-  for(const auto interfaceEntity:elements(interfaceLeafGridView))
+  for(const auto& interfaceEntity:elements(interfaceLeafGridView))
   {
     // extract the corresponding bulk entity
     const auto interfaceIdx(interfaceGrid.leafIndexSet().index(interfaceEntity));
@@ -131,7 +131,7 @@ std::array<typename DF::RangeFieldType,3> checkFunctionAbsRange(const DF& df)
 {
   typedef typename DF::RangeFieldType RangeFieldType;
   std::array<RangeFieldType,3> values({std::numeric_limits<RangeFieldType>::max(),std::numeric_limits<RangeFieldType>::min(),0.0});
-  for(const auto dof:dofs(df))
+  for(const auto& dof:dofs(df))
   {
     values[0]=std::min(std::abs(dof),values[0]);
     values[1]=std::max(std::abs(dof),values[1]);
@@ -151,7 +151,7 @@ std::array<typename DF::RangeFieldType,3> checkFunctionRange(const DF& df)
 {
   typedef typename DF::RangeFieldType RangeFieldType;
   std::array<RangeFieldType,3> values({std::numeric_limits<RangeFieldType>::max(),std::numeric_limits<RangeFieldType>::min(),0.0});
-  for(const auto dof:dofs(df))
+  for(const auto& dof:dofs(df))
   {
     values[0]=std::min(dof,values[0]);
     values[1]=std::max(dof,values[1]);
@@ -176,7 +176,7 @@ static struct FunctionRangeInfo
   void add(const DF& df,const TimeProviderType& timeProvider)
   {
     std::array<double,2> values({std::numeric_limits<double>::max(),std::numeric_limits<double>::min()});
-    for(const auto dof:dofs(df))
+    for(const auto& dof:dofs(df))
     {
       values[0]=std::min(dof,values[0]);
       values[1]=std::max(dof,values[1]);
@@ -198,7 +198,7 @@ static struct FunctionMaxInfo
   void add(const DF& df,const TimeProviderType& timeProvider)
   {
     double value(std::numeric_limits<double>::min());
-    for(const auto dof:dofs(df))
+    for(const auto& dof:dofs(df))
       value=std::max(std::abs(dof),value);
     writer_.add(timeProvider.time(),std::move(value));
   }
@@ -257,7 +257,7 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
   std::cout<<std::endl<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<ID<<std::endl;
   const auto& boundaryIDs(meshManager.boundaryIDs());
   const auto& gridPart(df.gridPart());
-  for(const auto entity:entities(df))
+  for(const auto& entity:entities(df))
   {
     if(entity.hasBoundaryIntersections())
     {
@@ -265,7 +265,7 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
       std::vector<std::size_t> globalIdxs(blockMapper.numDofs(entity));
       blockMapper.map(entity,globalIdxs);
       std::vector<bool> globalBlockDofsFilter(blockMapper.numDofs(entity));
-      for(const auto intersection:intersections(static_cast<typename DF::GridPartType::GridViewType>(gridPart),entity))
+      for(const auto& intersection:intersections(static_cast<typename DF::GridPartType::GridViewType>(gridPart),entity))
         if(intersection.boundary())
           if(boundaryIDs[intersection.boundarySegmentIndex()]==ID)
           {

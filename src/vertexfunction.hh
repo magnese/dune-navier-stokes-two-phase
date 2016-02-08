@@ -70,7 +70,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
   {
     // fill the vertices coordinates with the grid vertices
     const auto localBlockSize(DiscreteSpaceType::localBlockSize);
-    for(const auto entity:entities(discreteFunction()))
+    for(const auto& entity:entities(discreteFunction()))
     {
       auto localCoord(discreteFunction().localFunction(entity));
       const auto numLocalBlocks(entity.geometry().corners());

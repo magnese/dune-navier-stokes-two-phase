@@ -88,12 +88,12 @@ static class BubbleStatistics
     RangeType e_d(0.0);
     e_d[DiscreteFunctionType::GridType::dimensionworld-1]=1.0;
     double integral(0.0);
-    for(const auto entity:space)
+    for(const auto& entity:space)
       if(indicator.isInner(entity))
       {
         const auto fLocal(f.localFunction(entity));
         CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(entity,2*space.order()+1);
-        for(const auto qp:quadrature)
+        for(const auto& qp:quadrature)
         {
           RangeType fValue;
           fLocal.evaluate(qp.position(),fValue);

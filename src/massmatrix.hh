@@ -88,12 +88,12 @@ class MassMatrix:public Operator<typename LinearOperatorImp::DomainFunctionType,
     std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
 
     // perform a grid walkthrough and assemble the global matrix
-    for(const auto entity:space_)
+    for(const auto& entity:space_)
     {
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
       CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
-      for(const auto qp:quadrature)
+      for(const auto& qp:quadrature)
       {
         baseSet.evaluateAll(qp,phi);
         const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());

@@ -109,7 +109,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
     SelectorType selector;
 
     // perform a grid walkthrough and assemble the global matrix
-    for(const auto entity:domainspace_)
+    for(const auto& entity:domainspace_)
     {
       // compute normal
       const auto& faceLocalIdx(mapper_.faceLocalIdxInterface2Bulk(domainspace_.grid().leafIndexSet().index(entity)));
@@ -120,7 +120,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
       const auto& rangeBaseSet(localMatrix.rangeBasisFunctionSet());
 
       CachingQuadrature<typename DomainSpaceType::GridPartType,0> quadrature(entity,2*domainspace_.order()+1);
-      for(const auto qp:quadrature)
+      for(const auto& qp:quadrature)
       {
         domainBaseSet.evaluateAll(qp,phiDomain);
         rangeBaseSet.evaluateAll(qp,phiRange);

@@ -372,7 +372,7 @@ class FluidState
   void dumpBulkSolutions(const TimeProviderType& timeProvider) const
   {
     #if PRESSURE_SPACE_TYPE == 2
-    for(const auto entity:entities(pressure()))
+    for(const auto& entity:entities(pressure()))
     {
       auto localPressure(pressure().localFunction(entity));
       auto localPressureAdditional(pressureAdditional().localFunction(entity));

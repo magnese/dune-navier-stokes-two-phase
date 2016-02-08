@@ -60,20 +60,20 @@ class BulkPressureRHS
     const auto& gridPart(space_.gridPart());
     RangeFieldType vol(0.0);
     RangeFieldType integral(0.0);
-    for(const auto entity:space_)
+    for(const auto& entity:space_)
     {
       vol+=std::abs(entity.geometry().volume());
       if(entity.hasBoundaryIntersections())
       {
         auto gLocal(g.localFunction(entity));
-        for(const auto intersection:intersections(static_cast<typename DiscreteFunctionType::GridPartType::GridViewType>(gridPart),entity))
+        for(const auto& intersection:intersections(static_cast<typename DiscreteFunctionType::GridPartType::GridViewType>(gridPart),entity))
           if(intersection.boundary())
           {
             bc.localInterpolateBoundaryFunction(timeProvider.time(),intersection,g);
             const auto normal(intersection.centerUnitOuterNormal());
             typedef CachingQuadrature<typename DiscreteFunctionType::GridPartType,1> QuadratureType;
             QuadratureType quadrature(gridPart,intersection,2*bc.domainSpace().order()+1,QuadratureType::INSIDE);
-            for(const auto qp:quadrature)
+            for(const auto& qp:quadrature)
             {
               typename BCDiscreteFunctionType::RangeType gValue;
               gLocal.evaluate(qp.position(),gValue);
@@ -90,12 +90,12 @@ class BulkPressureRHS
     {
       typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
       std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*DiscreteSpaceType::localBlockSize);
-      for(const auto entity:space_)
+      for(const auto& entity:space_)
       {
         auto localRHS(rhs_.localFunction(entity));
         const auto& baseSet(space_.basisFunctionSet(entity));
         CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
-        for(const auto qp:quadrature)
+        for(const auto& qp:quadrature)
         {
           baseSet.evaluateAll(qp,phi);
           const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());

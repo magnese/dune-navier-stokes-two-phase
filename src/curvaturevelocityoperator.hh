@@ -94,7 +94,7 @@ class CurvatureVelocityOperator:public Operator<typename LinearOperatorImp::Doma
   {
     // allocate matrix
     Stencil<CurvatureSpaceType,VelocitySpaceType> stencil(curvaturespace_,velocityspace_);
-    for(const auto interfaceEntity:curvaturespace_)
+    for(const auto& interfaceEntity:curvaturespace_)
     {
       // fill stencil
       const auto interfaceIdx(interfacegrid_.leafIndexSet().index(interfaceEntity));
@@ -121,7 +121,7 @@ class CurvatureVelocityOperator:public Operator<typename LinearOperatorImp::Doma
     typename NormalType::NormalVectorType normalVector;
 
     // perform an interface walkthrough and assemble the global matrix
-    for(const auto interfaceEntity:curvaturespace_)
+    for(const auto& interfaceEntity:curvaturespace_)
     {
       // extract the corresponding bulk entity
       const auto interfaceIdx(interfacegrid_.leafIndexSet().index(interfaceEntity));
@@ -147,7 +147,7 @@ class CurvatureVelocityOperator:public Operator<typename LinearOperatorImp::Doma
       // loop over quadrature nodes
       typedef CachingQuadrature<BulkGridPartType,1> QuadratureType;
       QuadratureType quadrature(bulkgridpart_,intersection,2*curvaturespace_.order()+1,QuadratureType::INSIDE);
-      for(const auto qp:quadrature)
+      for(const auto& qp:quadrature)
       {
         curvatureBaseSet.evaluateAll(qp.localPosition(),phiCurvature);
         velocityBaseSet.evaluateAll(qp,phiVelocity);

@@ -98,7 +98,7 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
     NormalType normal;
     typename NormalType::NormalVectorType normalVector;
     // assemble global matrix
-    for(const auto entity:space_)
+    for(const auto& entity:space_)
     {
       // compute normal
       const auto& faceLocalIdx(mapper.faceLocalIdxInterface2Bulk(space_.grid().leafIndexSet().index(entity)));
@@ -108,7 +108,7 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
       // assemble local \vec{A_m} (position)
       CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
-      for(const auto qp:quadrature)
+      for(const auto& qp:quadrature)
       {
         // evaluate basis functions and weight
         baseSet.jacobianAll(qp,gradphi);
@@ -130,7 +130,7 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
       }
       // assemble local \vec{N_m} (curvature_j-position_i)
       CachingLumpingQuadrature<typename DiscreteSpaceType::GridPartType,0> lumpingQuadrature(entity);
-      for(const auto qp:lumpingQuadrature)
+      for(const auto& qp:lumpingQuadrature)
       {
         // evaluate basis functions and weight
         baseSet.evaluateAll(qp,phi);
