@@ -27,6 +27,8 @@ DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl01.geo
 #DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl02.geo
 #DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl00985.geo
 #DomainGeometry: /home/ma/m/ma2413/geofiles/2D/rectangle_l12_cl01.geo
+#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/rectangle_l12_cl005.geo
+#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/rectangle_l12_cl0025.geo
 
 #DomainGeometry: /home/ma/m/ma2413/geofiles/3D/cube_l1_cl05.geo
 #DomainGeometry: /home/ma/m/ma2413/geofiles/3D/cube_l1_cl025.geo
@@ -42,6 +44,8 @@ InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_cl01.msh
 #InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_usp_32.msh
 #InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_usp_64.msh
 #InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r025_c05_cl01.msh
+#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r025_c05_cl005.msh
+#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r025_c05_cl0025.msh
 
 #InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/sphere_r05_cl05_stationary.msh
 #InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/sphere_r05_cl05.msh
@@ -114,7 +118,6 @@ ComputeErrors: 1
 
 # path used for all file output (default: .)
 #fem.prefix: ./solution
-fem.prefix: /scratch/ma2413/navier_stokes_two_phase_solution
 
 # output format: 0 -> vtk-cell | 1 -> vtk-vertex | 2 -> sub-vtk-cell | 3 -> binary | 4 -> gnuplot | 5 -> none
 fem.io.outputformat: 0
