@@ -282,7 +282,7 @@ class GMSHCompoundManagerBase
     holefilename_(Fem::Parameter::getValue<std::string>("HoleGeometry","")),gmodelptrs_(),hashole_(holefilename_!="")
   {
     // init gmsh
-    GmshInitialize(argc,argv);
+    //GmshInitialize(argc,argv);
     GmshSetOption("General","Terminal",1.);
     if(verbosity)
       GmshSetOption("General","Verbosity",99.);
@@ -293,7 +293,7 @@ class GMSHCompoundManagerBase
 
   ~GMSHCompoundManagerBase()
   {
-    GmshFinalize();
+    //GmshFinalize();
   }
 
   Implementation& imp()

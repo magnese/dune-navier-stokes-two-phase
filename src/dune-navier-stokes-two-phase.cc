@@ -44,6 +44,9 @@ int main(int argc,char** argv)
     Dune::Fem::MPIManager::initialize(argc,argv);
     Dune::Fem::Parameter::append(argc,argv);
     Dune::Fem::Parameter::append((argc<2)?("/home/ma/m/ma2413/dune-repo/dune-navier-stokes-two-phase/src/parameter"):(argv[1]));
+    #if REMESH_TYPE != 0
+    GmshInitialize(argc,argv);
+    #endif
 
     // create coupled grids and fluid state
     typedef Dune::GridSelector::GridType BulkHostGridType;
@@ -83,6 +86,10 @@ int main(int argc,char** argv)
     // output total running time
     timer.stop();
     std::cout<<std::endl<<"Total running time: "<<timer.elapsed()<<" seconds."<<std::endl;
+
+    #if REMESH_TYPE != 0
+    GmshFinalize();
+    #endif
 
     return 0;
   }
