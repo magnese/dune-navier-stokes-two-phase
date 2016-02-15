@@ -13,6 +13,7 @@
 #include <vector>
 #include <fstream>
 #include <utility>
+#include <iomanip>
 
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/function/common/rangegenerators.hh>
@@ -63,6 +64,22 @@ static struct InterfaceVolumeInfo
 } interfaceVolumeInfo;
 
 // dump bulk inner volume
+static struct BulkInnerVolumeInfo
+{
+  BulkInnerVolumeInfo():
+    writer_("bulk_inner_volume")
+  {}
+
+  template<typename CoupledMeshManagerType,typename TimeProviderType>
+  void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
+  {
+    writer_.add(timeProvider.time(),meshManager.bulkInnerVolume());
+  }
+
+  GnuplotWriter writer_;
+} bulkInnerVolumeInfo;
+
+// dump normalized bulk inner volume
 static struct BulkNormalizedInnerVolumeInfo
 {
   BulkNormalizedInnerVolumeInfo():
@@ -234,12 +251,11 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
       <<" & $\\|\\vec{U}-I^h_{2}\\vec{u}\\|_{H^1(\\Omega_T)}$ & $\\|\\vec{U}-I^h_{2}\\vec{u}\\|_{L^\\infty}$"
       <<" & $\\|P-p\\|_{L^2(\\Omega_T)}$ & $\\|P-I^h_{0}p\\|_{L^\\infty}$ & CPU[s] & $K_\\Omega^T$\\\\"<<std::endl;
     file<<"\\hline"<<std::endl;
-    file.precision(5);
+    file<<std::setprecision(5);
     file<<std::scientific;
     file<<meshManager.interfaceGrid().size(0)<<" & ";
     for(const auto& err:errors)
       file<<(err<1.e-13?0:err)<<" & ";
-    file.unsetf(std::ios_base::floatfield);
     file<<timer.elapsed()<<" & "<<meshManager.bulkGrid().size(0)<<"\\\\"<<std::endl;
     file<<"\\hline"<<std::endl;
     file<<"\\end{tabular}"<<std::endl;
