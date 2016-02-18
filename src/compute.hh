@@ -162,6 +162,8 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         DUNE_THROW(InvalidStateException,"ERROR: for Navier-Stokes smoothing needs to be always OFF and remeshing always ON!");
       else
         oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
+      // store if a dof has already been interpolated
+      std::vector<bool> dofAlreadyInterpolated(fluidState.velocitySpace().blockMapper().size(),false);
       // interpolate velocity onto the new grid
       const auto velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
       const auto& velocitySpace(fluidState.velocitySpace());
@@ -170,12 +172,20 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         auto localVelocity(fluidState.velocity().localFunction(entity));
         const auto& lagrangePointSet(velocitySpace.lagrangePointSet(entity));
         std::size_t row(0);
+        std::vector<std::size_t> globalIdxs(velocitySpace.blockMapper().numDofs(entity));
+        velocitySpace.blockMapper().map(entity,globalIdxs);
         for(auto pt=decltype(lagrangePointSet.nop()){0};pt!=lagrangePointSet.nop();++pt)
         {
-          typename FluidStateType::VelocityDiscreteFunctionType::RangeType temp;
-          oldFluidState.velocity().evaluate(entity.geometry().global(lagrangePointSet.point(pt)),temp);
-          for(auto l=0;l!=velocityLocalBlockSize;++l,++row)
-            localVelocity[row]=temp[l];
+          if(dofAlreadyInterpolated[globalIdxs[pt]])
+            row+=velocityLocalBlockSize;
+          else
+          {
+            typename FluidStateType::VelocityDiscreteFunctionType::RangeType temp;
+            oldFluidState.velocity().evaluate(entity.geometry().global(lagrangePointSet.point(pt)),temp);
+            for(auto l=0;l!=velocityLocalBlockSize;++l,++row)
+              localVelocity[row]=temp[l];
+            dofAlreadyInterpolated[globalIdxs[pt]]=true;
+          }
         }
       }
     }
