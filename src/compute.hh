@@ -60,8 +60,12 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   // solve
   for(;timeProvider.time()<=endTime;timeProvider.next())
   {
+    Timer timerStep(false);
+    Timer timerInterpolation(false);
+
     // print time
     std::cout<<std::endl<<"Time step "<<timeProvider.timeStep()<<" (time = "<<timeProvider.time()<<" s)."<<std::endl;
+    timerStep.start();
 
     // do one step
     femScheme(timeProvider);
@@ -150,6 +154,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     // perform remesh and keep also the original fluid state to interpolate the velocity onto the new grid
     auto oldFluidState(fluidState);
     const auto remeshPerformed(fluidState.meshManager().remesh());
+    timerInterpolation.start();
 
     // interpolate velocity onto the new grid
     if(!(femScheme.problem().isDensityNull()))
@@ -189,6 +194,12 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         }
       }
     }
+    timerInterpolation.stop();
+    timerStep.stop();
+
+    if(!(femScheme.problem().isDensityNull()))
+      std::cout<<"Velocity interpolation time: "<<timerInterpolation.elapsed()<<" seconds."<<std::endl;
+    std::cout<<"Full timestep time: "<<timerStep.elapsed()<<" seconds."<<std::endl;
   }
 
   // print errors

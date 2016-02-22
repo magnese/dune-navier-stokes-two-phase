@@ -407,8 +407,12 @@ class FemScheme
       fluidstate_.displacement().clear();
 
     // print timers
-    std::cout<<"Assemble bulk operators time: "<<timerAssembleBulk.elapsed()<<" seconds."<<std::endl;
-    std::cout<<"Assemble interface operator time: "<<timerAssembleInterface.elapsed()<<" seconds."<<std::endl;
+    std::cout<<"Assemble bulk operators (";
+    fluidstate_.printBulkInfo();
+    std::cout<<") time: "<<timerAssembleBulk.elapsed()<<" seconds."<<std::endl;
+    std::cout<<"Assemble interface operator (";
+    fluidstate_.printInterfaceInfo();
+    std::cout<<") time: "<<timerAssembleInterface.elapsed()<<" seconds."<<std::endl;
     std::cout<<"Solve bulk time: "<<timerSolveBulk.elapsed()<<" seconds."<<std::endl;
     std::cout<<"Solve interface time: "<<timerSolveInterface.elapsed()<<" seconds."<<std::endl;
   }

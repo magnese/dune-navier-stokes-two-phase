@@ -358,8 +358,6 @@ class FluidState
       interfacetuple_=std::make_shared<InterfaceTupleType>(&curvature(),&displacement());
       bulkoutput_=std::make_shared<BulkDataOutputType>(meshmanager_.bulkGrid(),*bulktuple_,bulkoutputparameters_);
       interfaceoutput_=std::make_shared<InterfaceDataOutputType>(meshmanager_.interfaceGrid(),*interfacetuple_,interfaceoutputparameters_);
-      // print some info
-      printInfo();
       // update sequence number
       sequence_=meshmanager_.sequence();
       meshIsChanged=true;
@@ -391,16 +389,21 @@ class FluidState
     interfaceoutputparameters_.saveState(*interfaceoutput_);
   }
 
-  // print spaces info
-  const void printInfo(std::ostream& s=std::cout) const
+  // print bulk spaces info
+  const void printBulkInfo(std::ostream& s=std::cout) const
   {
-    s<<"Solving for "<<velocity().size()<<" "<<velocity().name()<<" dofs (P"<<velocitySpace().order()<<")."<<std::endl;
-    s<<"Solving for "<<pressure().size()<<" "<<pressure().name() <<" dofs (P"<<pressureSpace().order()<<")."<<std::endl;
+    s<<"P"<<velocitySpace().order()<<" "<<velocity().name()<<" -> "<<velocity().size()<<" DOFs, ";
+    s<<"P"<<pressureSpace().order()<<" "<<pressure().name()<<" -> "<<pressure().size()<<" DOFs";
     #if PRESSURE_SPACE_TYPE == 2
-    s<<"Solving for "<<pressure().size()<<" "<<pressureAdditional().name()<<" dofs (P"<<pressureAdditionalSpace().order()<<")."<<std::endl;
+    s<<", P"<<pressureAdditionalSpace().order()<<" "<<pressureAdditional().name()<<" -> "<<pressureAdditional().size()<<" DOFs";
     #endif
-    s<<"Solving for "<<curvature().size()<<" "<<curvature().name()<<" dofs (P"<<curvatureSpace().order()<<")."<<std::endl;
-    s<<"Solving for "<<displacement().size()<<" "<<displacement().name()<<" dofs (P"<<displacementSpace().order()<<")."<<std::endl;
+  }
+
+  // print interface spaces info
+  const void printInterfaceInfo(std::ostream& s=std::cout) const
+  {
+    s<<"P"<<curvatureSpace().order()<<" "<<curvature().name()<<" -> "<<curvature().size()<<" DOFs, ";
+    s<<"P"<<displacementSpace().order()<<" "<<displacement().name()<<" -> "<<displacement().size()<<" DOFs";
   }
 
   // split bulk solution into velocity and pressure

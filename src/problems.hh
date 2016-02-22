@@ -191,7 +191,6 @@ class BaseProblem
     s<<"gamma = "<<gamma_<<std::endl;
     s<<"rho_inner = "<<rhoinner_<<std::endl;
     s<<"rho_outer = "<<rhoouter_<<std::endl;
-    s<<std::endl;
   }
 
   protected:
