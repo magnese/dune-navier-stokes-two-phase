@@ -15,6 +15,8 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/solver/timeprovider.hh>
 
+#include "searchforentity.hh"
+
 namespace Dune
 {
 namespace Fem
@@ -172,6 +174,8 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       // interpolate velocity onto the new grid
       const auto velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
       const auto& velocitySpace(fluidState.velocitySpace());
+      auto oldEntity=(*(oldFluidState.velocitySpace().begin()));
+      unsigned int averageResearchDepth(0);
       for(const auto& entity:velocitySpace)
       {
         auto localVelocity(fluidState.velocity().localFunction(entity));
@@ -185,14 +189,20 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
             row+=velocityLocalBlockSize;
           else
           {
+            const auto xGlobal(entity.geometry().global(lagrangePointSet.point(pt)));
+            averageResearchDepth+=searchForEntity(oldFluidState.bulkGridPart(),std::move(oldEntity),xGlobal);
+            auto localOldVelocity(oldFluidState.velocity().localFunction(oldEntity));
             typename FluidStateType::VelocityDiscreteFunctionType::RangeType temp;
-            oldFluidState.velocity().evaluate(entity.geometry().global(lagrangePointSet.point(pt)),temp);
+            localOldVelocity.evaluate(oldEntity.geometry().local(xGlobal),temp);
+            //oldFluidState.velocity().evaluate(xGlobal,temp);
             for(auto l=0;l!=velocityLocalBlockSize;++l,++row)
               localVelocity[row]=temp[l];
             dofAlreadyInterpolated[globalIdxs[pt]]=true;
           }
         }
       }
+      std::cout<<"Average research depth : "<<static_cast<double>(averageResearchDepth)/static_cast<double>(dofAlreadyInterpolated.size())
+        <<"."<<std::endl;
     }
     timerInterpolation.stop();
     timerStep.stop();
