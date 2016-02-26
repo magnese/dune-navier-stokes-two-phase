@@ -42,7 +42,7 @@ struct GnuplotWriter
     return values_;
   }
 
-  void add(double&& first,double&& second)
+  void add(double&& first,double&& second,bool&& leaveEmptyRow=false)
   {
     if(!filenameset_)
     {
@@ -50,16 +50,28 @@ struct GnuplotWriter
       filenameset_=true;
     }
     values_.emplace_back(first,second);
+    returns_.emplace_back(leaveEmptyRow);
   }
 
   ~GnuplotWriter()
+  {
+    finalize();
+  }
+
+  void finalize()
   {
     if(values_.size()!=0)
     {
       std::ofstream file(filename_);
       file<<std::setprecision(precision_);
+      auto returnsIt(returns_.begin());
       for(const auto& value:values_)
+      {
         file<<value.first<<" "<<value.second<<std::endl;
+        if(*returnsIt)
+          file<<std::endl;
+        ++returnsIt;
+      }
     }
   }
 
@@ -67,6 +79,7 @@ struct GnuplotWriter
   bool filenameset_;
   unsigned int precision_;
   std::list<std::pair<double,double>> values_;
+  std::list<bool> returns_;
 };
 
 }

@@ -296,6 +296,26 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
   std::cout<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<ID<<std::endl<<std::endl;
 }
 
+// dump triangles in gnuplot format
+static struct TrianglesDump
+{
+  TrianglesDump():
+    writer_("triangles")
+  {}
+
+  template<typename EntityType>
+  void add(const EntityType& entity)
+  {
+    const auto& geo(entity.geometry());
+    for(std::size_t i=0;i!=geo.corners();++i)
+      writer_.add(std::move(geo.corner(i)[0]),std::move(geo.corner(i)[1]));
+    writer_.add(std::move(geo.corner(0)[0]),std::move(geo.corner(0)[1]),true);
+  }
+
+  GnuplotWriter writer_;
+} trianglesDump;
+
+
 }
 }
 
