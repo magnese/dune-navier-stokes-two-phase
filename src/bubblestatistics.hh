@@ -35,12 +35,12 @@ static class BubbleStatistics
     constexpr auto worlddim(FluidStateType::BulkGridType::dimensionworld);
     circularitywriter_.add(timeProvider.time(),circularity<worlddim>(bulkInnerVolume,interfaceLength));
     // compute heigth barycenter
-    barycenterwriter_.add(timeProvider.time(),barycentricVerticalIntegral(
+    barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegration(
                                                 fluidState.meshManager().bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
                                                 fluidState.meshManager().bulkIndicatorFunction()));
-    // compute rising velocity barycenter
-    velocitywriter_.add(timeProvider.time(),
-                        barycentricVerticalIntegral(fluidState.velocity(),bulkInnerVolume,fluidState.meshManager().bulkIndicatorFunction()));
+    // compute average rising velocity
+    velocitywriter_.add(timeProvider.time(),verticalComponentInnerIntegration(fluidState.velocity(),bulkInnerVolume,
+                                                                              fluidState.meshManager().bulkIndicatorFunction()));
   }
 
   void printInfo() const
@@ -52,13 +52,13 @@ static class BubbleStatistics
       if(entry.second<minCircularity.second)
         minCircularity=entry;
     std::cout<<"Minimum circularity = "<<minCircularity.second<<" (time = "<<minCircularity.first<<" s)."<<std::endl;
-    // print max rising velocity
+    // print max average rising velocity
     const auto& velocities(velocitywriter_.get());
     auto maxRisingVelocity(velocities.front());
     for(const auto& entry:velocities)
       if(entry.second>maxRisingVelocity.second)
         maxRisingVelocity=entry;
-    std::cout<<"Maximum rising velocity barycenter  = "<<maxRisingVelocity.second<<" (time = "<<maxRisingVelocity.first<<" s)."<<std::endl;
+    std::cout<<"Maximum average rising velocity  = "<<maxRisingVelocity.second<<" (time = "<<maxRisingVelocity.first<<" s)."<<std::endl;
     // print final heigth barycenter
     const auto& finalBarycenter(barycenterwriter_.get().back());
     std::cout<<"Final heigth barycenter  = "<<finalBarycenter.second<<" (time = "<<finalBarycenter.first<<" s)."<<std::endl;
@@ -79,8 +79,8 @@ static class BubbleStatistics
   }
 
   template<typename DiscreteFunctionType,typename BulkIndicatorFunctionType>
-  double barycentricVerticalIntegral(const DiscreteFunctionType& f,double bulkInnerVolume,
-                                     const BulkIndicatorFunctionType& indicator) const
+  double verticalComponentInnerIntegration(const DiscreteFunctionType& f,double bulkInnerVolume,
+                                           const BulkIndicatorFunctionType& indicator) const
   {
     // compute \int_{\Omega_-}(\vec f * \vec e_d) / \int_{\Omega_-}( 1 )
     const auto& space(f.space());
