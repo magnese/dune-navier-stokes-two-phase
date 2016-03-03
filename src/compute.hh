@@ -16,6 +16,7 @@
 #include <dune/fem/solver/timeprovider.hh>
 
 #include "searchforentity.hh"
+#include "sortedview.hh"
 
 namespace Dune
 {
@@ -174,9 +175,16 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       // interpolate velocity onto the new grid
       const auto velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
       const auto& velocitySpace(fluidState.velocitySpace());
+      #if INTERPOLATION_TYPE != 0
       auto oldEntity=(*(oldFluidState.velocitySpace().begin()));
       unsigned int averageResearchDepth(0);
+      #endif
+      #if INTERPOLATION_TYPE == 2
+      SortedView<typename FluidStateType::BulkGridType> sortedView(fluidState.bulkGrid(),0.025,{0,0},{1,2});
+      for(const auto& entity:elements(sortedView))
+      #else
       for(const auto& entity:velocitySpace)
+      #endif
       {
         auto localVelocity(fluidState.velocity().localFunction(entity));
         const auto& lagrangePointSet(velocitySpace.lagrangePointSet(entity));
@@ -189,20 +197,25 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
             row+=velocityLocalBlockSize;
           else
           {
+            typename FluidStateType::VelocityDiscreteFunctionType::RangeType temp;
             const auto xGlobal(entity.geometry().global(lagrangePointSet.point(pt)));
+            #if INTERPOLATION_TYPE == 0
+            oldFluidState.velocity().evaluate(xGlobal,temp);
+            #else
             averageResearchDepth+=searchForEntity(oldFluidState.bulkGridPart(),std::move(oldEntity),xGlobal);
             auto localOldVelocity(oldFluidState.velocity().localFunction(oldEntity));
-            typename FluidStateType::VelocityDiscreteFunctionType::RangeType temp;
             localOldVelocity.evaluate(oldEntity.geometry().local(xGlobal),temp);
-            //oldFluidState.velocity().evaluate(xGlobal,temp);
+            #endif
             for(auto l=0;l!=velocityLocalBlockSize;++l,++row)
               localVelocity[row]=temp[l];
             dofAlreadyInterpolated[globalIdxs[pt]]=true;
           }
         }
       }
+      #if INTERPOLATION_TYPE != 0
       std::cout<<"Average research depth : "<<static_cast<double>(averageResearchDepth)/static_cast<double>(dofAlreadyInterpolated.size())
         <<"."<<std::endl;
+      #endif
     }
     timerInterpolation.stop();
     timerStep.stop();

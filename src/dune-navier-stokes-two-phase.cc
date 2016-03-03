@@ -10,6 +10,8 @@
 
 #define REMESH_TYPE 1 // 0 none, 1 uniform, 2 fixed, 3 adaptive
 
+#define INTERPOLATION_TYPE 2 // 0 linear search, 1 barycentric coordinate search, 2 sorted entities + barycentric search
+
 #define PROBLEM_NUMBER 2 // 0 StokesTest1, 1 StokesTest2, 2 StationaryBubble, 3 ExpandingBubble, 4 ShearFlow
                          // 5 StationaryNavierStokes, 6 NavierStokes2D, 7 RisingBubble2D
 
