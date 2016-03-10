@@ -146,9 +146,9 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
     discreteFunction().localFunction(entity).evaluate(referenceElement.position(corner,griddim),y);
   }
 
-  void evaluate(const HostVertexType& vertex,unsigned int corner,RangeVectorType& y) const
+  void evaluate(const HostVertexType& vertex,unsigned int ,RangeVectorType& y) const
   {
-    coord_.evaluate(vertex.geometry().corner(corner),y);;
+    coord_.evaluate(vertex.geometry().center(),y);;
   }
 
   void adapt() const
