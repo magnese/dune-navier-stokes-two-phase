@@ -88,10 +88,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       femScheme.problem().pressureSolution(pressureExactSolution,timeProvider.time());
       // compute L2 interpolated velocity error
       L2Norm<typename FluidStateType::BulkGridPartType> normL2(fluidState.bulkGridPart());
-      errors[1]+=pow(normL2.distance(velocityExactSolution,fluidState.velocity()),2);
+      errors[1]+=std::pow(normL2.distance(velocityExactSolution,fluidState.velocity()),2);
       // compute H1 interpolated velocity error
       H1Norm<typename FluidStateType::BulkGridPartType> normH1(fluidState.bulkGridPart());
-      errors[2]+=pow(normH1.distance(velocityExactSolution,fluidState.velocity()),2);
+      errors[2]+=std::pow(normH1.distance(velocityExactSolution,fluidState.velocity()),2);
       // compute Linfinity interpolated velocity error
       auto exactVelocityIt(velocityExactSolution.dbegin());
       for(auto velocityIt=fluidState.velocity().dbegin();velocityIt!=fluidState.velocity().dend();++velocityIt,++exactVelocityIt)
@@ -228,9 +228,9 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   // print errors
   if(computeErrors)
   {
-    errors[1]=pow(errors[1]*timeProvider.deltaT(),0.5);
-    errors[2]=pow(errors[2]*timeProvider.deltaT(),0.5);
-    errors[4]=pow(errors[4]*timeProvider.deltaT(),0.5);
+    errors[1]=std::pow(errors[1]*timeProvider.deltaT(),0.5);
+    errors[2]=std::pow(errors[2]*timeProvider.deltaT(),0.5);
+    errors[4]=std::pow(errors[4]*timeProvider.deltaT(),0.5);
     std::cout<<std::endl<<"Errors:"<<std::endl;
     std::cout.precision(5);
     std::cout<<std::scientific;

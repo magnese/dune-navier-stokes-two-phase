@@ -328,7 +328,7 @@ class StokesTest1Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
     velocitySolution()=[&](const typename BaseType::VelocityDomainType& x,const double& ,const typename BaseType::EntityType& )
     {
       typename BaseType::VelocityRangeType value(0.0);
-      value[1]=pow(x[0],3.0)-x[0];
+      value[1]=std::pow(x[0],3.0)-x[0];
       return value;
     };
 
@@ -365,7 +365,7 @@ class StokesTest2Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
     {
       const auto muValue(mu(entity));
       typename BaseType::VelocityRangeType value(0.0);
-      value[0]=-12.0*muValue*pow(x[1],2.0);
+      value[0]=-12.0*muValue*std::pow(x[1],2.0);
       value[1]=-6.0*muValue*x[0];
       return value;
     };
@@ -373,8 +373,8 @@ class StokesTest2Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
     velocitySolution()=[&](const typename BaseType::VelocityDomainType& x,const double& ,const typename BaseType::EntityType& )
     {
       typename BaseType::VelocityRangeType value(0.0);
-      value[0]=1.0+pow(x[1],4.0);
-      value[1]=pow(x[0],3.0)-x[0];
+      value[0]=1.0+std::pow(x[1],4.0);
+      value[1]=std::pow(x[0],3.0)-x[0];
       return value;
     };
 
@@ -414,7 +414,7 @@ class StationaryBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressu
       const auto rt(exactRadius());
       const auto lambda(gamma()*static_cast<double>(worlddim-1)/rt);
       const auto& indicator(meshmanager_.bulkIndicatorFunction());
-      auto value(lambda*(indicator(entity)-pow(4.0/3.0,worlddim-2)*M_PI*pow(rt,worlddim)*pow(2,-worlddim)));
+      auto value(lambda*(indicator(entity)-std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)*std::pow(2,-worlddim)));
       return value;
     };
 
@@ -466,17 +466,18 @@ class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressur
     {
       auto value(x);
       value*=alpha_;
-      value/=pow(x.two_norm(),worlddim);
+      value/=std::pow(x.two_norm(),worlddim);
       return value;
     };
 
     pressureSolution()=[&](const typename BaseType::PressureDomainType& ,const double& t,const typename BaseType::EntityType& entity)
     {
       const auto rt(exactRadius(t));
-      const auto lambda(static_cast<double>(worlddim-1)*(gamma()/rt+2*alpha_*deltaMu()*pow(rt,-worlddim)));
+      const auto lambda(static_cast<double>(worlddim-1)*(gamma()/rt+2*alpha_*deltaMu()*std::pow(rt,-worlddim)));
       const auto& indicator(meshmanager_.bulkIndicatorFunction());
       auto value(lambda*(indicator(entity)-
-                         (pow(4.0/3.0,worlddim-2)*M_PI*pow(rt,worlddim)-pow(2.0/3.0,worlddim))/(pow(2,worlddim)-pow(2.0/3.0,worlddim))));
+                         (std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)-std::pow(2.0/3.0,worlddim))/
+                         (std::pow(2,worlddim)-std::pow(2.0/3.0,worlddim))));
       return value;
     };
 
@@ -495,7 +496,7 @@ class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressur
 
   double exactRadius(const double& t) const
   {
-    return pow(pow(r0_,worlddim)+alpha_*t*static_cast<double>(worlddim),1.0/static_cast<double>(worlddim));
+    return std::pow(std::pow(r0_,worlddim)+alpha_*t*static_cast<double>(worlddim),1.0/static_cast<double>(worlddim));
   }
 
   private:
@@ -566,23 +567,23 @@ class StationaryNavierStokesProblem:public BaseProblem<VelocityDiscreteSpaceImp,
     {
       const auto muValue(mu(entity));
       typename BaseType::VelocityRangeType value(0.0);
-      value[0]=-2.0*pow(M_PI,2.0)*muValue*cos(M_PI*x[0])*sin(M_PI*x[1])+M_PI/2.0*sin(2.0*M_PI*x[0]);
-      value[1]=2.0*pow(M_PI,2.0)*muValue*sin(M_PI*x[0])*cos(M_PI*x[1])+M_PI/2.0*sin(2.0*M_PI*x[1]);
+      value[0]=-2.0*std::pow(M_PI,2.0)*muValue*std::cos(M_PI*x[0])*std::sin(M_PI*x[1])+M_PI/2.0*std::sin(2.0*M_PI*x[0]);
+      value[1]=2.0*std::pow(M_PI,2.0)*muValue*std::sin(M_PI*x[0])*std::cos(M_PI*x[1])+M_PI/2.0*std::sin(2.0*M_PI*x[1]);
       return value;
     };
 
     velocitySolution()=[&](const typename BaseType::VelocityDomainType& x,const double& ,const typename BaseType::EntityType& )
     {
       typename BaseType::VelocityRangeType value(0.0);
-      value[0]=-cos(M_PI*x[0])*sin(M_PI*x[1]);
-      value[1]=sin(M_PI*x[0])*cos(M_PI*x[1]);
+      value[0]=-std::cos(M_PI*x[0])*std::sin(M_PI*x[1]);
+      value[1]=std::sin(M_PI*x[0])*std::cos(M_PI*x[1]);
       return value;
     };
 
     pressureSolution()=[&](const typename BaseType::PressureDomainType& x,const double& ,const typename BaseType::EntityType& )
     {
       typename BaseType::PressureRangeType value(0.0);
-      value[0]=-0.25*(cos(2.0*M_PI*x[0])+cos(2.0*M_PI*x[1]));
+      value[0]=-0.25*(std::cos(2.0*M_PI*x[0])+std::cos(2.0*M_PI*x[1]));
       return value;
     };
 
@@ -621,15 +622,15 @@ class NavierStokes2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressure
     {
       const auto muValue(mu(entity));
       typename BaseType::VelocityRangeType value(0.0);
-      value[0]=-cos(M_PI*x[0])*sin(M_PI*x[1])*exp(-2.0*M_PI*M_PI*muValue*t);
-      value[1]=sin(M_PI*x[0])*cos(M_PI*x[1])*exp(-2.0*M_PI*M_PI*muValue*t);
+      value[0]=-std::cos(M_PI*x[0])*std::sin(M_PI*x[1])*std::exp(-2.0*M_PI*M_PI*muValue*t);
+      value[1]=std::sin(M_PI*x[0])*std::cos(M_PI*x[1])*std::exp(-2.0*M_PI*M_PI*muValue*t);
       return value;
     };
 
     pressureSolution()=[&](const typename BaseType::PressureDomainType& x,const double& t,const typename BaseType::EntityType& entity)
     {
       typename BaseType::PressureRangeType value(0.0);
-      value[0]=-0.25*(cos(2.0*M_PI*x[0])+cos(2.0*M_PI*x[1]))*exp(-4.0*M_PI*M_PI*mu(entity)*t);
+      value[0]=-0.25*(std::cos(2.0*M_PI*x[0])+std::cos(2.0*M_PI*x[1]))*std::exp(-4.0*M_PI*M_PI*mu(entity)*t);
       return value;
     };
 

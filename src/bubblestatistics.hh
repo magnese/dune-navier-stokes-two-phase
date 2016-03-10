@@ -74,7 +74,7 @@ static class BubbleStatistics
   {
     // compute (perimeter_area-equivalent_sphere)/perimeter_bubble
     constexpr double d(static_cast<double>(worlddim));
-    const auto equivalentCircleLength(pow(M_PI,1.0/d)*pow(2.0*d*bulkInnerVolume,(d-1.0)/d));
+    const auto equivalentCircleLength(std::pow(M_PI,1.0/d)*std::pow(2.0*d*bulkInnerVolume,(d-1.0)/d));
     return equivalentCircleLength/interfaceLength;
   }
 

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <array>
+#include <cmath>
 #include <vector>
 #include <list>
 #include <map>
@@ -128,7 +129,7 @@ struct UniformCharlength
     charlength_/=static_cast<double>(interfaceGrid.size(0));
     // in 3D charlength is not the average volume but the edge length of an equilateral triangle with that area
     if(InterfaceGridType::dimensionworld==3)
-      charlength_=2.0*pow(3.0,-0.25)*pow(charlength_,0.5);
+      charlength_=2.0*std::pow(3.0,-0.25)*std::pow(charlength_,0.5);
   }
 
   static void printInfo(std::ostream& s=std::cout)
@@ -159,7 +160,7 @@ struct AdaptiveCharlength
     charlength_/=static_cast<double>(interfaceGrid.size(0));
     // in 3D charlength is not the average volume but the edge length of an equilateral triangle with that area
     if(InterfaceGridType::dimensionworld==3)
-      charlength_=2.0*pow(3.0,-0.25)*pow(charlength_,0.5);
+      charlength_=2.0*std::pow(3.0,-0.25)*std::pow(charlength_,0.5);
   }
 
   static void printInfo(std::ostream& s=std::cout)
