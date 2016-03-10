@@ -42,7 +42,7 @@ class BulkPressureRHS
 
   double norm() const
   {
-    return sqrt(rhs_.scalarProductDofs(rhs_));
+    return std::sqrt(rhs_.scalarProductDofs(rhs_));
   }
 
   template<typename BC,typename TimeProviderType>

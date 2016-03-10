@@ -1,6 +1,7 @@
 #ifndef DUNE_FEM_SMOOTHINGRHS_HH
 #define DUNE_FEM_SMOOTHINGRHS_HH
 
+#include <cmath>
 #include <string>
 #include <fstream>
 
@@ -37,7 +38,7 @@ class SmoothingRHS
 
   double norm() const
   {
-    return sqrt(rhs_.scalarProductDofs(rhs_));
+    return std::sqrt(rhs_.scalarProductDofs(rhs_));
   }
 
   template<typename T,typename M>

@@ -4,6 +4,7 @@
 // deprecation warning
 #warning ("WARNING : interfacedisplacementrhs.hh is deprecated")
 
+#include <cmath>
 #include <fstream>
 #include <string>
 
@@ -40,7 +41,7 @@ class InterfaceDisplacementRHS
 
   double norm() const
   {
-    return sqrt(rhs_.scalarProductDofs(rhs_));
+    return std::sqrt(rhs_.scalarProductDofs(rhs_));
   }
 
   template<typename OperatorType>

@@ -1,6 +1,7 @@
 #ifndef DUNE_FEM_INTERFACERHS_HH
 #define DUNE_FEM_INTERFACERHS_HH
 
+#include <cmath>
 #include <fstream>
 #include <string>
 #include <algorithm>
@@ -38,7 +39,7 @@ class InterfaceRHS
 
   double norm() const
   {
-    return sqrt(rhs_.scalarProductDofs(rhs_));
+    return std::sqrt(rhs_.scalarProductDofs(rhs_));
   }
 
   template<typename OperatorType>
