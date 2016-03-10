@@ -644,25 +644,26 @@ class NavierStokes2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressure
   }
 };
 
-// rising bubble 2D
+// rising bubble
 template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
-class RisingBubble2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition,
-                                               FreeSlipCondition>
+class RisingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition,
+                                             FreeSlipCondition>
 {
   public:
   typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
   typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
   typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef RisingBubble2DProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
+  typedef RisingBubbleProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
   typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,DirichletCondition,FreeSlipCondition>
     BaseType;
 
   using BaseType::velocityBC;
   using BaseType::velocityRHS;
   using BaseType::rho;
+  using BaseType::worlddim;
 
-  RisingBubble2DProblem(CoupledMeshManagerType& meshManager):
-    BaseType(meshManager,true,false,"rising bubble 2D")
+  RisingBubbleProblem(CoupledMeshManagerType& meshManager):
+    BaseType(meshManager,true,false,"rising bubble")
   {
     typedef typename BaseType::VelocityDomainType VelocityDomainType;
     typedef typename BaseType::VelocityRangeType VelocityRangeType;
@@ -670,11 +671,13 @@ class RisingBubble2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressure
 
     velocityRHS()=[&](const VelocityDomainType& ,const double& ,const EntityType& entity)
     {
-      typename BaseType::VelocityRangeType value({0.0,-0.98});
+      typename BaseType::VelocityRangeType value(0.0);
+      value[worlddim-1]=-0.98;
       value*=rho(entity);
       return value;
     };
 
+    // Dirichlet on top/bottom
     velocityBC().addBC(2,[&](const VelocityDomainType& ,const double& ,const EntityType& )
                             {
                               return VelocityRangeType(0.0);
@@ -683,6 +686,7 @@ class RisingBubble2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressure
                             {
                               return VelocityRangeType(0.0);
                             });
+    // free-slip on faces normal to x
     this->template getVelocityBC<1>().addBC(3,[&](const VelocityDomainType& ,const double& ,const EntityType& )
                                                  {
                                                    VelocityRangeType value(1.0);
@@ -693,6 +697,19 @@ class RisingBubble2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressure
                                                  {
                                                    VelocityRangeType value(1.0);
                                                    value[0]=0.0;
+                                                   return value;
+                                                 });
+    // free-slip on faces normal to y (only 3d)
+    this->template getVelocityBC<1>().addBC(6,[&](const VelocityDomainType& ,const double& ,const EntityType& )
+                                                 {
+                                                   VelocityRangeType value(1.0);
+                                                   value[1]=0.0;
+                                                   return value;
+                                                 });
+    this->template getVelocityBC<1>().addBC(7,[&](const VelocityDomainType& ,const double& ,const EntityType& )
+                                                 {
+                                                   VelocityRangeType value(1.0);
+                                                   value[1]=0.0;
                                                    return value;
                                                  });
   }

@@ -99,7 +99,7 @@ class FemScheme
   #elif PROBLEM_NUMBER == 6
   typedef NavierStokes2DProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
   #else
-  typedef RisingBubble2DProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
+  typedef RisingBubbleProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
   #endif
 
   // define underlying matrices structures for bulk
