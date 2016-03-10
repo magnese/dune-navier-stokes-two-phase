@@ -352,8 +352,8 @@ class CoupledMeshManager
   double bulkInnerVolume() const
   {
     double volume(0.0);
-    const auto bulkLeafGridView(bulkGrid().leafGridView());
-    for(const auto& entity:elements(bulkLeafGridView))
+    const auto leafGridView(bulkGrid().leafGridView());
+    for(const auto& entity:elements(leafGridView))
       if(bulkIndicatorFunction().isInner(entity))
         volume+=std::abs(entity.geometry().volume());
     return volume;
@@ -362,8 +362,8 @@ class CoupledMeshManager
   double interfaceLength() const
   {
     double length(0.0);
-    const auto interfaceLeafGridView(interfaceGrid().leafGridView());
-    for(const auto& entity:elements(interfaceLeafGridView))
+    const auto leafGridView(interfaceGrid().leafGridView());
+    for(const auto& entity:elements(leafGridView))
       length+=std::abs(entity.geometry().volume());
     return length;
   }
