@@ -126,8 +126,7 @@ struct UniformCharlength
     for(const auto& entity:elements(interfaceGridLeafView))
       charlength_+=std::abs(entity.geometry().volume());
     charlength_/=static_cast<double>(interfaceGrid.size(0));
-    // in 3D charlenght is not the average volume but the edge length of an
-    // equilateral triangle with that area
+    // in 3D charlength is not the average volume but the edge length of an equilateral triangle with that area
     if(InterfaceGridType::dimensionworld==3)
       charlength_=2.0*pow(3.0,-0.25)*pow(charlength_,0.5);
   }
@@ -158,8 +157,7 @@ struct AdaptiveCharlength
     for(const auto& entity:elements(interfaceGridLeafView))
       charlength_+=std::abs(entity.geometry().volume());
     charlength_/=static_cast<double>(interfaceGrid.size(0));
-    // in 3D charlenght is not the average volume but the edge length of an
-    // equilateral triangle with that area
+    // in 3D charlength is not the average volume but the edge length of an equilateral triangle with that area
     if(InterfaceGridType::dimensionworld==3)
       charlength_=2.0*pow(3.0,-0.25)*pow(charlength_,0.5);
   }
