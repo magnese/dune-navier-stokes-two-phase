@@ -180,7 +180,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       unsigned int averageResearchDepth(0);
       #endif
       #if INTERPOLATION_TYPE == 2
-      SortedView<typename FluidStateType::BulkGridType> sortedView(fluidState.bulkGrid(),0.025,{0,0},{1,2});
+      SortedView<typename FluidStateType::BulkGridType> sortedView(fluidState.bulkGrid(),{0,0},{1,2});
       for(const auto& entity:elements(sortedView))
       #else
       for(const auto& entity:velocitySpace)

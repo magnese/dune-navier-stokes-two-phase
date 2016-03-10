@@ -99,14 +99,22 @@ class SortedView
   typedef std::vector<std::list<EntitySeedType>> DataType;
   typedef EntityIteratorSortedView<ThisType> Iterator;
 
-  SortedView(const GridType& grid,double epsilon,const FieldVector<double,dimensionworld>& x0,const FieldVector<double,dimensionworld>& x1):
-    grid_(grid),epsilon_(epsilon)
+  SortedView(const GridType& grid,const FieldVector<double,dimensionworld>& x0,const FieldVector<double,dimensionworld>& x1):
+    grid_(grid)
   {
-    // compute sizes of reticulus
+    // epsilon is the length of the edge/face of the equilateral triangle/tetrahedron which has volume equal to the total volume of
+    // the bounding box divivided the actual number of entities therefore
+    // epsilon = (bounding_box_volume / num_entities)^(1/dimensionworld)*k where k is 1.5 if dimensionworld==2 and 2 if dimensionworld==3
     const auto dx(x1-x0);
+    double boundingBoxVolume(1.0);
+    for(std::size_t i=0;i!=dimensionworld;++i)
+      boundingBoxVolume*=dx[i];
+    double epsilon(std::pow(boundingBoxVolume/static_cast<double>(grid.size(0)),1.0/static_cast<double>(dimensionworld)));
+    epsilon*=(dimensionworld==2?1.5:2.0);
+    // compute sizes of reticulus
     std::array<unsigned int,3> size{1,1,1};
     for(std::size_t i=0;i!=dimensionworld;++i)
-      size[i]+=static_cast<unsigned int>(ceil(dx[i]/epsilon_));
+      size[i]+=static_cast<unsigned int>(std::ceil(dx[i]/epsilon));
     // resize vector of entities
     entities_.resize(size[0]*size[1]*size[2]);
     // fill entities
@@ -118,7 +126,7 @@ class SortedView
       // compute position inside entitites
       std::array<unsigned int,3> idx{0,0,0};
       for(std::size_t i=0;i!=dimensionworld;++i)
-        idx[i]=static_cast<unsigned int>(std::round((centre[i]-x0[i])/epsilon_));
+        idx[i]=static_cast<unsigned int>(std::round((centre[i]-x0[i])/epsilon));
       auto position(idx[2]*size[0]*size[1]);
       if(idx[2]%2==0)
       {
@@ -160,7 +168,6 @@ class SortedView
 
   private:
   const GridType& grid_;
-  const double epsilon_;
   DataType entities_;
 };
 
