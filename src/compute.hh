@@ -60,6 +60,16 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   errors.clear();
   errors.resize(6,0.0);
 
+  // compute bulk bounding box which is needed by interpolation 2
+  #if INTERPOLATION_TYPE == 2
+  typename FluidStateType::CoupledMeshManagerType::BulkBoundingBoxType bulkBoundingBox;
+  if(!(femScheme.problem().isDensityNull()))
+  {
+    bulkBoundingBox=fluidState.meshManager().bulkBoundingBox();
+    std::cout<<"Bulk bounding box : ["<<bulkBoundingBox.first<<"] ; ["<<bulkBoundingBox.second<<"]"<<std::endl;
+  }
+  #endif
+
   // solve
   for(;timeProvider.time()<=endTime;timeProvider.next())
   {
@@ -180,7 +190,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       unsigned int averageResearchDepth(0);
       #endif
       #if INTERPOLATION_TYPE == 2
-      SortedView<typename FluidStateType::BulkGridType> sortedView(fluidState.bulkGrid(),{0,0},{1,2});
+      SortedView<typename FluidStateType::BulkGridType> sortedView(fluidState.bulkGrid(),bulkBoundingBox);
       for(const auto& entity:elements(sortedView))
       #else
       for(const auto& entity:velocitySpace)

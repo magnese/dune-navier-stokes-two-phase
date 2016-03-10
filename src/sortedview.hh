@@ -6,8 +6,6 @@
 #include <list>
 #include <vector>
 
-#include <dune/common/fvector.hh>
-
 namespace Dune
 {
 namespace Fem
@@ -99,13 +97,14 @@ class SortedView
   typedef std::vector<std::list<EntitySeedType>> DataType;
   typedef EntityIteratorSortedView<ThisType> Iterator;
 
-  SortedView(const GridType& grid,const FieldVector<double,dimensionworld>& x0,const FieldVector<double,dimensionworld>& x1):
+  template<typename BulkBoundingBoxType>
+  SortedView(const GridType& grid,const BulkBoundingBoxType& bulkBoundingBox):
     grid_(grid)
   {
     // epsilon is the length of the edge/face of the equilateral triangle/tetrahedron which has volume equal to the total volume of
     // the bounding box divivided the actual number of entities therefore
     // epsilon = (bounding_box_volume / num_entities)^(1/dimensionworld)*k where k is 1.5 if dimensionworld==2 and 2 if dimensionworld==3
-    const auto dx(x1-x0);
+    const auto dx(bulkBoundingBox.second-bulkBoundingBox.first);
     double boundingBoxVolume(1.0);
     for(std::size_t i=0;i!=dimensionworld;++i)
       boundingBoxVolume*=dx[i];
@@ -126,7 +125,7 @@ class SortedView
       // compute position inside entitites
       std::array<unsigned int,3> idx{0,0,0};
       for(std::size_t i=0;i!=dimensionworld;++i)
-        idx[i]=static_cast<unsigned int>(std::round((centre[i]-x0[i])/epsilon));
+        idx[i]=static_cast<unsigned int>(std::round((centre[i]-bulkBoundingBox.first[i])/epsilon));
       auto position(idx[2]*size[0]*size[1]);
       if(idx[2]%2==0)
       {

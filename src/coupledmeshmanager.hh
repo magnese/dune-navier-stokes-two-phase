@@ -13,6 +13,7 @@
 // dune includes
 #include <dune/common/timer.hh>
 #include <dune/common/exceptions.hh>
+#include <dune/common/fvector.hh>
 #include <dune/geometry/referenceelements.hh>
 #include <dune/grid/common/gridfactory.hh>
 #include <dune/grid/geometrygrid/grid.hh>
@@ -207,6 +208,9 @@ class CoupledMeshManager
   // define mapper
   typedef BulkInterfaceGridMapper<BulkGridType,InterfaceGridType> BulkInterfaceGridMapperType;
 
+  //define bulk bounding box
+  typedef std::pair<FieldVector<double,worlddim>,FieldVector<double,worlddim>> BulkBoundingBoxType;
+
   private:
   template<bool compound,std::size_t dim>
   struct GmshManagerSelector;
@@ -366,6 +370,20 @@ class CoupledMeshManager
     for(const auto& entity:elements(leafGridView))
       length+=std::abs(entity.geometry().volume());
     return length;
+  }
+
+  BulkBoundingBoxType bulkBoundingBox() const
+  {
+    FieldVector<double,worlddim> boundigBoxMin(std::numeric_limits<double>::max());
+    FieldVector<double,worlddim> boundigBoxMax(std::numeric_limits<double>::min());
+    const auto& coords(bulkGrid().coordFunction().discreteFunction().dofVector());
+    for(std::size_t i=0;i!=bulkGrid().size(0);++i)
+      for(std::size_t j=0;j!=worlddim;++j)
+      {
+        boundigBoxMin[j]=std::min(boundigBoxMin[j],coords[i][j]);
+        boundigBoxMax[j]=std::max(boundigBoxMax[j],coords[i][j]);
+      }
+    return std::make_pair(std::move(boundigBoxMin),std::move(boundigBoxMax));
   }
 
   bool existEntityWithNoVerticesInDomain() const
