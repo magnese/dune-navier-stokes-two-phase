@@ -176,11 +176,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       // rebuild all quantities if the mesh is changed
       fluidState.update();
       // restore old bulk grid
-      //oldFluidState.interfaceGrid().coordFunction()-=oldFluidState.displacement();
-      if(smoothPerformed)
-        DUNE_THROW(InvalidStateException,"ERROR: for Navier-Stokes smoothing needs to be always OFF!");
-      else
+      if(remeshPerformed)
         oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
+      else
+        DUNE_THROW(InvalidStateException,"ERROR: with Navier-Stokes smooth only is not supported!");
       // store if a dof has already been interpolated
       std::vector<bool> dofAlreadyInterpolated(fluidState.velocitySpace().blockMapper().size(),false);
       // interpolate velocity onto the new grid
