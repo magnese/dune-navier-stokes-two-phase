@@ -34,7 +34,7 @@ static class BubbleStatistics
     const auto interfaceLength(fluidState.meshManager().interfaceLength());
     constexpr auto worlddim(FluidStateType::BulkGridType::dimensionworld);
     circularitywriter_.add(timeProvider.time(),circularity<worlddim>(bulkInnerVolume,interfaceLength));
-    // compute heigth barycenter
+    // compute height barycenter
     barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegration(
                                                 fluidState.meshManager().bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
                                                 fluidState.meshManager().bulkIndicatorFunction()));
@@ -59,9 +59,9 @@ static class BubbleStatistics
       if(entry.second>maxRisingVelocity.second)
         maxRisingVelocity=entry;
     std::cout<<"Maximum average rising velocity  = "<<maxRisingVelocity.second<<" (time = "<<maxRisingVelocity.first<<" s)."<<std::endl;
-    // print final heigth barycenter
+    // print final height barycenter
     const auto& finalBarycenter(barycenterwriter_.get().back());
-    std::cout<<"Final heigth barycenter  = "<<finalBarycenter.second<<" (time = "<<finalBarycenter.first<<" s)."<<std::endl;
+    std::cout<<"Final height barycenter  = "<<finalBarycenter.second<<" (time = "<<finalBarycenter.first<<" s)."<<std::endl;
   }
 
   private:
