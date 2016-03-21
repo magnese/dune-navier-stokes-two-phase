@@ -73,11 +73,9 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   // solve
   for(;timeProvider.time()<=endTime;timeProvider.next())
   {
-    Timer timerStep(false);
-    Timer timerInterpolation(false);
-
     // print time
     std::cout<<std::endl<<"Time step "<<timeProvider.timeStep()<<" (time = "<<timeProvider.time()<<" s)."<<std::endl;
+    Timer timerStep(false);
     timerStep.start();
 
     // do one step
@@ -155,7 +153,8 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     }
 
     // perform mesh smoothing
-    if(meshSmoothing.isEnabled())
+    const auto smoothPerformed(meshSmoothing.isEnabled());
+    if(smoothPerformed)
       meshSmoothing.apply();
     else
     {
@@ -167,17 +166,19 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     // perform remesh and keep also the original fluid state to interpolate the velocity onto the new grid
     auto oldFluidState(fluidState);
     const auto remeshPerformed(fluidState.meshManager().remesh());
-    timerInterpolation.start();
+    const auto interpolationNeeded((!(femScheme.problem().isDensityNull()))&&(smoothPerformed||remeshPerformed));
 
     // interpolate velocity onto the new grid
-    if(!(femScheme.problem().isDensityNull()))
+    if(interpolationNeeded)
     {
+      Timer timerInterpolation(false);
+      timerInterpolation.start();
       // rebuild all quantities if the mesh is changed
       fluidState.update();
       // restore old bulk grid
       //oldFluidState.interfaceGrid().coordFunction()-=oldFluidState.displacement();
-      if(meshSmoothing.isEnabled()||!remeshPerformed)
-        DUNE_THROW(InvalidStateException,"ERROR: for Navier-Stokes smoothing needs to be always OFF and remeshing always ON!");
+      if(smoothPerformed)
+        DUNE_THROW(InvalidStateException,"ERROR: for Navier-Stokes smoothing needs to be always OFF!");
       else
         oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
       // store if a dof has already been interpolated
@@ -222,16 +223,15 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
           }
         }
       }
+      timerInterpolation.stop();
       #if INTERPOLATION_TYPE != 0
       std::cout<<"Average research depth : "<<static_cast<double>(averageResearchDepth)/static_cast<double>(dofAlreadyInterpolated.size())
         <<"."<<std::endl;
       #endif
+      std::cout<<"Velocity interpolation time: "<<timerInterpolation.elapsed()<<" seconds."<<std::endl;
     }
-    timerInterpolation.stop();
     timerStep.stop();
 
-    if(!(femScheme.problem().isDensityNull()))
-      std::cout<<"Velocity interpolation time: "<<timerInterpolation.elapsed()<<" seconds."<<std::endl;
     std::cout<<"Full timestep time: "<<timerStep.elapsed()<<" seconds."<<std::endl;
   }
 
