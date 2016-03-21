@@ -56,10 +56,8 @@ class MeshSmoothing
   {
     // update fluid state
     fluidstate_.update();
-    // create timers
-    Timer timerAssemble(false);
-    Timer timerSolve(false);
     // assemble operator and impose BC
+    Timer timerAssemble(false);
     timerAssemble.start();
     typedef SparseRowLinearOperator<DiscreteFunctionType,DiscreteFunctionType> SmoothingLinearOperatorType;
     typedef SmoothingOperator<SmoothingLinearOperatorType> SmoothingOperatorType;
@@ -85,9 +83,9 @@ class MeshSmoothing
         op.systemMatrix().matrix().set(row,row,1.0);
       }
     // solve
+    Timer timerSolve(false);
     timerSolve.start();
-    typedef UMFPACKOp<DiscreteFunctionType,SmoothingOperatorType> SmoothingInverseOperatorType;
-    SmoothingInverseOperatorType invOp(op);
+    UMFPACKOp<DiscreteFunctionType,SmoothingOperatorType> invOp(op);
     invOp(RHS.rhs(),fluidstate_.bulkDisplacement());
     timerSolve.stop();
     // print timers
