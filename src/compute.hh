@@ -8,7 +8,6 @@
 #include <cmath>
 
 // dune includes
-#include <dune/common/exceptions.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/misc/h1norm.hh>
@@ -175,11 +174,16 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       timerInterpolation.start();
       // rebuild all quantities if the mesh is changed
       fluidState.update();
-      // restore old bulk grid
+      // set old bulk grid and old velocity to the correct values
       if(remeshPerformed)
         oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
       else
-        DUNE_THROW(InvalidStateException,"ERROR: with Navier-Stokes smooth only is not supported!");
+      {
+        oldFluidState.init();
+        oldFluidState.bulkGrid().coordFunction()=fluidState.bulkGrid().coordFunction();
+        oldFluidState.bulkGrid().coordFunction()-=fluidState.bulkDisplacement();
+        oldFluidState.velocity().assign(fluidState.velocity());
+      }
       // store if a dof has already been interpolated
       std::vector<bool> dofAlreadyInterpolated(fluidState.velocitySpace().blockMapper().size(),false);
       // interpolate velocity onto the new grid

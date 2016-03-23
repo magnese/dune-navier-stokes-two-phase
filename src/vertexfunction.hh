@@ -84,6 +84,11 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
     }
   }
 
+  const ThisType& operator=(const ThisType& vtx) const
+  {
+    std::copy(vtx.discreteFunction().dbegin(),vtx.discreteFunction().dend(),discreteFunction().dbegin());
+    return *this;
+  }
   const ThisType& operator=(const std::vector<double>& vtx) const
   {
     std::copy(vtx.begin(),vtx.end(),discreteFunction().dbegin());

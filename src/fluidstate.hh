@@ -318,6 +318,46 @@ class FluidState
     return *bulkdisplacement_;
   }
 
+  // rebuild all quantities
+  void init()
+  {
+    // create grid parts
+    resetPointers();
+    bulkgridpart_=std::make_shared<BulkGridPartType>(bulkGrid());
+    interfacegridpart_=std::make_shared<InterfaceGridPartType>(interfaceGrid());
+    // create spaces
+    velocityspace_=std::make_shared<VelocityDiscreteSpaceType>(bulkGridPart());
+    pressurespace_=std::make_shared<PressureDiscreteSpaceType>(bulkGridPart());
+    #if PRESSURE_SPACE_TYPE == 2
+    pressureadditionalspace_=std::make_shared<PressureAdditionalDiscreteSpaceType>(bulkGridPart());
+    pressuredumpspace_=std::make_shared<PressureDumpDiscreteSpaceType>(bulkGridPart());
+    #endif
+    bulkspace_=std::make_shared<BulkDiscreteSpaceType>(bulkGridPart());
+    curvaturespace_=std::make_shared<CurvatureDiscreteSpaceType>(interfaceGridPart());
+    displacementspace_=std::make_shared<DisplacementDiscreteSpaceType>(interfaceGridPart());
+    interfacespace_=std::make_shared<InterfaceDiscreteSpaceType>(interfaceGridPart());
+    bulkdisplacementspace_=std::make_shared<BulkDisplacementDiscreteSpaceType>(bulkGridPart());
+    // create discrete functions
+    velocity_=std::make_shared<VelocityDiscreteFunctionType>("velocity",velocitySpace());
+    pressure_=std::make_shared<PressureDiscreteFunctionType>("pressure",pressureSpace());
+    #if PRESSURE_SPACE_TYPE == 2
+    pressureadditional_=std::make_shared<PressureAdditionalDiscreteFunctionType>("pressure additional",pressureAdditionalSpace());
+    pressuredump_=std::make_shared<PressureDumpDiscreteFunctionType>("pressure",pressureDumpSpace());
+    #endif
+    bulk_=std::make_shared<BulkDiscreteFunctionType>("bulk solution",bulkSpace());
+    curvature_=std::make_shared<CurvatureDiscreteFunctionType>("curvature",curvatureSpace());
+    displacement_=std::make_shared<DisplacementDiscreteFunctionType>("displacement",displacementSpace());
+    interface_=std::make_shared<InterfaceDiscreteFunctionType>("interface solution",interfaceSpace());
+    bulkdisplacement_=std::make_shared<BulkDisplacementDiscreteFunctionType>("bulk displacement",bulkDisplacementSpace());
+    // create IO
+    bulktuple_=std::make_shared<BulkTupleType>(&velocity(),&pressureDump());
+    interfacetuple_=std::make_shared<InterfaceTupleType>(&curvature(),&displacement());
+    bulkoutput_=std::make_shared<BulkDataOutputType>(meshmanager_.bulkGrid(),*bulktuple_,bulkoutputparameters_);
+    interfaceoutput_=std::make_shared<InterfaceDataOutputType>(meshmanager_.interfaceGrid(),*interfacetuple_,interfaceoutputparameters_);
+    // update sequence number
+    sequence_=meshmanager_.sequence();
+  }
+
   // rebuild all quantities if the mesh is changed
   bool update()
   {
@@ -325,41 +365,7 @@ class FluidState
     // check if the mesh is changed
     if(sequence_!=meshmanager_.sequence())
     {
-      // create grid parts
-      resetPointers();
-      bulkgridpart_=std::make_shared<BulkGridPartType>(bulkGrid());
-      interfacegridpart_=std::make_shared<InterfaceGridPartType>(interfaceGrid());
-      // create spaces
-      velocityspace_=std::make_shared<VelocityDiscreteSpaceType>(bulkGridPart());
-      pressurespace_=std::make_shared<PressureDiscreteSpaceType>(bulkGridPart());
-      #if PRESSURE_SPACE_TYPE == 2
-      pressureadditionalspace_=std::make_shared<PressureAdditionalDiscreteSpaceType>(bulkGridPart());
-      pressuredumpspace_=std::make_shared<PressureDumpDiscreteSpaceType>(bulkGridPart());
-      #endif
-      bulkspace_=std::make_shared<BulkDiscreteSpaceType>(bulkGridPart());
-      curvaturespace_=std::make_shared<CurvatureDiscreteSpaceType>(interfaceGridPart());
-      displacementspace_=std::make_shared<DisplacementDiscreteSpaceType>(interfaceGridPart());
-      interfacespace_=std::make_shared<InterfaceDiscreteSpaceType>(interfaceGridPart());
-      bulkdisplacementspace_=std::make_shared<BulkDisplacementDiscreteSpaceType>(bulkGridPart());
-      // create discrete functions
-      velocity_=std::make_shared<VelocityDiscreteFunctionType>("velocity",velocitySpace());
-      pressure_=std::make_shared<PressureDiscreteFunctionType>("pressure",pressureSpace());
-      #if PRESSURE_SPACE_TYPE == 2
-      pressureadditional_=std::make_shared<PressureAdditionalDiscreteFunctionType>("pressure additional",pressureAdditionalSpace());
-      pressuredump_=std::make_shared<PressureDumpDiscreteFunctionType>("pressure",pressureDumpSpace());
-      #endif
-      bulk_=std::make_shared<BulkDiscreteFunctionType>("bulk solution",bulkSpace());
-      curvature_=std::make_shared<CurvatureDiscreteFunctionType>("curvature",curvatureSpace());
-      displacement_=std::make_shared<DisplacementDiscreteFunctionType>("displacement",displacementSpace());
-      interface_=std::make_shared<InterfaceDiscreteFunctionType>("interface solution",interfaceSpace());
-      bulkdisplacement_=std::make_shared<BulkDisplacementDiscreteFunctionType>("bulk displacement",bulkDisplacementSpace());
-      // create IO
-      bulktuple_=std::make_shared<BulkTupleType>(&velocity(),&pressureDump());
-      interfacetuple_=std::make_shared<InterfaceTupleType>(&curvature(),&displacement());
-      bulkoutput_=std::make_shared<BulkDataOutputType>(meshmanager_.bulkGrid(),*bulktuple_,bulkoutputparameters_);
-      interfaceoutput_=std::make_shared<InterfaceDataOutputType>(meshmanager_.interfaceGrid(),*interfacetuple_,interfaceoutputparameters_);
-      // update sequence number
-      sequence_=meshmanager_.sequence();
+      init();
       meshIsChanged=true;
     }
     return meshIsChanged;
