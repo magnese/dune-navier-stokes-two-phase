@@ -478,7 +478,7 @@ class CoupledMeshManager
         {
           if(intersection.neighbor())
           {
-            const auto outsideIntersection(make_entity(intersection.outside()));
+            const auto outsideIntersection(intersection.outside());
             if(!(bulkindicator_->isInner(outsideIntersection)))
             {
               const auto faceLocalIndex(intersection.indexInInside());
