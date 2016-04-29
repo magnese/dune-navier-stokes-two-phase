@@ -191,8 +191,7 @@ class FemScheme
     interfaceRHS.rhs()*=-1.0;
 
     // solve
-    typedef UMFPACKOp<InterfaceDiscreteFunctionType,InterfaceOperatorType> InterfaceInverseOperatorType;
-    InterfaceInverseOperatorType interfaceInvOp(interfaceOp);
+    UMFPACKOp<InterfaceDiscreteFunctionType,InterfaceOperatorType> interfaceInvOp(interfaceOp);
     interfaceInvOp(interfaceRHS.rhs(),fluidstate_.interfaceSolution());
 
     // set the fluid state for the interface with the correct quantities
@@ -372,6 +371,7 @@ class FemScheme
     timerSolveBulk.stop();
 
     // set the fluid state for the bulk with the correct quantities
+    timerSolveBulk.start();
     fluidstate_.finalizeBulkQuantities();
     timerSolveBulk.stop();
 
