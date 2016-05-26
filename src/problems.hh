@@ -40,7 +40,7 @@ class BaseProblem
   typedef std::function<PressureRangeType(const PressureDomainType&,const double&,const EntityType&)> PressureFunctionType;
   typedef std::tuple<VelocityBCImp<VelocityDiscreteSpaceType,VelocityDiscreteSpaceType,CoupledMeshManagerType>...> VelocityBCsType;
 
-  BaseProblem(CoupledMeshManagerType& meshManager,const bool& isTimeDependent,const bool& hasExactSolution,const std::string& name):
+  BaseProblem(CoupledMeshManagerType& meshManager,bool isTimeDependent,bool hasExactSolution,const std::string& name):
     meshmanager_(meshManager),
     velocitybcs_(VelocityBCImp<VelocityDiscreteSpaceType,VelocityDiscreteSpaceType,CoupledMeshManagerType>(meshmanager_)...),
     istimedependent_(isTimeDependent),
@@ -81,11 +81,11 @@ class BaseProblem
     };
   }
 
-  const bool& isTimeDependent() const
+  bool isTimeDependent() const
   {
     return istimedependent_;
   }
-  const bool& hasExactSolution() const
+  bool hasExactSolution() const
   {
     return hasexactsolution_;
   }
@@ -211,7 +211,7 @@ class BaseProblem
   const bool nulldensity_;
 
   template<typename AF,typename DF>
-  void interpolateAnalyticalFunction(const AF& f,DF& df,const double& t) const
+  void interpolateAnalyticalFunction(const AF& f,DF& df,double t) const
   {
     // create local analytical function
     typedef typename DF::DiscreteFunctionSpaceType DiscreteSpaceType;
@@ -234,14 +234,14 @@ class BaseProblem
   struct ApplyBCToOperator
   {
     template<typename Tuple,typename... Args>
-    ApplyBCToOperator(Tuple&& t,Args&&... args)
+    ApplyBCToOperator(Tuple& t,Args&... args)
     {
       Caller<Tuple,numbcs_,Args...> caller(t,args...);
     }
     template<typename Tuple,std::size_t pos,typename... Args>
     struct Caller
     {
-      Caller(Tuple&& t,Args&&... args)
+      Caller(Tuple& t,Args&... args)
       {
         std::get<pos-1>(t).applyToOperator(args...);
         Caller<Tuple,pos-1,Args...>(t,args...);
@@ -250,7 +250,7 @@ class BaseProblem
     template<typename Tuple,typename... Args>
     struct Caller<Tuple,0,Args...>
     {
-      Caller(Tuple&& ,Args&&... )
+      Caller(Tuple& ,const Args&... )
       {}
     };
   };
@@ -258,14 +258,14 @@ class BaseProblem
   struct ApplyBCToRHS
   {
     template<typename Tuple,typename... Args>
-    ApplyBCToRHS(Tuple&& t,Args&&... args)
+    ApplyBCToRHS(Tuple& t,Args&... args)
     {
       Caller<Tuple,numbcs_,Args...> caller(t,args...);
     }
     template<typename Tuple,std::size_t pos,typename... Args>
     struct Caller
     {
-      Caller(Tuple&& t,Args&&... args)
+      Caller(Tuple& t,Args&... args)
       {
         std::get<pos-1>(t).applyToRHS(args...);
         Caller<Tuple,pos-1,Args...>(t,args...);
@@ -274,7 +274,7 @@ class BaseProblem
     template<typename Tuple,typename... Args>
     struct Caller<Tuple,0,Args...>
     {
-      Caller(Tuple&& ,Args&&... )
+      Caller(Tuple& ,const Args&... )
       {}
     };
   };
@@ -286,13 +286,13 @@ class BaseProblem
   }
 
   template<typename... Args>
-  void applyBCToOperator(Args&&... args)
+  void applyBCToOperator(Args&... args)
   {
     ApplyBCToOperator apply(velocitybcs_,args...);
   }
 
   template<typename... Args>
-  void applyBCToRHS(Args&&... args)
+  void applyBCToRHS(Args&... args)
   {
     ApplyBCToRHS apply(velocitybcs_,args...);
   }
@@ -494,7 +494,7 @@ class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressur
     velocityBC().addBC(9,velocitySolution());
   }
 
-  double exactRadius(const double& t) const
+  double exactRadius(double t) const
   {
     return std::pow(std::pow(r0_,worlddim)+alpha_*t*static_cast<double>(worlddim),1.0/static_cast<double>(worlddim));
   }

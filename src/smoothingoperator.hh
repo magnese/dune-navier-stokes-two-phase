@@ -30,7 +30,7 @@ class SmoothingOperator:public Operator<typename LinearOperatorImp::DomainFuncti
   typedef DomainSpaceType DiscreteSpaceType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
-  explicit SmoothingOperator(const DiscreteSpaceType& space,const double& coeff):
+  explicit SmoothingOperator(const DiscreteSpaceType& space,double coeff):
     space_(space),op_("smoothing operator",space_,space_),coeff_(coeff)
   {}
 
@@ -129,7 +129,7 @@ class SmoothingOperator:public Operator<typename LinearOperatorImp::DomainFuncti
   private:
   const DiscreteSpaceType& space_;
   mutable LinearOperatorType op_;
-  const double& coeff_;
+  const double coeff_;
 };
 
 }

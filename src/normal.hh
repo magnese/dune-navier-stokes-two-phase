@@ -19,7 +19,7 @@ class Normal<ctype,2>
 
   // compute the normal vector of a given entity
   template<typename EntityType>
-  void operator()(const EntityType& entity,NormalVectorType& normalVector,const unsigned int& faceIdx)
+  void operator()(const EntityType& entity,NormalVectorType& normalVector,unsigned int faceIdx)
   {
     normalVector[0]=(entity.geometry().corner(0)-entity.geometry().corner(1))[1];
     normalVector[1]=(entity.geometry().corner(1)-entity.geometry().corner(0))[0];
@@ -38,7 +38,7 @@ class Normal<ctype,3>
 
   // compute the normal vector of a given entity
   template<typename EntityType>
-  void operator()(const EntityType& entity,NormalVectorType& normalVector,const unsigned int& faceIdx)
+  void operator()(const EntityType& entity,NormalVectorType& normalVector,unsigned int faceIdx)
   {
     NormalVectorType edge1(entity.geometry().corner(1)-entity.geometry().corner(0));
     NormalVectorType edge2(entity.geometry().corner(2)-entity.geometry().corner(0));

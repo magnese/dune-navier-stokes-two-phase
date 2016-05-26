@@ -53,12 +53,12 @@ class BulkInterfaceGridMapper
     return vtxbulk2interface_;
   }
 
-  std::size_t& vtxBulk2Interface(const std::size_t& i)
+  std::size_t& vtxBulk2Interface(std::size_t i)
   {
     return vtxbulk2interface_[i];
   }
 
-  const std::size_t& vtxBulk2Interface(const std::size_t& i) const
+  std::size_t vtxBulk2Interface(std::size_t i) const
   {
     return vtxbulk2interface_[i];
   }
@@ -73,27 +73,27 @@ class BulkInterfaceGridMapper
     return vtxinterface2bulk_;
   }
 
-  std::size_t& vtxInterface2Bulk(const std::size_t& i)
+  std::size_t& vtxInterface2Bulk(std::size_t i)
   {
     return vtxinterface2bulk_[i];
   }
 
-  const std::size_t& vtxInterface2Bulk(const std::size_t& i) const
+  std::size_t& vtxInterface2Bulk(std::size_t i) const
   {
     return vtxinterface2bulk_[i];
   }
 
-  void addBulkEntity2Mapping(const BulkEntityType& entity,const unsigned int& faceLocalIdx)
+  void addBulkEntity2Mapping(const BulkEntityType& entity,unsigned int faceLocalIdx)
   {
      entityinterface2bulk_.push_back(std::make_pair(entity.seed(),faceLocalIdx));
   }
 
-  const BulkEntitySeedType& entitySeedInterface2Bulk(const std::size_t& i) const
+  const BulkEntitySeedType& entitySeedInterface2Bulk(std::size_t i) const
   {
     return entityinterface2bulk_[i].first;
   }
 
-  const unsigned int& faceLocalIdxInterface2Bulk(const std::size_t& i) const
+  unsigned int faceLocalIdxInterface2Bulk(std::size_t i) const
   {
     return entityinterface2bulk_[i].second;
   }
@@ -232,8 +232,8 @@ class CoupledMeshManager
 
   public:
   // constructor
-  explicit CoupledMeshManager(int argc,char** argv,const GmshAlgorithmType& algorithm,const bool& verbosity,
-                              const bool& checkEntityWithNoVerticesInDomain):
+  explicit CoupledMeshManager(int argc,char** argv,const GmshAlgorithmType& algorithm,bool verbosity,
+                              bool checkEntityWithNoVerticesInDomain):
     manager_(argc,argv,algorithm,verbosity),sequence_(0),performentityverticescheck_(checkEntityWithNoVerticesInDomain)
   {
     init();
@@ -305,7 +305,7 @@ class CoupledMeshManager
   }
 
   // the sequence numebr increase each time the mesh changes
-  const unsigned int& sequence() const
+  unsigned int sequence() const
   {
     return sequence_;
   }

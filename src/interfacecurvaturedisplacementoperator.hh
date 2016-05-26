@@ -134,7 +134,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
   struct Selector<1,R>
   {
     template<typename P,typename C,typename N>
-    R operator()(const P& range,const C& domain,const N& normal,const std::size_t& i,const std::size_t& j) const
+    R operator()(const P& range,const C& domain,const N& normal,std::size_t i,std::size_t j) const
     {
       return domain[j]*(range[i]*normal);
     }
@@ -144,7 +144,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
   struct Selector<DomainSpaceType::GridType::dimensionworld,R>
   {
     template<typename P,typename C,typename N>
-    R operator()(const P& range,const C& domain,const N& normal,const std::size_t& i,const std::size_t& j) const
+    R operator()(const P& range,const C& domain,const N& normal,std::size_t i,std::size_t j) const
     {
       return range[i]*(domain[j]*normal);
     }

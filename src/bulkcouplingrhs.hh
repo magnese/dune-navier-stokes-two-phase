@@ -15,7 +15,7 @@ namespace Fem
 {
 
 template<typename VelocityDiscreteFunctionType,typename CurvatureDiscreteFunctionType,typename BulkInterfaceGridMapperType>
-void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,const double& gamma,const CurvatureDiscreteFunctionType& curvatureSolutiontm,
+void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const CurvatureDiscreteFunctionType& curvatureSolutiontm,
                         const BulkInterfaceGridMapperType& mapper)
 {
   if(gamma!=0.0)

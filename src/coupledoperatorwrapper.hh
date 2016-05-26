@@ -32,7 +32,7 @@ class CoupledOperatorWrapper:public Operator<typename VelocityOperatorImp::Domai
   // constructor
   explicit CoupledOperatorWrapper(const VelocityOperatorType& velocityOp,const CurvatureVelocityOperatorType& curvatureVelocityOp,
                                   const InterfaceOperatorType& interfaceOp,InterfaceInverseOperatorType& interfaceInvOp,
-                                  const VelocityCurvatureOperatorType& velocityCurvatureOp,const double& gamma):
+                                  const VelocityCurvatureOperatorType& velocityCurvatureOp,double gamma):
     velocityop_(velocityOp),curvaturevelocityop_(curvatureVelocityOp),interfaceop_(interfaceOp),interfaceinvop_(interfaceInvOp),
     velocitycurvatureop_(velocityCurvatureOp),gamma_(gamma)
   {}
@@ -94,7 +94,7 @@ class CoupledOperatorWrapper:public Operator<typename VelocityOperatorImp::Domai
   const InterfaceOperatorType& interfaceop_;
   InterfaceInverseOperatorType& interfaceinvop_;
   const VelocityCurvatureOperatorType& velocitycurvatureop_;
-  const double& gamma_;
+  const double gamma_;
 };
 
 }

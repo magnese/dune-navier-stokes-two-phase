@@ -275,7 +275,7 @@ class GMSHCompoundManagerBase
   typedef Imp Implementation;
   typedef CharlengthPolicyImp CharlengthPolicyType;
 
-  GMSHCompoundManagerBase(int argc,char** argv,const GmshAlgorithmType& algorithm,const bool& verbosity):
+  GMSHCompoundManagerBase(int argc,char** argv,const GmshAlgorithmType& algorithm,bool verbosity):
     domainfilename_(Fem::Parameter::getValue<std::string>("DomainGeometry","domain.geo")),
     interfacefilename_(Fem::Parameter::getValue<std::string>("InterfaceGeometry","interface.msh")),
     holefilename_(Fem::Parameter::getValue<std::string>("HoleGeometry","")),gmodelptrs_(),hashole_(holefilename_!="")

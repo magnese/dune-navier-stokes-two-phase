@@ -24,14 +24,14 @@ class ListBlockID
   public:
   typedef std::list<int> value_type;
 
-  ListBlockID(const int& val=-1):
+  ListBlockID(int val=-1):
     values_(1,val)
   {}
   void clear()
   {
     values_.clear();
   }
-  void operator=(const int& value)
+  void operator=(int value)
   {
     if(values_.front()==-1)
       values_.front()=value;
@@ -73,14 +73,9 @@ class BoundaryCondition
   typedef LocalFunctionAdapter<LocalAnalyticalFunctionType> AdaptedDiscreteFunctionType;
   typedef std::map<int,AdaptedDiscreteFunctionType> AdaptedFunctionMapType;
 
-  void addBC(int&& boundaryID,FunctionType&& g)
+  void addBC(int boundaryID,FunctionType g)
   {
-    g_.emplace(boundaryID,g);
-  }
-
-  void addBC(int&& boundaryID,const FunctionType& g)
-  {
-    g_.emplace(boundaryID,g);
+    g_.emplace(boundaryID,std::move(g));
   }
 
   const DomainSpaceType& domainSpace() const
@@ -94,7 +89,7 @@ class BoundaryCondition
   }
 
   template<typename... Args>
-  void applyToOperator(Args&&... args)
+  void applyToOperator(Args&... args)
   {
     updateDOFs();
     for(const auto& entity:domainSpace())
@@ -102,7 +97,7 @@ class BoundaryCondition
   }
 
   template<typename DiscreteFunctionType,typename... Args>
-  void applyToRHS(DiscreteFunctionType& w,Args&&... args)
+  void applyToRHS(DiscreteFunctionType& w,Args&... args)
   {
     updateDOFs();
     DiscreteFunctionType g("g",w.space());
@@ -110,7 +105,7 @@ class BoundaryCondition
       asImp().setDOFsRHS(entity,w,g,args...);
   }
 
-  RangeType evaluateBoundaryFunction(const DomainType& x,const double& t,const EntityType& entity,const int& boundaryID) const
+  RangeType evaluateBoundaryFunction(const DomainType& x,double t,const EntityType& entity,int boundaryID) const
   {
     auto& g(g_.find(boundaryID)->second);
     g.init(entity,t);
@@ -119,14 +114,14 @@ class BoundaryCondition
     return ret;
   }
 
-  RangeType evaluateBoundaryFunction(const DomainType& x,const double& t,const IntersectionType& intersection) const
+  RangeType evaluateBoundaryFunction(const DomainType& x,double t,const IntersectionType& intersection) const
   {
     const auto& boundaryID(meshmanager_.boundaryIDs()[intersection.boundarySegmentIndex()]);
     return evaluateBoundaryFunction(x,t,intersection.inside(),boundaryID);
   }
 
   template<typename DiscreteFunctionType>
-  void localInterpolateBoundaryFunction(const double& t,const EntityType& entity,const int& boundaryID,DiscreteFunctionType& df) const
+  void localInterpolateBoundaryFunction(double t,const EntityType& entity,int boundaryID,DiscreteFunctionType& df) const
   {
     auto gIt(gadapted_.find(boundaryID));
     if(gIt==gadapted_.end())
@@ -141,7 +136,7 @@ class BoundaryCondition
   }
 
   template<typename DiscreteFunctionType>
-  void localInterpolateBoundaryFunction(const double& t,const IntersectionType& intersection,DiscreteFunctionType& df) const
+  void localInterpolateBoundaryFunction(double t,const IntersectionType& intersection,DiscreteFunctionType& df) const
   {
     const auto& boundaryID(meshmanager_.boundaryIDs()[intersection.boundarySegmentIndex()]);
     localInterpolateBoundaryFunction(t,intersection.inside(),boundaryID,df);
@@ -238,7 +233,7 @@ class BoundaryCondition
   {
     public:
     template<typename T>
-    ClearRows(T& tup,const std::size_t& row)
+    ClearRows(T& tup,std::size_t row)
     {
       constexpr auto size(std::tuple_size<T>::value);
       Caller<T,size> caller(tup,row);
@@ -248,7 +243,7 @@ class BoundaryCondition
     template<typename T,std::size_t n>
     struct Caller
     {
-      Caller(T& tup,const std::size_t& row)
+      Caller(T& tup,std::size_t row)
       {
         std::get<n-1>(tup).clearRow(row);
         Caller<T,n-1>(tup,row);
@@ -257,7 +252,7 @@ class BoundaryCondition
     template<typename T>
     struct Caller<T,0>
     {
-      Caller(T& ,const std::size_t& )
+      Caller(T& ,std::size_t )
       {}
     };
   };
@@ -406,7 +401,7 @@ class FreeSlipCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,ListBlockID,
 
   // set in the RHS vector the free-slip condition
   template<typename DiscreteFunctionType,typename... Args>
-  void setDOFsRHS(const EntityType& entity,DiscreteFunctionType& w,DiscreteFunctionType& g,Args&&... ) const
+  void setDOFsRHS(const EntityType& entity,DiscreteFunctionType& w,DiscreteFunctionType& g,const Args&... ) const
   {
     auto wLocal(w.localFunction(entity));
     auto gLocal(g.localFunction(entity));

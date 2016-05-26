@@ -17,7 +17,7 @@ namespace Fem
 // generic gnuplot writer
 struct GnuplotWriter
 {
-  GnuplotWriter(std::string&& fileName,unsigned int precision=6):
+  GnuplotWriter(const std::string& fileName,unsigned int precision=6):
     filename_("/"+fileName+".dat"),filenameset_(false),precision_(precision)
   {}
 
@@ -26,7 +26,7 @@ struct GnuplotWriter
     precision_=precision;
   }
 
-  void setFileName(std::string&& fileName)
+  void setFileName(const std::string& fileName)
   {
     filename_=Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName+".dat";
     filenameset_=true;
@@ -42,7 +42,7 @@ struct GnuplotWriter
     return values_;
   }
 
-  void add(double&& first,double&& second,bool&& leaveEmptyRow=false)
+  void add(double first,double second,bool leaveEmptyRow=false)
   {
     if(!filenameset_)
     {
