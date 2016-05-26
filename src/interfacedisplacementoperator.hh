@@ -37,7 +37,6 @@ class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::
     space_(space),op_("interface displacement operator",space_,space_)
   {}
 
-  // apply the operator
   virtual void operator()(const DomainFunctionType& u,RangeFunctionType& w) const
   {
     op_.apply(u,w);
@@ -49,24 +48,10 @@ class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::
     op_.apply(u,w);
   }
 
-  // dump system matrix into file
   void print(const std::string& filename="interface_displacement_matrix.dat") const
   {
     std::ofstream ofs(filename);
-    const auto rows(op_.matrix().rows());
-    auto count(decltype(rows){0});
-    for(auto row=decltype(rows){0};row!=rows;++row)
-    {
-      while(count<(op_.matrix().numNonZeros()*(row+1)))
-      {
-        const auto entry(op_.matrix().realValue(count));
-        const auto value(entry.first);
-        const auto col(entry.second);
-        if((std::abs(value)>1.e-13)&&(col>-1))
-          ofs<<row+1<<" "<<col+1<<" "<<value<<std::endl;
-        ++count;
-      }
-    }
+    op_.matrix().print(ofs);
   }
 
   const DiscreteSpaceType& domainSpace() const
@@ -97,7 +82,6 @@ class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::
 
     constexpr auto rangedim(DiscreteSpaceType::FunctionSpaceType::dimRange);
 
-    // perform a grid walkthrough and assemble the global matrix
     for(const auto& entity:space_)
     {
       auto localMatrix(op_.localMatrix(entity,entity));

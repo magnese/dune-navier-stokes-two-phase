@@ -54,30 +54,15 @@ class VelocityCurvatureOperator:public Operator<typename LinearOperatorImp::Doma
     return op_;
   }
 
-  // apply the operator
   virtual void operator()(const VelocityFunctionType& u,CurvatureFunctionType& w) const
   {
     op_.apply(u,w);
   }
 
-  // dump system matrix into file
   void print(const std::string& filename="velocity_curvature_matrix.dat") const
   {
     std::ofstream ofs(filename);
-    const auto rows(op_.matrix().rows());
-    auto count(decltype(rows){0});
-    for(auto row=decltype(rows){0};row!=rows;++row)
-    {
-      while(count<(op_.matrix().numNonZeros()*(row+1)))
-      {
-        const auto entry(op_.matrix().realValue(count));
-        const auto value(entry.first);
-        const auto col(entry.second);
-        if((std::abs(value)>1.e-13)&&(col>-1))
-          ofs<<row+1<<" "<<col+1<<" "<<value<<std::endl;
-        ++count;
-      }
-    }
+    op_.matrix().print(ofs);
   }
 
   const VelocitySpaceType& domainSpace() const
