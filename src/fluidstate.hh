@@ -22,7 +22,7 @@ namespace Fem
 class OutputParameters:public DataOutputParameters
 {
   public:
-  OutputParameters(const std::string& prefix):
+  OutputParameters(std::string&& prefix):
     prefix_(prefix),startcounter_(0),startcall_(0),startsavetime_(0.0)
   {}
 
@@ -43,7 +43,7 @@ class OutputParameters:public DataOutputParameters
     return startsavetime_;
   }
   template<typename DOT>
-  void saveState(const DOT& dataOutput) const
+  void saveState(const DOT& dataOutput)
   {
     startcounter_=dataOutput.writeStep();
     startcall_=dataOutput.writeCalls();
@@ -52,9 +52,9 @@ class OutputParameters:public DataOutputParameters
 
   private:
   const std::string prefix_;
-  mutable int startcounter_;
-  mutable int startcall_;
-  mutable double startsavetime_;
+  int startcounter_;
+  int startcall_;
+  double startsavetime_;
 };
 
 template<typename CoupledMeshManagerImp,typename Traits=FemTraits<typename CoupledMeshManagerImp::BulkGridType,
@@ -372,7 +372,7 @@ class FluidState
 
   // dump solutions on file
   template<typename TimeProviderType>
-  void dumpBulkSolutions(const TimeProviderType& timeProvider) const
+  void dumpBulkSolutions(const TimeProviderType& timeProvider)
   {
     #if PRESSURE_SPACE_TYPE == 2
     for(const auto& entity:entities(pressure()))
@@ -388,7 +388,7 @@ class FluidState
     bulkoutputparameters_.saveState(*bulkoutput_);
   }
   template<typename TimeProviderType>
-  void dumpInterfaceSolutions(const TimeProviderType& timeProvider) const
+  void dumpInterfaceSolutions(const TimeProviderType& timeProvider)
   {
     interfaceoutput_->write(timeProvider);
     interfaceoutputparameters_.saveState(*interfaceoutput_);
@@ -502,8 +502,8 @@ class FluidState
   std::shared_ptr<BulkDataOutputType> bulkoutput_;
   std::shared_ptr<InterfaceDataOutputType> interfaceoutput_;
   unsigned int sequence_;
-  mutable OutputParameters bulkoutputparameters_;
-  mutable OutputParameters interfaceoutputparameters_;
+  OutputParameters bulkoutputparameters_;
+  OutputParameters interfaceoutputparameters_;
 
   // reset pointers to avoid dangling references
   void resetPointers()
