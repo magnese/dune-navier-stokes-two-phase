@@ -62,7 +62,7 @@ class SmoothingOperator:public Operator<typename LinearOperatorImp::DomainFuncti
     return space_;
   }
 
-  void assemble() const
+  void assemble()
   {
     DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
     op_.reserve(stencil);
@@ -128,7 +128,7 @@ class SmoothingOperator:public Operator<typename LinearOperatorImp::DomainFuncti
 
   private:
   const DiscreteSpaceType& space_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
   const double coeff_;
 };
 

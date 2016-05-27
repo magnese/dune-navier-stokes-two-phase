@@ -36,7 +36,7 @@ class BulkPressureVelocityOperator:public Operator<typename LinearOperatorImp::D
 
   BulkPressureVelocityOperator(const ThisType& )=delete;
 
-  LinearOperatorType& systemMatrix() const
+  const LinearOperatorType& systemMatrix() const
   {
     return op_;
   }
@@ -46,7 +46,6 @@ class BulkPressureVelocityOperator:public Operator<typename LinearOperatorImp::D
     op_.apply(u,w);
   }
 
-  // dump system matrix into file
   void print(const std::string& filename="pressure_velocity_matrix.dat") const
   {
     std::ofstream ofs(filename);
@@ -63,7 +62,7 @@ class BulkPressureVelocityOperator:public Operator<typename LinearOperatorImp::D
     return rangespace_;
   }
 
-  void assemble() const
+  void assemble()
   {
     DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
     op_.reserve(stencil);
@@ -111,7 +110,7 @@ class BulkPressureVelocityOperator:public Operator<typename LinearOperatorImp::D
   private:
   const DomainSpaceType& domainspace_;
   const RangeSpaceType& rangespace_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
 };
 
 }

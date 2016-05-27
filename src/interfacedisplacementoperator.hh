@@ -69,8 +69,7 @@ class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::
     return op_;
   }
 
-  // perform a grid walkthrough and assemble the global matrix
-  void assemble() const
+  void assemble()
   {
     DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
     op_.reserve(stencil);
@@ -112,7 +111,7 @@ class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::
 
   private:
   const DiscreteSpaceType& space_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
 };
 
 }

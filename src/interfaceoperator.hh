@@ -62,7 +62,7 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
   }
 
   template<typename BulkInterfaceGridMapperType,typename TimeProviderType>
-  void assemble(const BulkInterfaceGridMapperType& mapper,const TimeProviderType& timeProvider) const
+  void assemble(const BulkInterfaceGridMapperType& mapper,const TimeProviderType& timeProvider)
   {
     // allocate matrix
     DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
@@ -142,7 +142,7 @@ class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFuncti
 
   private:
   const DiscreteSpaceType& space_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
 };
 
 }

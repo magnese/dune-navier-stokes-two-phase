@@ -66,7 +66,7 @@ class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFun
   }
 
   template<typename TimeProviderType>
-  void assemble(const TimeProviderType& timeProvider) const
+  void assemble(const TimeProviderType& timeProvider)
   {
     DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
     op_.reserve(stencil);
@@ -152,7 +152,7 @@ class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFun
 
   private:
   const DiscreteSpaceType& space_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
   const ProblemType& problem_;
   // solution at the previous time step
   const DiscreteFunctionType& oldsolution_;

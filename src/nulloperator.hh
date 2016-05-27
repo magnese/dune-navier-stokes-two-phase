@@ -33,7 +33,7 @@ class NullOperator:public Operator<typename LinearOperatorImp::DomainFunctionTyp
 
   NullOperator(const ThisType& )=delete;
 
-  LinearOperatorType& systemMatrix() const
+  const LinearOperatorType& systemMatrix() const
   {
     return op_;
   }
@@ -60,7 +60,7 @@ class NullOperator:public Operator<typename LinearOperatorImp::DomainFunctionTyp
   }
 
   template<typename... Argss>
-  void assemble(const Argss&... ) const
+  void assemble(const Argss&... )
   {
     DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
     op_.reserve(stencil);
@@ -70,7 +70,7 @@ class NullOperator:public Operator<typename LinearOperatorImp::DomainFunctionTyp
   private:
   const DomainSpaceType& domainspace_;
   const RangeSpaceType& rangespace_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
 };
 
 

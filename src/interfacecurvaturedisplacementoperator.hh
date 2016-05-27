@@ -67,8 +67,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
     return rangespace_;
   }
 
-  // perform a grid walkthrough and assemble the global matrix
-  void assemble() const
+  void assemble()
   {
     DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
     op_.reserve(stencil);
@@ -153,7 +152,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOper
   const DomainSpaceType& domainspace_;
   const RangeSpaceType& rangespace_;
   const BulkInterfaceGridMapperType& mapper_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
 };
 
 }

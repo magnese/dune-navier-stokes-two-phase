@@ -83,7 +83,7 @@ class OperatorGluer:public Operator<
     return space_;
   }
 
-  void assemble() const
+  void assemble()
   {
     // reserve matrix
     const auto maxNumNonZeros(std::max(mat11_.numNonZeros()+mat12_.numNonZeros(),mat21_.numNonZeros()+mat22_.numNonZeros()));
@@ -139,7 +139,7 @@ class OperatorGluer:public Operator<
     }
   }
 
-  void applyDoctoring() const
+  void applyDoctoring()
   {
     const auto row(mat11_.cols());
     op_.matrix().clearRow(row);
@@ -147,7 +147,7 @@ class OperatorGluer:public Operator<
   }
 
   template<typename RHSType>
-  void applyDoctoringRHS(RHSType& rhs) const
+  void applyDoctoringRHS(RHSType& rhs)
   {
     const auto row(mat11_.cols());
     rhs[row]=0.0;
@@ -159,7 +159,7 @@ class OperatorGluer:public Operator<
   const Matrix21Type& mat21_;
   const Matrix22Type& mat22_;
   const DiscreteSpaceType space_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
 };
 
 template<typename Op11T,typename Op12T,typename Op21T,typename Op13T,typename Op31T>
@@ -236,7 +236,7 @@ class ExtendedOperatorGluer:public Operator<
     return space_;
   }
 
-  void assemble() const
+  void assemble()
   {
     // reserve matrix
     const auto maxNumNonZeros(std::max({mat11_.numNonZeros()+mat12_.numNonZeros()+mat13_.numNonZeros(),
@@ -309,7 +309,7 @@ class ExtendedOperatorGluer:public Operator<
     }
   }
 
-  void applyDoctoring() const
+  void applyDoctoring()
   {
     auto row(mat11_.cols());
     op_.matrix().clearRow(row);
@@ -320,7 +320,7 @@ class ExtendedOperatorGluer:public Operator<
   }
 
   template<typename RHSType>
-  void applyDoctoringRHS(RHSType& rhs) const
+  void applyDoctoringRHS(RHSType& rhs)
   {
     auto row(mat11_.cols());
     rhs[row]=0.0;
@@ -335,7 +335,7 @@ class ExtendedOperatorGluer:public Operator<
   const Matrix13Type& mat13_;
   const Matrix31Type& mat31_;
   const DiscreteSpaceType space_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
 };
 
 }

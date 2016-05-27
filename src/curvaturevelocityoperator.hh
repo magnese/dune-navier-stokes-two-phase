@@ -75,7 +75,7 @@ class CurvatureVelocityOperator:public Operator<typename LinearOperatorImp::Doma
     return velocityspace_;
   }
 
-  void assemble() const
+  void assemble()
   {
     // allocate matrix
     Stencil<CurvatureSpaceType,VelocitySpaceType> stencil(curvaturespace_,velocityspace_);
@@ -156,7 +156,7 @@ class CurvatureVelocityOperator:public Operator<typename LinearOperatorImp::Doma
   private:
   const CurvatureSpaceType& curvaturespace_;
   const VelocitySpaceType& velocityspace_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
   const BulkInterfaceGridMapperType& mapper_;
   const InterfaceGridType& interfacegrid_;
   const InterfaceGridPartType& interfacegridpart_;

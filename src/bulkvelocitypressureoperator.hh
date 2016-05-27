@@ -61,7 +61,7 @@ class BulkVelocityPressureOperator:public Operator<typename LinearOperatorImp::D
     return rangespace_;
   }
 
-  void assemble() const
+  void assemble()
   {
     DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
     op_.reserve(stencil);
@@ -108,7 +108,7 @@ class BulkVelocityPressureOperator:public Operator<typename LinearOperatorImp::D
   private:
   const DomainSpaceType& domainspace_;
   const RangeSpaceType& rangespace_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
 };
 
 }

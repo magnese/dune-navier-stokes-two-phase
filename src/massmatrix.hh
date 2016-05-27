@@ -63,7 +63,7 @@ class MassMatrix:public Operator<typename LinearOperatorImp::DomainFunctionType,
     return space_;
   }
 
-  void assemble() const
+  void assemble()
   {
     DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
     op_.reserve(stencil);
@@ -99,7 +99,7 @@ class MassMatrix:public Operator<typename LinearOperatorImp::DomainFunctionType,
 
   private:
   const DiscreteSpaceType& space_;
-  mutable LinearOperatorType op_;
+  LinearOperatorType op_;
 };
 
 }
