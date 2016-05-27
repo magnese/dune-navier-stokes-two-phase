@@ -320,7 +320,7 @@ class GMSHCompoundManagerBase
   static constexpr unsigned int worlddim=dim;
 
   public:
-  bool& hasHole()
+  bool hasHole()
   {
     return hashole_;
   }

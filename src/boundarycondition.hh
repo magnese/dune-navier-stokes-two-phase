@@ -67,15 +67,16 @@ class BoundaryCondition
   typedef typename GridPartType::IntersectionIteratorType::Intersection IntersectionType;
   typedef typename RangeSpaceType::RangeType RangeType;
 
-  typedef std::function<RangeType(const DomainType&,const double&,const EntityType&)> FunctionType;
+  typedef std::function<RangeType(const DomainType&,double,const EntityType&)> FunctionType;
   typedef LocalAnalyticalFunctionBinder<DomainSpaceType> LocalAnalyticalFunctionType;
   typedef std::map<int,LocalAnalyticalFunctionType> FunctionMapType;
   typedef LocalFunctionAdapter<LocalAnalyticalFunctionType> AdaptedDiscreteFunctionType;
   typedef std::map<int,AdaptedDiscreteFunctionType> AdaptedFunctionMapType;
 
-  void addBC(int boundaryID,FunctionType g)
+  void addBC(int boundaryID,const FunctionType& g)
   {
-    g_.emplace(boundaryID,std::move(g));
+    LocalAnalyticalFunctionType gAnalytical(g);
+    g_.emplace(boundaryID,std::move(gAnalytical));
   }
 
   const DomainSpaceType& domainSpace() const
