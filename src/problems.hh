@@ -54,27 +54,27 @@ class BaseProblem
     nulldensity_((rhoinner_==0.0&&rhoouter_==0.0)?true:false)
   {
     // init all the functions with the null function
-    velocityRHS()=[&](const VelocityDomainType& ,double ,const EntityType& )
+    velocityRHS()=[](const VelocityDomainType& ,double ,const EntityType& )
     {
       VelocityRangeType value(0.0);
       return value;
     };
-    velocityIC()=[&](const VelocityDomainType& ,double ,const EntityType& )
+    velocityIC()=[](const VelocityDomainType& ,double ,const EntityType& )
     {
       VelocityRangeType value(0.0);
       return value;
     };
-    velocitySolution()=[&](const VelocityDomainType& ,double ,const EntityType& )
+    velocitySolution()=[](const VelocityDomainType& ,double ,const EntityType& )
     {
       VelocityRangeType value(0.0);
       return value;
     };
-    pressureIC()=[&](const PressureDomainType& ,double ,const EntityType& )
+    pressureIC()=[](const PressureDomainType& ,double ,const EntityType& )
     {
       PressureRangeType value(0.0);
       return value;
     };
-    pressureSolution()=[&](const PressureDomainType& ,double ,const EntityType& )
+    pressureSolution()=[](const PressureDomainType& ,double ,const EntityType& )
     {
       PressureRangeType value(0.0);
       return value;
@@ -325,7 +325,7 @@ class StokesTest1Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
       return value;
     };
 
-    velocitySolution()=[&](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
+    velocitySolution()=[](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
     {
       typename BaseType::VelocityRangeType value(0.0);
       value[1]=std::pow(x[0],3.0)-x[0];
@@ -370,7 +370,7 @@ class StokesTest2Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
       return value;
     };
 
-    velocitySolution()=[&](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
+    velocitySolution()=[](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
     {
       typename BaseType::VelocityRangeType value(0.0);
       value[0]=1.0+std::pow(x[1],4.0);
@@ -572,7 +572,7 @@ class StationaryNavierStokesProblem:public BaseProblem<VelocityDiscreteSpaceImp,
       return value;
     };
 
-    velocitySolution()=[&](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
+    velocitySolution()=[](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
     {
       typename BaseType::VelocityRangeType value(0.0);
       value[0]=-std::cos(M_PI*x[0])*std::sin(M_PI*x[1]);
@@ -580,7 +580,7 @@ class StationaryNavierStokesProblem:public BaseProblem<VelocityDiscreteSpaceImp,
       return value;
     };
 
-    pressureSolution()=[&](const typename BaseType::PressureDomainType& x,double ,const typename BaseType::EntityType& )
+    pressureSolution()=[](const typename BaseType::PressureDomainType& x,double ,const typename BaseType::EntityType& )
     {
       typename BaseType::PressureRangeType value(0.0);
       value[0]=-0.25*(std::cos(2.0*M_PI*x[0])+std::cos(2.0*M_PI*x[1]));
@@ -678,40 +678,40 @@ class RisingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDi
     };
 
     // Dirichlet on top/bottom
-    velocityBC().addBC(2,[&](const VelocityDomainType& ,double ,const EntityType& )
-                            {
-                              return VelocityRangeType(0.0);
-                            });
-    velocityBC().addBC(4,[&](const VelocityDomainType& ,double ,const EntityType& )
-                            {
-                              return VelocityRangeType(0.0);
-                            });
+    velocityBC().addBC(2,[](const VelocityDomainType& ,double ,const EntityType& )
+                           {
+                             return VelocityRangeType(0.0);
+                           });
+    velocityBC().addBC(4,[](const VelocityDomainType& ,double ,const EntityType& )
+                           {
+                             return VelocityRangeType(0.0);
+                           });
     // free-slip on faces normal to x
-    this->template getVelocityBC<1>().addBC(3,[&](const VelocityDomainType& ,double ,const EntityType& )
-                                                 {
-                                                   VelocityRangeType value(1.0);
-                                                   value[0]=0.0;
-                                                   return value;
-                                                 });
-    this->template getVelocityBC<1>().addBC(5,[&](const VelocityDomainType& ,double ,const EntityType& )
-                                                 {
-                                                   VelocityRangeType value(1.0);
-                                                   value[0]=0.0;
-                                                   return value;
-                                                 });
+    this->template getVelocityBC<1>().addBC(3,[](const VelocityDomainType& ,double ,const EntityType& )
+                                                {
+                                                  VelocityRangeType value(1.0);
+                                                  value[0]=0.0;
+                                                  return value;
+                                                });
+    this->template getVelocityBC<1>().addBC(5,[](const VelocityDomainType& ,double ,const EntityType& )
+                                                {
+                                                  VelocityRangeType value(1.0);
+                                                  value[0]=0.0;
+                                                  return value;
+                                                });
     // free-slip on faces normal to y (only 3d)
-    this->template getVelocityBC<1>().addBC(6,[&](const VelocityDomainType& ,double ,const EntityType& )
-                                                 {
-                                                   VelocityRangeType value(1.0);
-                                                   value[1]=0.0;
-                                                   return value;
-                                                 });
-    this->template getVelocityBC<1>().addBC(7,[&](const VelocityDomainType& ,double ,const EntityType& )
-                                                 {
-                                                   VelocityRangeType value(1.0);
-                                                   value[1]=0.0;
-                                                   return value;
-                                                 });
+    this->template getVelocityBC<1>().addBC(6,[](const VelocityDomainType& ,double ,const EntityType& )
+                                                {
+                                                  VelocityRangeType value(1.0);
+                                                  value[1]=0.0;
+                                                  return value;
+                                                });
+    this->template getVelocityBC<1>().addBC(7,[](const VelocityDomainType& ,double ,const EntityType& )
+                                                {
+                                                  VelocityRangeType value(1.0);
+                                                  value[1]=0.0;
+                                                  return value;
+                                                });
   }
 };
 

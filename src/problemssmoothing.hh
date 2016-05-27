@@ -26,42 +26,42 @@ class ParallelepipedGeometry
     typedef typename BoundaryConditionType::EntityType EntityType;
     typedef typename BoundaryConditionType::RangeType RangeType;
 
-    bc_.addBC(2,[&](const DomainType& ,double ,const EntityType& )
-                   {
-                     RangeType value(1.0);
-                     value[1]=0.0;
-                     return value;
-                   });
-    bc_.addBC(3,[&](const DomainType& ,double ,const EntityType& )
-                   {
-                     RangeType value(1.0);
-                     value[0]=0.0;
-                     return value;
-                   });
-    bc_.addBC(4,[&](const DomainType& ,double ,const EntityType& )
-                   {
-                     RangeType value(1.0);
-                     value[1]=0.0;
-                     return value;
-                   });
-    bc_.addBC(5,[&](const DomainType& ,double ,const EntityType& )
-                   {
-                     RangeType value(1.0);
-                     value[0]=0.0;
-                     return value;
-                   });
-    bc_.addBC(6,[&](const DomainType& ,double ,const EntityType& )
-                   {
-                     RangeType value(1.0);
-                     value[EntityType::Geometry::coorddimension-1]=0.0;
-                     return value;
-                   });
-    bc_.addBC(7,[&](const DomainType& ,double ,const EntityType& )
-                   {
-                     RangeType value(1.0);
-                     value[EntityType::Geometry::coorddimension-1]=0.0;
-                     return value;
-                   });
+    bc_.addBC(2,[](const DomainType& ,double ,const EntityType& )
+                  {
+                    RangeType value(1.0);
+                    value[1]=0.0;
+                    return value;
+                  });
+    bc_.addBC(3,[](const DomainType& ,double ,const EntityType& )
+                  {
+                    RangeType value(1.0);
+                    value[0]=0.0;
+                    return value;
+                  });
+    bc_.addBC(4,[](const DomainType& ,double ,const EntityType& )
+                  {
+                    RangeType value(1.0);
+                    value[1]=0.0;
+                    return value;
+                  });
+    bc_.addBC(5,[](const DomainType& ,double ,const EntityType& )
+                  {
+                    RangeType value(1.0);
+                    value[0]=0.0;
+                    return value;
+                  });
+    bc_.addBC(6,[](const DomainType& ,double ,const EntityType& )
+                  {
+                    RangeType value(1.0);
+                    value[EntityType::Geometry::coorddimension-1]=0.0;
+                    return value;
+                  });
+    bc_.addBC(7,[](const DomainType& ,double ,const EntityType& )
+                  {
+                    RangeType value(1.0);
+                    value[EntityType::Geometry::coorddimension-1]=0.0;
+                    return value;
+                  });
   }
 
   BoundaryConditionType& bc()
