@@ -1,21 +1,14 @@
 #ifndef DUNE_FEM_VERTEXFUNCTION_HH
 #define DUNE_FEM_VERTEXFUNCTION_HH
 
-// C++ includes
-#include <string>
-#include <algorithm>
-
-// dune includes
 #include <dune/common/exceptions.hh>
 #include <dune/geometry/referenceelements.hh>
-
-#include <dune/fem/gridpart/leafgridpart.hh>
-
 #include <dune/grid/geometrygrid/coordfunction.hh>
+
+#include <dune/fem/function/blockvectorfunction.hh>
+#include <dune/fem/gridpart/leafgridpart.hh>
 #include <dune/fem/space/common/functionspace.hh>
 #include <dune/fem/space/lagrange.hh>
-//#include <dune/fem/function/adaptivefunction.hh>
-#include <dune/fem/function/blockvectorfunction.hh>
 
 namespace Dune
 {
@@ -32,123 +25,82 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
   static constexpr auto griddim=GridType::dimension;
   static constexpr auto worlddim=GridType::dimensionworld;
   typedef DiscreteCoordFunction<ctype,worlddim,ThisType> BaseType;
-
   typedef typename BaseType::RangeVector RangeVectorType;
 
   typedef LeafGridPart<GridType> GridPartType;
 
   typedef FunctionSpace<ctype,ctype,worlddim,worlddim> ContinuousSpaceType;
   typedef LagrangeDiscreteFunctionSpace<ContinuousSpaceType,GridPartType,1,CachingStorage> DiscreteSpaceType;
-  //typedef AdaptiveDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
   typedef ISTLBlockVectorDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
 
   typedef typename GridType::template Codim<0>::Entity HostEntityType;
   typedef typename GridType::template Codim<griddim>::Entity HostVertexType;
 
   explicit VertexFunction(GridType& grid):
-    gridpart_(grid),space_(gridpart_),coord_("coordinate function",space_)
+    gridpart_(grid),space_(gridpart_),coord_("coordinates",space_)
   {
     initialize(grid);
   }
 
   VertexFunction(const ThisType& )=delete;
 
-  GridPartType& gridPart() const
+  ThisType& operator=(const ThisType& other)
   {
-    return gridpart_;
+    operator=(other.discreteFunction());
   }
-  DiscreteSpaceType& space() const
+
+  DiscreteFunctionType& discreteFunction()
   {
-    return space_;
+    return coord_;
   }
-  DiscreteFunctionType& discreteFunction() const
+  const DiscreteFunctionType& discreteFunction() const
   {
     return coord_;
   }
 
-  void initialize(GridType& grid) const
+  void initialize(const GridType& grid)
   {
     // fill the vertices coordinates with the grid vertices
-    const auto localBlockSize(DiscreteSpaceType::localBlockSize);
-    for(const auto& entity:entities(discreteFunction()))
+    const std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
+    for(const auto& entity:entities(coord_))
     {
-      auto localCoord(discreteFunction().localFunction(entity));
+      auto localCoord(coord_.localFunction(entity));
       const auto numLocalBlocks(entity.geometry().corners());
       std::size_t row(0);
-      for(auto localIdx=0;localIdx!=numLocalBlocks;++localIdx)
+      for(auto localIdx=decltype(numLocalBlocks){0};localIdx!=numLocalBlocks;++localIdx)
       {
         const auto x(entity.geometry().corner(localIdx));
-        for(auto l=0;l!=localBlockSize;++l,++row)
+        for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
           localCoord[row]=x[l];
       }
     }
   }
 
-  const ThisType& operator=(const ThisType& vtx) const
+  template<typename DF>
+  ThisType& operator=(const DF& df)
   {
-    std::copy(vtx.discreteFunction().dbegin(),vtx.discreteFunction().dend(),discreteFunction().dbegin());
-    return *this;
-  }
-  const ThisType& operator=(const std::vector<double>& vtx) const
-  {
-    std::copy(vtx.begin(),vtx.end(),discreteFunction().dbegin());
-    return *this;
-  }
-  template<typename DFT>
-  const ThisType& operator=(const DFT& vtx) const
-  {
-    std::copy(vtx.dbegin(),vtx.dend(),discreteFunction().dbegin());
+    coord_.assign(df);
     return *this;
   }
 
-  const ThisType& operator+=(const std::vector<double>& vtx) const
+  template<typename DF>
+  ThisType& operator+=(const DF& df)
   {
-    auto it(vtx.begin());
-    for(auto& dof:dofs(discreteFunction()))
-    {
-      dof+=*it;
-      ++it;
-    }
-    return *this;
-  }
-  template<typename DFT>
-  const ThisType& operator+=(const DFT& vtx) const
-  {
-    auto it(vtx.dbegin());
-    for(auto& dof:dofs(discreteFunction()))
-    {
-      dof+=*it;
-      ++it;
-    }
+    coord_+=df;
     return *this;
   }
 
-  const ThisType& operator-=(const std::vector<double>& vtx) const
+  template<typename DF>
+  ThisType& operator-=(const DF& df)
   {
-    auto it(vtx.begin());
-    for(auto& dof:dofs(discreteFunction()))
-    {
-      dof-=*it;
-      ++it;
-    }
-    return *this;
-  }
-  template<typename DFT>
-  const ThisType& operator-=(const DFT& vtx) const
-  {
-    auto it(vtx.dbegin());
-    for(auto& dof:dofs(discreteFunction()))
-    {
-      dof-=*it;
-      ++it;
-    }
+    coord_-=df;
     return *this;
   }
 
   void evaluate(const HostEntityType& entity,unsigned int corner,RangeVectorType& y) const
   {
-    const auto& referenceElement(ReferenceElements<ctype,griddim>::general((gridPart().template begin<0>())->type()));
-    discreteFunction().localFunction(entity).evaluate(referenceElement.position(corner,griddim),y);
+    const auto& referenceElement(ReferenceElements<ctype,griddim>::general((gridpart_.template begin<0>())->type()));
+    coord_.localFunction(entity).evaluate(referenceElement.position(corner,griddim),y);
   }
 
   void evaluate(const HostVertexType& vertex,unsigned int ,RangeVectorType& y) const
@@ -156,15 +108,15 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
     coord_.evaluate(vertex.geometry().center(),y);;
   }
 
-  void adapt() const
+  void adapt()
   {
     DUNE_THROW(NotImplemented,"VertexFunction::adapt() not implemented");
   }
 
   private:
-  mutable GridPartType gridpart_;
+  GridPartType gridpart_;
   const DiscreteSpaceType space_;
-  mutable DiscreteFunctionType coord_;
+  DiscreteFunctionType coord_;
 };
 
 }
