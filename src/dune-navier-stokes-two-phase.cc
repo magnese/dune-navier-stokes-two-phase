@@ -89,10 +89,6 @@ int main(int argc,char** argv)
     timer.stop();
     std::cout<<std::endl<<"Total running time: "<<timer.elapsed()<<" seconds."<<std::endl;
 
-    #if REMESH_TYPE != 0
-    GmshFinalize();
-    #endif
-
     return 0;
   }
 
