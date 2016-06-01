@@ -1,8 +1,6 @@
 #ifndef DUNE_FEM_COUPLEDOPERATORWRAPPER_HH
 #define DUNE_FEM_COUPLEDOPERATORWRAPPER_HH
 
-#include <algorithm>
-
 #include <dune/fem/operator/common/operator.hh>
 
 namespace Dune
@@ -59,29 +57,18 @@ class CoupledOperatorWrapper:public Operator<typename VelocityOperatorImp::Domai
 
     if(gamma_!=0.0)
     {
-      // curvature = velocityCurvatureOperator*u
-      const auto& curvatureSpace(curvaturevelocityop_.domainSpace());
-      typename CurvatureVelocityOperatorType::CurvatureFunctionType curvature("curvature",curvatureSpace);
-      velocitycurvatureop_(u,curvature);
+      // rhs = [ velocityCurvatureOperator*u ; 0 ]
+      typename InterfaceOperatorType::DomainFunctionType rhs("rhs",interfaceop_.domainSpace());
+      velocitycurvatureop_(u,rhs.template subDiscreteFunction<0>());
+      rhs.template subDiscreteFunction<1>().clear();
 
-      // copy curvature into interfaceRHS
-      const auto& interfaceSpace(interfaceop_.domainSpace());
-      typedef typename InterfaceOperatorType::DomainFunctionType InterfaceFunctionType;
-      InterfaceFunctionType interfaceRHS("interface RHS",interfaceSpace);
-      interfaceRHS.clear();
-      std::copy(curvature.dbegin(),curvature.dend(),interfaceRHS.dbegin());
+      // solution = interfaceInvOperator(rhs)
+      typename InterfaceOperatorType::DomainFunctionType solution("solution",interfaceop_.domainSpace());
+      interfaceinvop_.apply(rhs,solution);
 
-      // solution = interfaceInvOperator(interfaceRHS)
-      InterfaceFunctionType solution("solution",interfaceSpace);
-      interfaceinvop_.apply(interfaceRHS,solution);
-
-      // copy solution into curvature
-      std::copy_n(solution.dbegin(),curvature.size(),curvature.dbegin());
-
-      // velocity = curvatureVelocityOperator*curvature
-      const auto& velocitySpace(velocityop_.domainSpace());
-      DomainFunctionType velocity("velocity",velocitySpace);
-      curvaturevelocityop_(curvature,velocity);
+      // velocity = curvatureVelocityOperator*solution_curvature
+      DomainFunctionType velocity("velocity",velocityop_.domainSpace());
+      curvaturevelocityop_(solution.template subDiscreteFunction<0>(),velocity);
 
       // w += gamma*velocity
       w.axpy(gamma_,velocity);

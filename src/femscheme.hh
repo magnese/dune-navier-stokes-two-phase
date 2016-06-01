@@ -32,7 +32,7 @@
 #include "bulkpressurerhs.hh"
 
 #include "interfaceoperator.hh"
-#include "interfacerhs.hh"
+#include "assembleinterfacerhs.hh"
 
 #include "curvaturevelocityoperator.hh"
 #include "velocitycurvatureoperator.hh"
@@ -145,7 +145,6 @@ class FemScheme
   // define operators for interface
   typedef InterfaceOperator<InterfaceLinearOperatorType> InterfaceOperatorType;
   typedef VelocityCurvatureOperator<VelocityCurvatureLinearOperatorType,BulkInterfaceGridMapperType> VelocityCurvatureOperatorType;
-  typedef InterfaceRHS<InterfaceDiscreteFunctionType> InterfaceRHSType;
 
   // constructor
   explicit FemScheme(FluidStateType& fluidState):
@@ -186,16 +185,13 @@ class FemScheme
     interfaceOp.assemble(fluidstate_.meshManager().mapper(),timeProvider);
 
     //assemble rhs
-    InterfaceRHSType interfaceRHS(fluidstate_.interfaceSpace());
-    interfaceRHS.assemble(interfaceOp);
-    interfaceRHS.rhs()*=-1.0;
+    InterfaceDiscreteFunctionType rhs("interface RHS",fluidstate_.interfaceSpace());
+    assembleInterfaceRHS(rhs,interfaceOp);
+    rhs*=-1.0;
 
     // solve
     UMFPACKOp<InterfaceDiscreteFunctionType,InterfaceOperatorType> interfaceInvOp(interfaceOp);
-    interfaceInvOp(interfaceRHS.rhs(),fluidstate_.interfaceSolution());
-
-    // set the fluid state for the interface with the correct quantities
-    fluidstate_.finalizeInterfaceQuantities();
+    interfaceInvOp(rhs,fluidstate_.interfaceSolution());
   }
 
   // compute solution
@@ -269,8 +265,8 @@ class FemScheme
 
     // assemble interface RHS
     timerAssembleInterface.start();
-    InterfaceRHSType interfaceRHS(fluidstate_.interfaceSpace());
-    interfaceRHS.assemble(interfaceOp);
+    InterfaceDiscreteFunctionType interfaceRHS("interface RHS",fluidstate_.interfaceSpace());
+    assembleInterfaceRHS(interfaceRHS,interfaceOp);
     timerAssembleInterface.stop();
 
     // add bulk coupling
@@ -279,13 +275,9 @@ class FemScheme
     {
       timerAssembleBulk.start();
       InterfaceDiscreteFunctionType interfaceTempFunction("interface temporary function",fluidstate_.interfaceSpace());
-      interfaceInvOp.apply(interfaceRHS.rhs(),interfaceTempFunction);
-
-      CurvatureDiscreteFunctionType curvatureTempFunction("curvature temporary function",fluidstate_.curvatureSpace());
-      std::copy_n(interfaceTempFunction.dbegin(),curvatureTempFunction.size(),curvatureTempFunction.dbegin());
-
+      interfaceInvOp.apply(interfaceRHS,interfaceTempFunction);
       VelocityDiscreteFunctionType velocityCouplingRHS("velocity coupling RHS",fluidstate_.velocitySpace());
-      curvatureVelocityOp(curvatureTempFunction,velocityCouplingRHS);
+      curvatureVelocityOp(interfaceTempFunction.template subDiscreteFunction<0>(),velocityCouplingRHS);
       velocityRHS.rhs().axpy(-1.0*gamma,velocityCouplingRHS);
       timerAssembleBulk.stop();
     }
@@ -377,21 +369,14 @@ class FemScheme
 
     // add interface coupling
     timerAssembleInterface.start();
-    CurvatureDiscreteFunctionType curvatureCouplingRHS("curvature coupling RHS",fluidstate_.curvatureSpace());
-    velocityCurvatureOp(fluidstate_.velocity(),curvatureCouplingRHS);
-    std::copy(curvatureCouplingRHS.dbegin(),curvatureCouplingRHS.dend(),interfaceRHS.rhs().dbegin());
-    interfaceRHS.rhs()*=-1.0;
+    velocityCurvatureOp(fluidstate_.velocity(),interfaceRHS.template subDiscreteFunction<0>());
+    interfaceRHS*=-1.0;
     timerAssembleInterface.stop();
 
     // solve interface
     timerSolveInterface.start();
-    interfaceInvOp.apply(interfaceRHS.rhs(),fluidstate_.interfaceSolution());
+    interfaceInvOp.apply(interfaceRHS,fluidstate_.interfaceSolution());
     interfaceInvOp.finalize();
-    timerSolveInterface.stop();
-
-    // set the fluid state for the interface with the correct quantities
-    timerSolveInterface.start();
-    fluidstate_.finalizeInterfaceQuantities();
     timerSolveInterface.stop();
 
     // project pressure solution to the space of mean zero function

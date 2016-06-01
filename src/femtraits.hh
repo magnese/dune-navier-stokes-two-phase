@@ -10,6 +10,7 @@
 #endif
 #include <dune/fem/space/combinedspace.hh>
 #include <dune/fem/function/blockvectorfunction.hh>
+#include <dune/fem/function/tuplediscretefunction.hh>
 
 namespace Dune
 {
@@ -27,9 +28,9 @@ struct FemTraits
   // define continuos spaces
   typedef FunctionSpace<double,double,BulkGridType::dimensionworld,BulkGridType::dimensionworld> VelocityContinuosSpaceType;
   typedef FunctionSpace<double,double,BulkGridType::dimensionworld,1> PressureContinuosSpaceType;
+  typedef FunctionSpace<double,double,BulkGridType::dimensionworld,BulkGridType::dimensionworld> BulkDisplacementContinuosSpaceType;
   typedef FunctionSpace<double,double,InterfaceGridType::dimensionworld,InterfaceGridType::dimensionworld> DisplacementContinuosSpaceType;
   typedef FunctionSpace<double,double,InterfaceGridType::dimensionworld,1> CurvatureContinuosSpaceType;
-  typedef FunctionSpace<double,double,BulkGridType::dimensionworld,BulkGridType::dimensionworld> BulkDisplacementContinuosSpaceType;
   // define discrete spaces
   typedef LagrangeDiscreteFunctionSpace<VelocityContinuosSpaceType,BulkGridPartType,2> VelocityDiscreteSpaceType;
   #if PRESSURE_SPACE_TYPE == 0
@@ -43,16 +44,15 @@ struct FemTraits
   typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,0> PressureAdditionalDiscreteSpaceType;
   typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDumpDiscreteSpaceType;
   #endif
-  typedef LagrangeDiscreteFunctionSpace<DisplacementContinuosSpaceType,InterfaceGridPartType,1> DisplacementDiscreteSpaceType;
-  typedef LagrangeDiscreteFunctionSpace<CurvatureContinuosSpaceType,InterfaceGridPartType,1> CurvatureDiscreteSpaceType;
   #if PRESSURE_SPACE_TYPE !=2
   typedef TupleDiscreteFunctionSpace<VelocityDiscreteSpaceType,PressureDiscreteSpaceType> BulkDiscreteSpaceType;
   #else
   typedef TupleDiscreteFunctionSpace<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,PressureAdditionalDiscreteSpaceType>
     BulkDiscreteSpaceType;
   #endif
-  typedef TupleDiscreteFunctionSpace<CurvatureDiscreteSpaceType,DisplacementDiscreteSpaceType> InterfaceDiscreteSpaceType;
   typedef LagrangeDiscreteFunctionSpace<BulkDisplacementContinuosSpaceType,BulkGridPartType,1> BulkDisplacementDiscreteSpaceType;
+  typedef LagrangeDiscreteFunctionSpace<DisplacementContinuosSpaceType,InterfaceGridPartType,1> DisplacementDiscreteSpaceType;
+  typedef LagrangeDiscreteFunctionSpace<CurvatureContinuosSpaceType,InterfaceGridPartType,1> CurvatureDiscreteSpaceType;
   // define discrete functions
   typedef ISTLBlockVectorDiscreteFunction<VelocityDiscreteSpaceType> VelocityDiscreteFunctionType;
   typedef ISTLBlockVectorDiscreteFunction<PressureDiscreteSpaceType> PressureDiscreteFunctionType;
@@ -60,11 +60,12 @@ struct FemTraits
   typedef ISTLBlockVectorDiscreteFunction<PressureAdditionalDiscreteSpaceType> PressureAdditionalDiscreteFunctionType;
   #endif
   typedef ISTLBlockVectorDiscreteFunction<PressureDumpDiscreteSpaceType> PressureDumpDiscreteFunctionType;
+  typedef ISTLBlockVectorDiscreteFunction<BulkDiscreteSpaceType> BulkDiscreteFunctionType;
+  typedef ISTLBlockVectorDiscreteFunction<BulkDisplacementDiscreteSpaceType> BulkDisplacementDiscreteFunctionType;
   typedef ISTLBlockVectorDiscreteFunction<CurvatureDiscreteSpaceType> CurvatureDiscreteFunctionType;
   typedef ISTLBlockVectorDiscreteFunction<DisplacementDiscreteSpaceType> DisplacementDiscreteFunctionType;
-  typedef ISTLBlockVectorDiscreteFunction<BulkDiscreteSpaceType> BulkDiscreteFunctionType;
-  typedef ISTLBlockVectorDiscreteFunction<InterfaceDiscreteSpaceType> InterfaceDiscreteFunctionType;
-  typedef ISTLBlockVectorDiscreteFunction<BulkDisplacementDiscreteSpaceType> BulkDisplacementDiscreteFunctionType;
+  typedef TupleDiscreteFunction<CurvatureDiscreteFunctionType,DisplacementDiscreteFunctionType> InterfaceDiscreteFunctionType;
+  typedef typename InterfaceDiscreteFunctionType::DiscreteFunctionSpaceType InterfaceDiscreteSpaceType;
 };
 
 }
