@@ -13,7 +13,6 @@
 #include <dune/fem/solver/umfpacksolver.hh>
 
 #include "smoothingoperator.hh"
-#include "smoothingrhs.hh"
 #include "problemssmoothing.hh"
 
 namespace Dune
@@ -67,10 +66,10 @@ class MeshSmoothing
     timerAssemble.stop();
     // assemble RHS and impose BC
     timerAssemble.start();
-    typedef SmoothingRHS<DiscreteFunctionType> RHSType;
-    RHSType RHS(fluidstate_.bulkDisplacementSpace());
-    RHS.assemble(fluidstate_.displacement(),fluidstate_.meshManager().mapper());
-    problem_.bc().applyToRHS(RHS.rhs());
+    DiscreteFunctionType rhs("smoothing RHS",fluidstate_.bulkDisplacementSpace());
+    rhs.clear();
+    fluidstate_.meshManager().mapper().addInterfaceDF2BulkDF(fluidstate_.displacement(),rhs);
+    problem_.bc().applyToRHS(rhs);
     timerAssemble.stop();
     // impose zero displacement for the interface
     const auto localBlockSize(FluidStateType::DisplacementDiscreteSpaceType::localBlockSize);
@@ -86,7 +85,7 @@ class MeshSmoothing
     Timer timerSolve(false);
     timerSolve.start();
     UMFPACKOp<DiscreteFunctionType,SmoothingOperatorType> invOp(op);
-    invOp(RHS.rhs(),fluidstate_.bulkDisplacement());
+    invOp(rhs,fluidstate_.bulkDisplacement());
     timerSolve.stop();
     // print timers
     std::cout<<"Assemble mesh smoothing operator time: "<<timerAssemble.elapsed()<<" seconds."<<std::endl;
