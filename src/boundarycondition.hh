@@ -75,8 +75,7 @@ class BoundaryCondition
 
   void addBC(int boundaryID,const FunctionType& g)
   {
-    LocalAnalyticalFunctionType gAnalytical(g);
-    g_.emplace(boundaryID,std::move(gAnalytical));
+    g_.emplace(boundaryID,g);
   }
 
   const DomainSpaceType& domainSpace() const
