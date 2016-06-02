@@ -414,7 +414,7 @@ class StationaryBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressu
       const auto rt(exactRadius());
       const auto lambda(gamma()*static_cast<double>(worlddim-1)/rt);
       const auto& indicator(meshmanager_.bulkIndicatorFunction());
-      auto value(lambda*(indicator(entity)-std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)*std::pow(2,-worlddim)));
+      auto value(lambda*(indicator(entity)-std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)/std::pow(2.0,worlddim)));
       return value;
     };
 
@@ -473,7 +473,7 @@ class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressur
     pressureSolution()=[&](const typename BaseType::PressureDomainType& ,double t,const typename BaseType::EntityType& entity)
     {
       const auto rt(exactRadius(t));
-      const auto lambda(static_cast<double>(worlddim-1)*(gamma()/rt+2*alpha_*deltaMu()*std::pow(rt,-worlddim)));
+      const auto lambda(static_cast<double>(worlddim-1)*(gamma()/rt+2*alpha_*deltaMu()/std::pow(rt,worlddim)));
       const auto& indicator(meshmanager_.bulkIndicatorFunction());
       auto value(lambda*(indicator(entity)-
                          (std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)-std::pow(2.0/3.0,worlddim))/
