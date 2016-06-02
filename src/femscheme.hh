@@ -18,7 +18,6 @@
 // local includes
 #include "problems.hh"
 #include "nulloperator.hh"
-#include "nullrhs.hh"
 #include "massmatrix.hh"
 #include "operatorwrapper.hh"
 #include "operatorgluer.hh"
@@ -28,8 +27,8 @@
 #include "bulkvelocityoperator.hh"
 #include "bulkvelocitypressureoperator.hh"
 #include "bulkpressurevelocityoperator.hh"
-#include "bulkvelocityrhs.hh"
-#include "bulkpressurerhs.hh"
+#include "assemblevelocityrhs.hh"
+#include "assemblepressurerhs.hh"
 
 #include "interfaceoperator.hh"
 #include "assembleinterfacerhs.hh"
@@ -135,12 +134,6 @@ class FemScheme
   typedef MassMatrix<PressureAdditionalLinearOperatorType> BulkMassMatrixAdditionalOperatorType;
   #endif
   typedef CurvatureVelocityOperator<CurvatureVelocityLinearOperatorType,BulkInterfaceGridMapperType> CurvatureVelocityOperatorType;
-  typedef BulkVelocityRHS<VelocityDiscreteFunctionType,ProblemType> VelocityRHSType;
-  #if PROBLEM_NUMBER == 0 || PROBLEM_NUMBER == 1 || PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 5 || PROBLEM_NUMBER == 6 || PROBLEM_NUMBER == 7
-  typedef NullRHS<PressureDiscreteFunctionType> PressureRHSType;
-  #else
-  typedef BulkPressureRHS<PressureDiscreteFunctionType> PressureRHSType;
-  #endif
 
   // define operators for interface
   typedef InterfaceOperator<InterfaceLinearOperatorType> InterfaceOperatorType;
@@ -257,10 +250,14 @@ class FemScheme
 
     // assemble bulk RHS
     timerAssembleBulk.start();
-    VelocityRHSType velocityRHS(fluidstate_.velocitySpace(),problem_,fluidstate_.velocity());
-    velocityRHS.assemble(problem_.velocityRHS(),timeProvider);
-    PressureRHSType pressureRHS(fluidstate_.pressureSpace());
-    pressureRHS.assemble(problem_.velocityBC(),timeProvider);
+    VelocityDiscreteFunctionType velocityRHS("velocity RHS",fluidstate_.velocitySpace());
+    assembleVelocityRHS(velocityRHS,fluidstate_.velocity(),problem_,timeProvider);
+    PressureDiscreteFunctionType pressureRHS("pressure RHS",fluidstate_.pressureSpace());
+    #if PROBLEM_NUMBER==0 || PROBLEM_NUMBER==1 || PROBLEM_NUMBER==2 || PROBLEM_NUMBER==5 || PROBLEM_NUMBER==6 || PROBLEM_NUMBER==7
+    pressureRHS.clear();
+    #else
+    assemblePressureRHS(pressureRHS,problem_.velocityBC(),timeProvider);
+    #endif
     timerAssembleBulk.stop();
 
     // assemble interface RHS
@@ -278,20 +275,20 @@ class FemScheme
       interfaceInvOp.apply(interfaceRHS,interfaceTempFunction);
       VelocityDiscreteFunctionType velocityCouplingRHS("velocity coupling RHS",fluidstate_.velocitySpace());
       curvatureVelocityOp(interfaceTempFunction.template subDiscreteFunction<0>(),velocityCouplingRHS);
-      velocityRHS.rhs().axpy(-1.0*gamma,velocityCouplingRHS);
+      velocityRHS.axpy(-1.0*gamma,velocityCouplingRHS);
       timerAssembleBulk.stop();
     }
 
     // impose bulk bc
     timerAssembleBulk.start();
-    problem_.applyBCToRHS(velocityRHS.rhs(),timeProvider);
+    problem_.applyBCToRHS(velocityRHS,timeProvider);
     timerAssembleBulk.stop();
 
     // create combined bulk RHS and copy RHS in the combined function
     timerSolveBulk.start();
     BulkDiscreteFunctionType bulkRHS("bulk RHS",fluidstate_.bulkSpace());
-    auto bulkIt=std::copy(velocityRHS.rhs().dbegin(),velocityRHS.rhs().dend(),bulkRHS.dbegin());
-    std::copy(pressureRHS.rhs().dbegin(),pressureRHS.rhs().dend(),bulkIt);
+    auto bulkIt=std::copy(velocityRHS.dbegin(),velocityRHS.dend(),bulkRHS.dbegin());
+    std::copy(pressureRHS.dbegin(),pressureRHS.dend(),bulkIt);
     timerSolveBulk.stop();
 
     // compute bulk solution
