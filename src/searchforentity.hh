@@ -49,7 +49,7 @@ unsigned int searchForEntity(const GridPartType& gridPart,EntityType&& entity,co
         }
     // search the point x in the neighbouring entity closer to x
     if(!found)
-      for(const auto& intersection:intersections(static_cast<typename GridPartType::GridViewType>(gridPart),entity))
+      for(const auto& intersection:intersections(gridPart,entity))
         if(intersection.indexInInside()==faceIdx)
         {
           if(intersection.boundary())

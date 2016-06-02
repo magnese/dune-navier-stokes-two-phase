@@ -281,7 +281,7 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
       std::vector<std::size_t> globalIdxs(blockMapper.numDofs(entity));
       blockMapper.map(entity,globalIdxs);
       std::vector<bool> globalBlockDofsFilter(blockMapper.numDofs(entity));
-      for(const auto& intersection:intersections(static_cast<typename DF::GridPartType::GridViewType>(gridPart),entity))
+      for(const auto& intersection:intersections(gridPart,entity))
         if(intersection.boundary())
           if(boundaryIDs[intersection.boundarySegmentIndex()]==ID)
           {

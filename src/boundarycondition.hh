@@ -212,7 +212,7 @@ class BoundaryCondition
     blockMapper.map(entity,globalIdxs);
     std::vector<bool> globalBlockDofsFilter(blockMapper.numDofs(entity));
 
-    for(const auto& intersection:intersections(static_cast<typename GridPartType::GridViewType>(*gridpart_),entity))
+    for(const auto& intersection:intersections(*gridpart_,entity))
     {
       if(intersection.boundary())
       {
