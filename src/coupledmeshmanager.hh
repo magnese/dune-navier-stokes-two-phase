@@ -460,7 +460,8 @@ class CoupledMeshManager
   {
     // create new mapper
     mapper_=std::make_shared<BulkInterfaceGridMapperType>();
-    mapper().vtxBulk2Interface().resize(bulkGrid().levelGridView(0).size(worlddim),-1);
+    std::size_t defaultValue(std::numeric_limits<std::size_t>::max());
+    mapper().vtxBulk2Interface().resize(bulkGrid().levelGridView(0).size(worlddim),defaultValue);
     // create necessary variables
     std::size_t vtxInsertionCounter(0);
     typename BulkGridType::template Codim<0>::Entity::Geometry::GlobalCoordinate vertex;
@@ -486,7 +487,7 @@ class CoupledMeshManager
               {
                 const auto vtxLocalIndex(refElement.subEntity(faceLocalIndex,1,i,bulkGriddim));
                 vtxGlobalIndex[i]=bulkGrid().leafIndexSet().subIndex(entity,vtxLocalIndex,bulkGriddim);
-                if(mapper().vtxBulk2Interface(vtxGlobalIndex[i])==-1)
+                if(mapper().vtxBulk2Interface(vtxGlobalIndex[i])==defaultValue)
                 {
                   mapper().vtxBulk2Interface(vtxGlobalIndex[i])=vtxInsertionCounter;
                   vertex=entity.geometry().corner(vtxLocalIndex);
