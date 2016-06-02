@@ -206,7 +206,7 @@ class BaseProblem
   const double rhoouter_;
   std::tuple<VelocityFunctionType,VelocityFunctionType,VelocityFunctionType> velocity_;
   std::tuple<PressureFunctionType,PressureFunctionType> pressure_;
-  static constexpr auto worlddim=CoupledMeshManagerType::BulkGridType::dimensionworld;
+  static constexpr unsigned int worlddim=CoupledMeshManagerType::BulkGridType::dimensionworld;
   static constexpr auto numbcs_=std::tuple_size<VelocityBCsType>::value;
   const bool nulldensity_;
 
