@@ -258,6 +258,14 @@ class FemScheme
     #else
     assemblePressureRHS(pressureRHS,problem_.velocityBC(),timeProvider);
     #endif
+    #if PRESSURE_SPACE_TYPE == 2
+    PressureAdditionalDiscreteFunctionType pressureAdditionalRHS("pressure additional RHS",fluidstate_.pressureAdditionalSpace());
+    #if PROBLEM_NUMBER==0 || PROBLEM_NUMBER==1 || PROBLEM_NUMBER==2 || PROBLEM_NUMBER==5 || PROBLEM_NUMBER==6 || PROBLEM_NUMBER==7
+    pressureAdditionalRHS.clear();
+    #else
+    assemblePressureRHS(pressureAdditionalRHS,problem_.velocityBC(),timeProvider);
+    #endif
+    #endif
     timerAssembleBulk.stop();
 
     // assemble interface RHS
@@ -288,7 +296,10 @@ class FemScheme
     timerSolveBulk.start();
     BulkDiscreteFunctionType bulkRHS("bulk RHS",fluidstate_.bulkSpace());
     auto bulkIt=std::copy(velocityRHS.dbegin(),velocityRHS.dend(),bulkRHS.dbegin());
-    std::copy(pressureRHS.dbegin(),pressureRHS.dend(),bulkIt);
+    auto bulkAdditionalIt=std::copy(pressureRHS.dbegin(),pressureRHS.dend(),bulkIt);
+    #if PRESSURE_SPACE_TYPE == 2
+    std::copy(pressureAdditionalRHS.dbegin(),pressureAdditionalRHS.dend(),bulkAdditionalIt);
+    #endif
     timerSolveBulk.stop();
 
     // compute bulk solution
