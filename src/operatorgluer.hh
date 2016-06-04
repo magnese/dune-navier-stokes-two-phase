@@ -1,8 +1,6 @@
 #ifndef DUNE_FEM_OPERATORGLUER_HH
 #define DUNE_FEM_OPERATORGLUER_HH
 
-#include <dune/fem/space/combinedspace.hh>
-#include <dune/fem/function/blockvectorfunction.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
@@ -11,15 +9,16 @@
 #include <fstream>
 #include <string>
 
+#include "extendedtuplediscretefunction.hh"
+
 namespace Dune
 {
 namespace Fem
 {
 
 template<typename Op11T,typename Op12T,typename Op21T,typename Op22T>
-class OperatorGluer:public Operator<
-              ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Op11T::DomainSpaceType,typename Op12T::DomainSpaceType>>,
-              ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Op11T::DomainSpaceType,typename Op12T::DomainSpaceType>>>
+class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T::DomainFunctionType,typename Op12T::DomainFunctionType>,
+                                    ExtendedTupleDiscreteFunction<typename Op11T::DomainFunctionType,typename Op12T::DomainFunctionType>>
 {
   private:
   typedef Op11T Op11Type;
@@ -28,9 +27,7 @@ class OperatorGluer:public Operator<
   typedef Op22T Op22Type;
 
   typedef typename Op11Type::DomainFunctionType DomainFunction1Type;
-  typedef typename DomainFunction1Type::DiscreteFunctionSpaceType DomainSpace1Type;
   typedef typename Op22Type::DomainFunctionType DomainFunction2Type;
-  typedef typename DomainFunction2Type::DiscreteFunctionSpaceType DomainSpace2Type;
 
   typedef typename Op11Type::MatrixType Matrix11Type;
   typedef typename Op12Type::MatrixType Matrix12Type;
@@ -38,18 +35,17 @@ class OperatorGluer:public Operator<
   typedef typename Op22Type::MatrixType Matrix22Type;
 
   public:
-  typedef TupleDiscreteFunctionSpace<DomainSpace1Type,DomainSpace2Type> DomainSpaceType;
-  typedef DomainSpaceType RangeSpaceType;
-  typedef DomainSpaceType DiscreteSpaceType;
-  typedef ISTLBlockVectorDiscreteFunction<DomainSpaceType> DomainFunctionType;
+  typedef ExtendedTupleDiscreteFunction<DomainFunction1Type,DomainFunction2Type> DiscreteFunctionType;
+  typedef DiscreteFunctionType DomainFunctionType;
   typedef DomainFunctionType RangeFunctionType;
-  typedef DomainFunctionType DiscreteFunctionType;
+  typedef typename DomainFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
+  typedef DiscreteSpaceType DomainSpaceType;
+  typedef DomainSpaceType RangeSpaceType;
   typedef SparseRowLinearOperator<DomainFunctionType,RangeFunctionType> LinearOperatorType;
   typedef OperatorGluer<Op11Type,Op12Type,Op21Type,Op22Type> ThisType;
   typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
-  // constructor
   OperatorGluer(const Op11Type& op11,const Op12Type& op12,const Op21Type& op21,const Op22Type& op22):
     mat11_(op11.systemMatrix().matrix()),mat12_(op12.systemMatrix().matrix()),mat21_(op21.systemMatrix().matrix()),
     mat22_(op22.systemMatrix().matrix()),space_(op11.domainSpace().gridPart()),op_("gluer operator",space_,space_)
@@ -164,10 +160,8 @@ class OperatorGluer:public Operator<
 
 template<typename Op11T,typename Op12T,typename Op21T,typename Op13T,typename Op31T>
 class ExtendedOperatorGluer:public Operator<
-      ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<
-                                        typename Op11T::DomainSpaceType,typename Op12T::DomainSpaceType,typename Op13T::DomainSpaceType>>,
-      ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<
-                                        typename Op11T::DomainSpaceType,typename Op12T::DomainSpaceType,typename Op13T::DomainSpaceType>>>
+      ExtendedTupleDiscreteFunction<typename Op11T::DomainFunctionType,typename Op12T::DomainFunctionType,typename Op13T::DomainFunctionType>,
+      ExtendedTupleDiscreteFunction<typename Op11T::DomainFunctionType,typename Op12T::DomainFunctionType,typename Op13T::DomainFunctionType>>
 {
   private:
   typedef Op11T Op11Type;
@@ -177,11 +171,8 @@ class ExtendedOperatorGluer:public Operator<
   typedef Op31T Op31Type;
 
   typedef typename Op11Type::DomainFunctionType DomainFunction1Type;
-  typedef typename DomainFunction1Type::DiscreteFunctionSpaceType DomainSpace1Type;
   typedef typename Op12Type::DomainFunctionType DomainFunction2Type;
-  typedef typename DomainFunction2Type::DiscreteFunctionSpaceType DomainSpace2Type;
   typedef typename Op13Type::DomainFunctionType DomainFunction3Type;
-  typedef typename DomainFunction3Type::DiscreteFunctionSpaceType DomainSpace3Type;
 
   typedef typename Op11Type::MatrixType Matrix11Type;
   typedef typename Op12Type::MatrixType Matrix12Type;
@@ -190,18 +181,17 @@ class ExtendedOperatorGluer:public Operator<
   typedef typename Op31Type::MatrixType Matrix31Type;
 
   public:
-  typedef TupleDiscreteFunctionSpace<DomainSpace1Type,DomainSpace2Type,DomainSpace3Type> DomainSpaceType;
-  typedef DomainSpaceType RangeSpaceType;
-  typedef DomainSpaceType DiscreteSpaceType;
-  typedef ISTLBlockVectorDiscreteFunction<DomainSpaceType> DomainFunctionType;
+  typedef ExtendedTupleDiscreteFunction<DomainFunction1Type,DomainFunction2Type,DomainFunction3Type> DiscreteFunctionType;
+  typedef DiscreteFunctionType DomainFunctionType;
   typedef DomainFunctionType RangeFunctionType;
-  typedef DomainFunctionType DiscreteFunctionType;
+  typedef typename DomainFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
+  typedef DiscreteSpaceType DomainSpaceType;
+  typedef DomainSpaceType RangeSpaceType;
   typedef SparseRowLinearOperator<DomainFunctionType,RangeFunctionType> LinearOperatorType;
   typedef ExtendedOperatorGluer<Op11Type,Op12Type,Op21Type,Op13Type,Op31Type> ThisType;
   typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
-  // constructor
   ExtendedOperatorGluer(const Op11Type& op11,const Op12Type& op12,const Op21Type& op21,const Op13Type& op13,const Op31Type& op31):
     mat11_(op11.systemMatrix().matrix()),mat12_(op12.systemMatrix().matrix()),mat21_(op21.systemMatrix().matrix()),
     mat13_(op13.systemMatrix().matrix()),mat31_(op31.systemMatrix().matrix()),space_(op11.domainSpace().gridPart()),

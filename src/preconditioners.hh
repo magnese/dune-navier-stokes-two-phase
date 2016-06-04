@@ -1,9 +1,8 @@
 #ifndef DUNE_FEM_PRECONDITIONERS_HH
 #define DUNE_FEM_PRECONDITIONERS_HH
 
-#include <dune/fem/function/blockvectorfunction.hh>
-#include <dune/fem/space/combinedspace.hh>
 #include <dune/istl/preconditioner.hh>
+#include <dune/fem/common/tupleforeach.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 
 #include <type_traits>
@@ -14,78 +13,48 @@ namespace Dune
 namespace Fem
 {
 
-template<typename Oper11T,typename Oper12T,typename Oper22T>
-class StokesPrecond:public Dune::Preconditioner<
-  typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
-                                                                      typename Oper12T::DomainSpaceType>>::DofStorageType,
-  typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
-                                                                      typename Oper12T::DomainSpaceType>>::DofStorageType>
+template<typename DFT,typename Oper11T,typename Oper12T,typename Oper22T>
+class StokesPrecond:public Dune::Preconditioner<DFT,DFT>
 {
   public:
   typedef Oper11T Oper11Type;
   typedef Oper12T Oper12Type;
   typedef Oper22T Oper22Type;
 
-  typedef typename Oper11Type::DomainFunctionType DomainFunction1Type;
-  typedef typename DomainFunction1Type::DiscreteFunctionSpaceType DomainSpace1Type;
-  typedef typename Oper22Type::DomainFunctionType DomainFunction2Type;
-  typedef typename DomainFunction2Type::DiscreteFunctionSpaceType DomainSpace2Type;
-  typedef TupleDiscreteFunctionSpace<DomainSpace1Type,DomainSpace2Type> CombinedDiscreteFunctionSpaceType;
-  typedef ISTLBlockVectorDiscreteFunction<CombinedDiscreteFunctionSpaceType> DomainFunctionType;
-  typedef DomainFunctionType RangeFunctionType;
-
-  typedef typename DomainFunctionType::DofStorageType domain_type;
-  typedef typename RangeFunctionType::DofStorageType range_type;
+  typedef DFT domain_type;
+  typedef domain_type range_type;
   typedef typename domain_type::field_type field_type;
   enum {category=SolverCategory::sequential};
 
-  // constructor
-  explicit StokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22):
-    op11_(op11),op12_(op12),op22_(op22),invop11_(op11),invop22_(op22),d1_(op11_.domainSpace().size(),0),x1_(op11_.domainSpace().size(),0),
-    d2_(op12_.domainSpace().size(),0),x2_(op12_.domainSpace().size(),0)
+  StokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22):
+    op11_(op11),op12_(op12),op22_(op22),invop11_(op11),invop22_(op22)
   {}
 
-  ~StokesPrecond()
-  {}
-
-  void pre(domain_type& ,range_type& )
+  void pre(domain_type& x,range_type& )
   {
     invop11_.prepare();
     invop22_.prepare();
   }
 
-  void apply(domain_type& x,const range_type& d)
+  void apply(domain_type& x,const range_type& b)
   {
-    // extract pointers to the vectors
-    const double* d1Ptr(d1_.data());
-    double* x1Ptr(x1_.data());
-    const double* d2Ptr(d2_.data());
-    double* x2Ptr(x2_.data());
+    // get reference sub-df's
+    auto& x1(x.template subDiscreteFunction<0>());
+    auto& x2(x.template subDiscreteFunction<1>());
+    const auto& b1(b.template subDiscreteFunction<0>());
+    const auto& b2(b.template subDiscreteFunction<1>());
 
-    // split d into d1 and d2
-    std::size_t pos(0);
-    for(auto it=d1_.begin();it!=d1_.end();++it,++pos)
-      (*it)=d[pos];
-    for(auto it=d2_.begin();it!=d2_.end();++it,++pos)
-      (*it)=d[pos];
+    // x2 = - op22^-1 * b2
+    invop22_.apply(b2,x2);
+    x2*=-1.0;
 
-    // solve -op22*x2 = d2 and copy x2 into x
-    invop22_.apply(d2Ptr,x2Ptr);
-    pos=op11_.domainSpace().size();
-    for(auto it=x2_.begin();it!=x2_.end();++it,++pos)
-      x[pos]=(-1.0)*(*it);
+    // temp1 = b1 - op12 * x2
+    op12_(x2,x1);
+    auto temp1(b1);
+    temp1-=x1;
 
-    // d1 = d1 - op12*x2
-    op12_.systemMatrix().multOEM(x2Ptr,x1Ptr);
-    auto x1It(x1_.begin());
-    for(auto it=d1_.begin();it!=d1_.end();++it,++x1It)
-      (*it)+=(*x1It);
-
-    // solve op11*x1 = d1 and copy x1 into x
-    invop11_.apply(d1Ptr,x1Ptr);
-    pos=0;
-    for(auto it=x1_.begin();it!=x1_.end();++it,++pos)
-      x[pos]=(*it);
+    // x1 = op11^-1 * temp1
+    invop11_.apply(temp1,x1);
   }
 
   void post(domain_type& )
@@ -98,23 +67,13 @@ class StokesPrecond:public Dune::Preconditioner<
   const Oper11Type& op11_;
   const Oper12Type& op12_;
   const Oper22Type& op22_;
-  UMFPACKOp<DomainFunction1Type,Oper11Type> invop11_;
-  UMFPACKOp<DomainFunction2Type,Oper22Type> invop22_;
-  std::vector<double> d1_;
-  std::vector<double> x1_;
-  std::vector<double> d2_;
-  std::vector<double> x2_;
+  UMFPACKOp<typename Oper11Type::DomainFunctionType,Oper11Type> invop11_;
+  UMFPACKOp<typename Oper22Type::DomainFunctionType,Oper22Type> invop22_;
 };
 
 
-template<typename Oper11T,typename Oper12T,typename Oper22T,typename Oper13T,typename Oper33T>
-class ExtendedStokesPrecond:public Dune::Preconditioner<
-  typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
-                                                                      typename Oper12T::DomainSpaceType,
-                                                                      typename Oper13T::DomainSpaceType>>::DofStorageType,
-  typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
-                                                                      typename Oper12T::DomainSpaceType,
-                                                                      typename Oper13T::DomainSpaceType>>::DofStorageType>
+template<typename DFT,typename Oper11T,typename Oper12T,typename Oper22T,typename Oper13T,typename Oper33T>
+class ExtendedStokesPrecond:public Dune::Preconditioner<DFT,DFT>
 {
   public:
   typedef Oper11T Oper11Type;
@@ -123,84 +82,50 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<
   typedef Oper22T Oper22Type;
   typedef Oper33T Oper33Type;
 
-  typedef typename Oper11Type::DomainFunctionType DomainFunction1Type;
-  typedef typename DomainFunction1Type::DiscreteFunctionSpaceType DomainSpace1Type;
-  typedef typename Oper12Type::DomainFunctionType DomainFunction2Type;
-  typedef typename DomainFunction2Type::DiscreteFunctionSpaceType DomainSpace2Type;
-  typedef typename Oper13Type::DomainFunctionType DomainFunction3Type;
-  typedef typename DomainFunction3Type::DiscreteFunctionSpaceType DomainSpace3Type;
-  typedef TupleDiscreteFunctionSpace<DomainSpace1Type,DomainSpace2Type,DomainSpace3Type> CombinedDiscreteFunctionSpaceType;
-  typedef ISTLBlockVectorDiscreteFunction<CombinedDiscreteFunctionSpaceType> DomainFunctionType;
-  typedef DomainFunctionType RangeFunctionType;
-
-  typedef typename DomainFunctionType::DofStorageType domain_type;
-  typedef typename RangeFunctionType::DofStorageType range_type;
+  typedef DFT domain_type;
+  typedef domain_type range_type;
   typedef typename domain_type::field_type field_type;
   enum {category=SolverCategory::sequential};
 
-  // constructor
   explicit ExtendedStokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22,const Oper13Type& op13,
-                                        const Oper33Type& op33):
-    op11_(op11),op12_(op12),op22_(op22),op13_(op13),op33_(op33),invop11_(op11),invop22_(op22),invop33_(op33),
-    d1_(op11_.domainSpace().size(),0),x1_(op11_.domainSpace().size(),0),d2_(op12_.domainSpace().size(),0),x2_(op12_.domainSpace().size(),0),
-    d3_(op13_.domainSpace().size(),0),x3_(op13_.domainSpace().size(),0)
+                                 const Oper33Type& op33):
+    op11_(op11),op12_(op12),op22_(op22),op13_(op13),op33_(op33),invop11_(op11),invop22_(op22),invop33_(op33)
   {}
 
-  ~ExtendedStokesPrecond()
-  {}
-
-  void pre(domain_type& ,range_type& )
+  void pre(domain_type& x,range_type& )
   {
     invop11_.prepare();
     invop22_.prepare();
     invop33_.prepare();
   }
 
-  void apply(domain_type& x,const range_type& d)
+  void apply(domain_type& x,const range_type& b)
   {
-    // extract pointers to the vectors
-    const double* d1Ptr(d1_.data());
-    double* x1Ptr(x1_.data());
-    const double* d2Ptr(d2_.data());
-    double* x2Ptr(x2_.data());
-    const double* d3Ptr(d3_.data());
-    double* x3Ptr(x3_.data());
+    // get reference sub-df's
+    auto& x1(x.template subDiscreteFunction<0>());
+    auto& x2(x.template subDiscreteFunction<1>());
+    auto& x3(x.template subDiscreteFunction<2>());
+    const auto& b1(b.template subDiscreteFunction<0>());
+    const auto& b2(b.template subDiscreteFunction<1>());
+    const auto& b3(b.template subDiscreteFunction<2>());
 
-    // split d into d1, d2 and d3
-    std::size_t pos(0);
-    for(auto it=d1_.begin();it!=d1_.end();++it,++pos)
-      (*it)=d[pos];
-    for(auto it=d2_.begin();it!=d2_.end();++it,++pos)
-      (*it)=d[pos];
-    for(auto it=d3_.begin();it!=d3_.end();++it,++pos)
-      (*it)=d[pos];
+    // x2 = - op22^-1 * b2
+    invop22_.apply(b2,x2);
+    x2*=-1.0;
 
-    // solve -op22*x2 = d2 and copy x2 into x
-    invop22_.apply(d2Ptr,x2Ptr);
-    pos=op11_.domainSpace().size();
-    for(auto it=x2_.begin();it!=x2_.end();++it,++pos)
-      x[pos]=(-1.0)*(*it);
+    // x3 = - op33^-1 * b3
+    invop33_.apply(b3,x3);
+    x3*=-1.0;
 
-    // solve -op33*x3 = d3 and copy x3 into x
-    invop33_.apply(d3Ptr,x3Ptr);
-    for(auto it=x3_.begin();it!=x3_.end();++it,++pos)
-      x[pos]=(-1.0)*(*it);
+    // b1 = b1 - op12*x2 - op13*x3
+    op12_(x2,x1);
+    auto temp1(b1);
+    temp1-=x1;
+    op13_(x3,x1);
+    temp1-=x1;
 
-    // d1 = d1 - op12*x2 - op13*x3
-    op12_.systemMatrix().multOEM(x2Ptr,x1Ptr);
-    auto x1It(x1_.begin());
-    for(auto it=d1_.begin();it!=d1_.end();++it,++x1It)
-      (*it)+=(*x1It);
-    op13_.systemMatrix().multOEM(x3Ptr,x1Ptr);
-    x1It=x1_.begin();
-    for(auto it=d1_.begin();it!=d1_.end();++it,++x1It)
-      (*it)+=(*x1It);
-
-    // solve op11*x1 = d1 and copy x1 into x
-    invop11_.apply(d1Ptr,x1Ptr);
-    pos=0;
-    for(auto it=x1_.begin();it!=x1_.end();++it,++pos)
-      x[pos]=(*it);
+    // x1 = op11^-1 * temp1
+    invop11_.apply(temp1,x1);
   }
 
   void post(domain_type& )
@@ -216,64 +141,51 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<
   const Oper22Type& op22_;
   const Oper13Type& op13_;
   const Oper33Type& op33_;
-  UMFPACKOp<DomainFunction1Type,Oper11Type> invop11_;
-  UMFPACKOp<DomainFunction2Type,Oper22Type> invop22_;
-  UMFPACKOp<DomainFunction3Type,Oper33Type> invop33_;
-  std::vector<double> d1_;
-  std::vector<double> x1_;
-  std::vector<double> d2_;
-  std::vector<double> x2_;
-  std::vector<double> d3_;
-  std::vector<double> x3_;
+  UMFPACKOp<typename Oper11Type::DomainFunctionType,Oper11Type> invop11_;
+  UMFPACKOp<typename Oper22Type::DomainFunctionType,Oper22Type> invop22_;
+  UMFPACKOp<typename Oper33Type::DomainFunctionType,Oper33Type> invop33_;
 };
 
 
 template<typename OperT,template<class DFT,class OT,bool S> class InvOperT=UMFPACKOp>
-class DirectPrecond:
-  public Dune::Preconditioner<typename OperT::DiscreteFunctionType::DofStorageType,typename OperT::DiscreteFunctionType::DofStorageType>
+class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunctionType,typename OperT::DiscreteFunctionType>
 {
   public:
   typedef OperT OperType;
-  typedef typename OperType::DiscreteFunctionType DiscreteFunctionType;
-  typedef InvOperT<DiscreteFunctionType,OperType,false> InvOperType;
-  typedef typename DiscreteFunctionType::DofStorageType domain_type;
+  typedef typename OperType::DiscreteFunctionType domain_type;
   typedef domain_type range_type;
   typedef typename domain_type::field_type field_type;
   enum {category=SolverCategory::sequential};
+  typedef InvOperT<domain_type,OperType,false> InvOperType;
 
-  // constructor
   explicit DirectPrecond(OperType& op):
-    op_(op),invop_(op_),usedoctoring_(std::is_same<InvOperType,UMFPACKOp<DiscreteFunctionType,OperType,false>>::value),
-    size_(op_.domainSpace().size()),d_(size_,0),x_(size_,0)
+    op_(op),invop_(op_),usedoctoring_(std::is_same<InvOperType,UMFPACKOp<domain_type,OperType,false>>::value),
+    b_(op_.domainSpace().size(),0),x_(op_.domainSpace().size(),0)
   {}
 
-  void pre(domain_type& ,range_type& )
+  void pre(domain_type& x,range_type& )
   {
     if(usedoctoring_)
       op_.applyDoctoring();
     invop_.prepare();
   }
 
-  void apply(domain_type& x,const range_type& d)
+  void apply(domain_type& x,const range_type& b)
   {
-    // extract pointers to the vectors
-    const double* dPtr(d_.data());
-    double* xPtr(x_.data());
-
-    // copy d into d_
-    for(auto i=decltype(size_){0};i!=size_;++i)
-      d_[i]=d[i];
+    // copy b into b_
+    auto bIt(b_.begin());
+    for_each(b,[&bIt](const auto& df,auto ){bIt=std::copy(df.dbegin(),df.dend(),bIt);});
 
     // apply doctoring to RHS
     if(usedoctoring_)
-      op_.applyDoctoringRHS(d_);
+      op_.applyDoctoringRHS(b_);
 
     // solve system
-    invop_.apply(dPtr,xPtr);
+    invop_.apply(b_.data(),x_.data());
 
-    // copy x_into x
-    for(auto i=decltype(size_){0};i!=size_;++i)
-      x[i]=x_[i];
+    // copy x_ into x
+    auto xIt(x_.begin());
+    for_each(x,[&xIt](auto& df,auto ){for(auto& dof:dofs(df)) dof=(*(xIt++));});
   }
 
   void post(domain_type& )
@@ -285,49 +197,28 @@ class DirectPrecond:
   OperType& op_;
   InvOperType invop_;
   const bool usedoctoring_;
-  std::size_t size_;
-  std::vector<double> d_;
+  std::vector<double> b_;
   std::vector<double> x_;
 };
 
 
-template<typename Oper11T,typename Oper12T,typename Oper21T,typename Oper22T>
-class IdPrecond:public Dune::Preconditioner<
-  typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
-                                                                      typename Oper12T::DomainSpaceType>>::DofStorageType,
-  typename ISTLBlockVectorDiscreteFunction<TupleDiscreteFunctionSpace<typename Oper11T::DomainSpaceType,
-                                                                      typename Oper12T::DomainSpaceType>>::DofStorageType>
+template<typename DFT>
+class IdPrecond:public Dune::Preconditioner<DFT,DFT>
 {
   public:
-  typedef Oper11T Oper11Type;
-  typedef Oper12T Oper12Type;
-  typedef Oper21T Oper21Type;
-  typedef Oper22T Oper22Type;
-
-  typedef typename Oper11Type::DomainFunctionType DomainFunction1Type;
-  typedef typename DomainFunction1Type::DiscreteFunctionSpaceType DomainSpace1Type;
-  typedef typename Oper22Type::DomainFunctionType DomainFunction2Type;
-  typedef typename DomainFunction2Type::DiscreteFunctionSpaceType DomainSpace2Type;
-  typedef TupleDiscreteFunctionSpace<DomainSpace1Type,DomainSpace2Type> CombinedDiscreteFunctionSpaceType;
-  typedef ISTLBlockVectorDiscreteFunction<CombinedDiscreteFunctionSpaceType> DomainFunctionType;
-  typedef DomainFunctionType RangeFunctionType;
-
-  typedef typename DomainFunctionType::DofStorageType domain_type;
-  typedef typename RangeFunctionType::DofStorageType range_type;
+  typedef DFT domain_type;
+  typedef domain_type range_type;
   typedef typename domain_type::field_type field_type;
   enum {category=SolverCategory::sequential};
 
-  // constructor
-  explicit IdPrecond(const Oper11Type& ,const Oper12Type& ,const Oper21Type& ,const Oper22Type& )
+  IdPrecond() = default;
+
+  void pre(domain_type& x,range_type& )
   {}
 
-  void pre(domain_type& ,range_type& )
-  {}
-
-  void apply(domain_type& x,const range_type& d)
+  void apply(domain_type& x,const range_type& b)
   {
-    for(auto i=decltype(d.size()){0};i!=d.size();++i)
-      x[i]=d[i];
+    x=b;
   }
 
   void post(domain_type& )

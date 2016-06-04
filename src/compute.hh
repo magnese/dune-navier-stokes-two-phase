@@ -39,7 +39,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   // rebuild all quantities if the mesh is changed
   fluidState.update();
 
-  // get initial conditions of the problem (if it is NOT time dependent the two solutions are garbage)
+  // get initial conditions of the problem
   femScheme.problem().velocityIC(fluidState.velocity());
   femScheme.problem().pressureIC(fluidState.pressureDump());
 

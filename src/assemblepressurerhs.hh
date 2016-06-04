@@ -1,7 +1,7 @@
 #ifndef DUNE_FEM_ASSEMBLEPRESSURERHS_HH
 #define DUNE_FEM_ASSEMBLEPRESSURERHS_HH
 
-#include <dune/fem/function/blockvectorfunction.hh>
+#include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
 #include <cmath>
@@ -19,7 +19,7 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,const BoundaryConditionType& 
   rhs.clear();
 
   // create discrete function to interpolate BC
-  typedef ISTLBlockVectorDiscreteFunction<typename BoundaryConditionType::DomainSpaceType> BCDiscreteFunctionType;
+  typedef AdaptiveDiscreteFunction<typename BoundaryConditionType::DomainSpaceType> BCDiscreteFunctionType;
   BCDiscreteFunctionType g("g",bc.domainSpace());
 
   // compute domain volume and \int_{\partial\Omega} I\vec g . \vec n

@@ -63,8 +63,6 @@ class FemScheme
   typedef typename FluidStateType::PressureDumpDiscreteSpaceType PressureDumpDiscreteSpaceType;
   typedef typename FluidStateType::CurvatureDiscreteSpaceType CurvatureDiscreteSpaceType;
   typedef typename FluidStateType::DisplacementDiscreteSpaceType DisplacementDiscreteSpaceType;
-  typedef typename FluidStateType::BulkDiscreteSpaceType BulkDiscreteSpaceType;
-  typedef typename FluidStateType::InterfaceDiscreteSpaceType InterfaceDiscreteSpaceType;
 
   // define discrete functions
   typedef typename FluidStateType::VelocityDiscreteFunctionType VelocityDiscreteFunctionType;
@@ -250,20 +248,18 @@ class FemScheme
 
     // assemble bulk RHS
     timerAssembleBulk.start();
-    VelocityDiscreteFunctionType velocityRHS("velocity RHS",fluidstate_.velocitySpace());
+    BulkDiscreteFunctionType bulkRHS("bulk RHS",fluidstate_.bulkSpace());
+    auto& velocityRHS(bulkRHS.template subDiscreteFunction<0>());
     assembleVelocityRHS(velocityRHS,fluidstate_.velocity(),problem_,timeProvider);
-    PressureDiscreteFunctionType pressureRHS("pressure RHS",fluidstate_.pressureSpace());
     #if PROBLEM_NUMBER==0 || PROBLEM_NUMBER==1 || PROBLEM_NUMBER==2 || PROBLEM_NUMBER==5 || PROBLEM_NUMBER==6 || PROBLEM_NUMBER==7
-    pressureRHS.clear();
-    #else
-    assemblePressureRHS(pressureRHS,problem_.velocityBC(),timeProvider);
-    #endif
+    bulkRHS.template subDiscreteFunction<1>().clear();
     #if PRESSURE_SPACE_TYPE == 2
-    PressureAdditionalDiscreteFunctionType pressureAdditionalRHS("pressure additional RHS",fluidstate_.pressureAdditionalSpace());
-    #if PROBLEM_NUMBER==0 || PROBLEM_NUMBER==1 || PROBLEM_NUMBER==2 || PROBLEM_NUMBER==5 || PROBLEM_NUMBER==6 || PROBLEM_NUMBER==7
-    pressureAdditionalRHS.clear();
+    bulkRHS.template subDiscreteFunction<2>().clear();
+    #endif
     #else
-    assemblePressureRHS(pressureAdditionalRHS,problem_.velocityBC(),timeProvider);
+    assemblePressureRHS(bulkRHS.template subDiscreteFunction<1>(),problem_.velocityBC(),timeProvider);
+    #if PRESSURE_SPACE_TYPE == 2
+    assemblePressureRHS(bulkRHS.template subDiscreteFunction<2>(),problem_.velocityBC(),timeProvider);
     #endif
     #endif
     timerAssembleBulk.stop();
@@ -292,16 +288,6 @@ class FemScheme
     problem_.applyBCToRHS(velocityRHS,timeProvider);
     timerAssembleBulk.stop();
 
-    // create combined bulk RHS and copy RHS in the combined function
-    timerSolveBulk.start();
-    BulkDiscreteFunctionType bulkRHS("bulk RHS",fluidstate_.bulkSpace());
-    auto bulkIt=std::copy(velocityRHS.dbegin(),velocityRHS.dend(),bulkRHS.dbegin());
-    auto bulkAdditionalIt=std::copy(pressureRHS.dbegin(),pressureRHS.dend(),bulkIt);
-    #if PRESSURE_SPACE_TYPE == 2
-    std::copy(pressureAdditionalRHS.dbegin(),pressureAdditionalRHS.dend(),bulkAdditionalIt);
-    #endif
-    timerSolveBulk.stop();
-
     // compute bulk solution
     const int verbosity(Parameter::getValue<int>("SolverVerbosity",0));
     const int maxIter(Parameter::getValue<int>("SolverMaxIter",1000));
@@ -314,11 +300,12 @@ class FemScheme
     CoupledOperatorWrapperType coupledWrapperOp(velocityOp,curvatureVelocityOp,interfaceOp,interfaceInvOp,velocityCurvatureOp,gamma);
 
     #if PRESSURE_SPACE_TYPE != 2
-    typedef OperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,
+    typedef OperatorWrapper<BulkDiscreteFunctionType,CoupledOperatorWrapperType,PressureVelocityOperatorType,
                             VelocityPressureOperatorType,PressureOperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureOp);
     #if PRECONDITIONER_TYPE == 0
-    typedef StokesPrecond<VelocityOperatorType,PressureVelocityOperatorType,BulkMassMatrixOperatorType> BulkPreconditionerType;
+    typedef StokesPrecond<BulkDiscreteFunctionType,VelocityOperatorType,PressureVelocityOperatorType,BulkMassMatrixOperatorType>
+      BulkPreconditionerType;
     BulkPreconditionerType bulkPreconditioner(velocityOp,pressureVelocityOp,bulkMassMatrixOp);
     #elif PRECONDITIONER_TYPE == 1
     pressureOp.assemble();
@@ -338,12 +325,12 @@ class FemScheme
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
     #else
-    typedef ExtendedOperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,VelocityPressureOperatorType,
-                                    PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> BulkOperatorWrapperType;
+    typedef ExtendedOperatorWrapper<BulkDiscreteFunctionType,CoupledOperatorWrapperType,PressureVelocityOperatorType,
+      VelocityPressureOperatorType,PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,
                                    velocityPressureAdditionalOp);
     #if PRECONDITIONER_TYPE == 0
-    typedef ExtendedStokesPrecond<VelocityOperatorType,PressureVelocityOperatorType,BulkMassMatrixOperatorType,
+    typedef ExtendedStokesPrecond<BulkDiscreteFunctionType,VelocityOperatorType,PressureVelocityOperatorType,BulkMassMatrixOperatorType,
                                   PressureAdditionalVelocityOperatorType,BulkMassMatrixAdditionalOperatorType> BulkPreconditionerType;
     BulkPreconditionerType bulkPreconditioner(velocityOp,pressureVelocityOp,bulkMassMatrixOp,pressureAdditionalVelocityOp,
                                               bulkMassMatrixAdditionalOp);
@@ -364,15 +351,9 @@ class FemScheme
     #endif
     #endif
 
-    typedef Dune::RestartedGMResSolver<typename BulkDiscreteFunctionType::DofStorageType> BulkLinearInverseOperatorType;
     InverseOperatorResult returnInfo;
-    BulkLinearInverseOperatorType bulkInvOp(bulkOp,bulkPreconditioner,redEps,restart,maxIter,verbosity);
-    bulkInvOp.apply(fluidstate_.bulkSolution().blockVector(),bulkRHS.blockVector(),returnInfo);
-    timerSolveBulk.stop();
-
-    // set the fluid state for the bulk with the correct quantities
-    timerSolveBulk.start();
-    fluidstate_.finalizeBulkQuantities();
+    Dune::RestartedGMResSolver<BulkDiscreteFunctionType> bulkInvOp(bulkOp,bulkPreconditioner,redEps,restart,maxIter,verbosity);
+    bulkInvOp.apply(fluidstate_.bulkSolution(),bulkRHS,returnInfo);
     timerSolveBulk.stop();
 
     // add interface coupling

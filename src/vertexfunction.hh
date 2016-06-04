@@ -5,7 +5,7 @@
 #include <dune/geometry/referenceelements.hh>
 #include <dune/grid/geometrygrid/coordfunction.hh>
 
-#include <dune/fem/function/blockvectorfunction.hh>
+#include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/gridpart/leafgridpart.hh>
 #include <dune/fem/space/common/functionspace.hh>
 #include <dune/fem/space/lagrange.hh>
@@ -31,7 +31,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
 
   typedef FunctionSpace<ctype,ctype,worlddim,worlddim> ContinuousSpaceType;
   typedef LagrangeDiscreteFunctionSpace<ContinuousSpaceType,GridPartType,1,CachingStorage> DiscreteSpaceType;
-  typedef ISTLBlockVectorDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
+  typedef AdaptiveDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
 
   typedef typename GridType::template Codim<0>::Entity HostEntityType;
   typedef typename GridType::template Codim<griddim>::Entity HostVertexType;
