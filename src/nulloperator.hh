@@ -3,6 +3,7 @@
 
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
+#include <dune/fem/operator/linear/spoperator.hh>
 
 #include <string>
 #include <fstream>
@@ -13,21 +14,21 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp,typename... Args>
-class NullOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,typename LinearOperatorImp::RangeFunctionType>
+template<typename DomainFunctionImp,typename RangeFunctionImp,
+         template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class NullOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
-  typedef typename LinearOperatorType::DomainFunctionType DomainFunctionType;
-  typedef typename LinearOperatorType::RangeFunctionType RangeFunctionType;
-  typedef NullOperator<LinearOperatorType,Args...> ThisType;
+  typedef DomainFunctionImp DomainFunctionType;
+  typedef RangeFunctionImp RangeFunctionType;
+  typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
+  typedef NullOperator<DomainFunctionType,RangeFunctionType,LinearOperatorImp> ThisType;
   typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef typename DomainFunctionType::DiscreteFunctionSpaceType DomainSpaceType;
   typedef typename RangeFunctionType::DiscreteFunctionSpaceType RangeSpaceType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
-  template<typename... Argss>
-  explicit NullOperator(const DomainSpaceType& domainSpace,const RangeSpaceType& rangeSpace,const Argss&... ):
+  explicit NullOperator(const DomainSpaceType& domainSpace,const RangeSpaceType& rangeSpace):
     domainspace_(domainSpace),rangespace_(rangeSpace),op_("null operator",domainspace_,rangespace_)
   {}
 
@@ -59,8 +60,7 @@ class NullOperator:public Operator<typename LinearOperatorImp::DomainFunctionTyp
     return rangespace_;
   }
 
-  template<typename... Argss>
-  void assemble(const Argss&... )
+  void assemble()
   {
     DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
     op_.reserve(stencil);

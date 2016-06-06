@@ -4,6 +4,7 @@
 #include <dune/geometry/referenceelements.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
+#include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/quadrature/lumpingquadrature.hh>
 #include "normal.hh"
@@ -17,17 +18,17 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp>
-class InterfaceOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,typename LinearOperatorImp::RangeFunctionType>
+template<typename DiscreteFunctionImp,template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
-  typedef typename LinearOperatorType::DomainFunctionType DomainFunctionType;
-  typedef typename LinearOperatorType::RangeFunctionType RangeFunctionType;
-  typedef DomainFunctionType DiscreteFunctionType;
+  typedef DiscreteFunctionImp DiscreteFunctionType;
+  typedef DiscreteFunctionType DomainFunctionType;
+  typedef DiscreteFunctionType RangeFunctionType;
+  typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
-  typedef InterfaceOperator<LinearOperatorType> ThisType;
+  typedef InterfaceOperator<DiscreteFunctionType,LinearOperatorImp> ThisType;
 
   explicit InterfaceOperator(const DiscreteSpaceType& space):
     space_(space),op_("interface operator",space_,space_)

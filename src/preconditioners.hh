@@ -147,7 +147,7 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<DFT,DFT>
 };
 
 
-template<typename OperT,template<class DFT,class OT,bool S> class InvOperT=UMFPACKOp>
+template<typename OperT,template<typename ,typename ,bool > typename InvOperT=UMFPACKOp>
 class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunctionType,typename OperT::DiscreteFunctionType>
 {
   public:

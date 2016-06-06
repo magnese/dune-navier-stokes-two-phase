@@ -3,7 +3,7 @@
 
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
-
+#include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/function/common/scalarproducts.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
@@ -16,14 +16,15 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp>
-class MassMatrix:public Operator<typename LinearOperatorImp::DomainFunctionType,typename LinearOperatorImp::RangeFunctionType>
+template<typename DomainFunctionImp, typename RangeFunctionImp,
+         template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
-  typedef typename LinearOperatorImp::DomainFunctionType DomainFunctionType;
-  typedef typename LinearOperatorImp::RangeFunctionType RangeFunctionType;
-  typedef MassMatrix<LinearOperatorType> ThisType;
+  typedef DomainFunctionImp DomainFunctionType;
+  typedef RangeFunctionImp RangeFunctionType;
+  typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
+  typedef MassMatrix<DomainFunctionType,RangeFunctionType,LinearOperatorImp> ThisType;
   typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef DomainFunctionType DiscreteFunctionType;
   typedef typename DomainFunctionType::DiscreteFunctionSpaceType DomainSpaceType;

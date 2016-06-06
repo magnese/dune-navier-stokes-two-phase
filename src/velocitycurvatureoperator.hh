@@ -3,7 +3,7 @@
 
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
-
+#include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
 #include "normal.hh"
@@ -17,19 +17,19 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp,typename BulkInterfaceGridMapperImp>
-class VelocityCurvatureOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,
-                                                typename LinearOperatorImp::RangeFunctionType>
+template<typename DomainFunctionImp,typename RangeFunctionImp,typename BulkInterfaceGridMapperImp,
+         template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
+  typedef DomainFunctionImp DomainFunctionType;
+  typedef RangeFunctionImp RangeFunctionType;
   typedef BulkInterfaceGridMapperImp BulkInterfaceGridMapperType;
-  typedef typename LinearOperatorType::DomainFunctionType VelocityFunctionType;
-  typedef VelocityFunctionType DomainFunctionType;
-  typedef typename LinearOperatorType::RangeFunctionType CurvatureFunctionType;
-  typedef CurvatureFunctionType RangeFunctionType;
-  typedef VelocityCurvatureOperator<LinearOperatorType,BulkInterfaceGridMapperType> ThisType;
-  typedef Operator<VelocityFunctionType,CurvatureFunctionType> BaseType;
+  typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
+  typedef DomainFunctionType VelocityFunctionType;
+  typedef RangeFunctionType CurvatureFunctionType;
+  typedef VelocityCurvatureOperator<DomainFunctionType,RangeFunctionType,BulkInterfaceGridMapperType,LinearOperatorImp> ThisType;
+  typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef typename VelocityFunctionType::DiscreteFunctionSpaceType VelocitySpaceType;
   typedef VelocitySpaceType DomainSpaceType;
   typedef typename CurvatureFunctionType::DiscreteFunctionSpaceType CurvatureSpaceType;

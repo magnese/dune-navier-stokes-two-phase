@@ -10,7 +10,6 @@
 // dune includes
 #include <dune/common/timer.hh>
 #include <dune/fem/io/parameter.hh>
-#include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/istl/solvers.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 #include <dune/fem/solver/spqrsolver.hh>
@@ -99,43 +98,28 @@ class FemScheme
   typedef RisingBubbleProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
   #endif
 
-  // define underlying matrices structures for bulk
-  typedef SparseRowLinearOperator<VelocityDiscreteFunctionType,VelocityDiscreteFunctionType> VelocityLinearOperatorType;
-  typedef SparseRowLinearOperator<VelocityDiscreteFunctionType,PressureDiscreteFunctionType> VelocityPressureLinearOperatorType;
-  typedef SparseRowLinearOperator<PressureDiscreteFunctionType,VelocityDiscreteFunctionType> PressureVelocityLinearOpearatorType;
-  typedef SparseRowLinearOperator<PressureDiscreteFunctionType,PressureDiscreteFunctionType> PressureLinearOperatorType;
-  #if PRESSURE_SPACE_TYPE == 2
-  typedef SparseRowLinearOperator<VelocityDiscreteFunctionType,PressureAdditionalDiscreteFunctionType>
-    VelocityPressureAdditionalLinearOperatorType;
-  typedef SparseRowLinearOperator<PressureAdditionalDiscreteFunctionType,VelocityDiscreteFunctionType>
-    PressureAdditionalVelocityLinearOpearatorType;
-  typedef SparseRowLinearOperator<PressureAdditionalDiscreteFunctionType,PressureAdditionalDiscreteFunctionType>
-    PressureAdditionalLinearOperatorType;
-  #endif
-  typedef SparseRowLinearOperator<CurvatureDiscreteFunctionType,VelocityDiscreteFunctionType> CurvatureVelocityLinearOperatorType;
-
-  // define underlying matrices structures for interface
-  typedef SparseRowLinearOperator<VelocityDiscreteFunctionType,CurvatureDiscreteFunctionType> VelocityCurvatureLinearOperatorType;
-  typedef SparseRowLinearOperator<InterfaceDiscreteFunctionType,InterfaceDiscreteFunctionType> InterfaceLinearOperatorType;
-
   // define operators for bulk
-  typedef BulkVelocityOperator<VelocityLinearOperatorType,ProblemType> VelocityOperatorType;
-  typedef BulkVelocityPressureOperator<VelocityPressureLinearOperatorType> VelocityPressureOperatorType;
-  typedef BulkPressureVelocityOperator<PressureVelocityLinearOpearatorType> PressureVelocityOperatorType;
-  typedef NullOperator<PressureLinearOperatorType> PressureOperatorType;
+  typedef BulkVelocityOperator<VelocityDiscreteFunctionType,ProblemType> VelocityOperatorType;
+  typedef BulkVelocityPressureOperator<VelocityDiscreteFunctionType,PressureDiscreteFunctionType> VelocityPressureOperatorType;
+  typedef BulkPressureVelocityOperator<PressureDiscreteFunctionType,VelocityDiscreteFunctionType> PressureVelocityOperatorType;
+  typedef NullOperator<PressureDiscreteFunctionType,PressureDiscreteFunctionType> PressureOperatorType;
   #if PRESSURE_SPACE_TYPE == 2
-  typedef BulkVelocityPressureOperator<VelocityPressureAdditionalLinearOperatorType> VelocityPressureAdditionalOperatorType;
-  typedef BulkPressureVelocityOperator<PressureAdditionalVelocityLinearOpearatorType> PressureAdditionalVelocityOperatorType;
+  typedef BulkVelocityPressureOperator<VelocityDiscreteFunctionType,PressureAdditionalDiscreteFunctionType>
+    VelocityPressureAdditionalOperatorType;
+  typedef BulkPressureVelocityOperator<PressureAdditionalDiscreteFunctionType,VelocityDiscreteFunctionType>
+    PressureAdditionalVelocityOperatorType;
   #endif
-  typedef MassMatrix<PressureLinearOperatorType> BulkMassMatrixOperatorType;
+  typedef MassMatrix<PressureDiscreteFunctionType,PressureDiscreteFunctionType> BulkMassMatrixOperatorType;
   #if PRESSURE_SPACE_TYPE == 2
-  typedef MassMatrix<PressureAdditionalLinearOperatorType> BulkMassMatrixAdditionalOperatorType;
+  typedef MassMatrix<PressureAdditionalDiscreteFunctionType,PressureAdditionalDiscreteFunctionType> BulkMassMatrixAdditionalOperatorType;
   #endif
-  typedef CurvatureVelocityOperator<CurvatureVelocityLinearOperatorType,BulkInterfaceGridMapperType> CurvatureVelocityOperatorType;
+  typedef CurvatureVelocityOperator<CurvatureDiscreteFunctionType,VelocityDiscreteFunctionType,BulkInterfaceGridMapperType>
+    CurvatureVelocityOperatorType;
 
   // define operators for interface
-  typedef InterfaceOperator<InterfaceLinearOperatorType> InterfaceOperatorType;
-  typedef VelocityCurvatureOperator<VelocityCurvatureLinearOperatorType,BulkInterfaceGridMapperType> VelocityCurvatureOperatorType;
+  typedef InterfaceOperator<InterfaceDiscreteFunctionType> InterfaceOperatorType;
+  typedef VelocityCurvatureOperator<VelocityDiscreteFunctionType,CurvatureDiscreteFunctionType,BulkInterfaceGridMapperType>
+    VelocityCurvatureOperatorType;
 
   // constructor
   explicit FemScheme(FluidStateType& fluidState):

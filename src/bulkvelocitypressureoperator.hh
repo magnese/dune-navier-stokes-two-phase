@@ -1,6 +1,7 @@
 #ifndef DUNE_FEM_BULKVELOCITYPRESSUREOPERATOR_HH
 #define DUNE_FEM_BULKVELOCITYPRESSUREOPERATOR_HH
 
+#include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 
@@ -15,15 +16,15 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp>
-class BulkVelocityPressureOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,
-                                                   typename LinearOperatorImp::RangeFunctionType>
+template<typename DomainFunctionImp,typename RangeFunctionImp,
+         template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
-  typedef typename LinearOperatorType::DomainFunctionType DomainFunctionType;
-  typedef typename LinearOperatorType::RangeFunctionType RangeFunctionType;
-  typedef BulkVelocityPressureOperator<LinearOperatorType> ThisType;
+  typedef DomainFunctionImp DomainFunctionType;
+  typedef RangeFunctionImp RangeFunctionType;
+  typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
+  typedef BulkVelocityPressureOperator<DomainFunctionType,RangeFunctionType,LinearOperatorImp> ThisType;
   typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef typename DomainFunctionType::DiscreteFunctionSpaceType DomainSpaceType;
   typedef typename RangeFunctionType::DiscreteFunctionSpaceType RangeSpaceType;

@@ -7,6 +7,7 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
+#include <dune/fem/operator/linear/spoperator.hh>
 #include "normal.hh"
 
 #include <vector>
@@ -18,19 +19,20 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp,typename BulkInterfaceGridMapperImp>
-class InterfaceCurvatureDisplacementOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,
-                                                             typename LinearOperatorImp::RangeFunctionType>
+template<typename DomainFunctionImp,typename RangeFunctionImp,typename BulkInterfaceGridMapperImp,
+         template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
+  typedef DomainFunctionImp DomainFunctionType;
+  typedef RangeFunctionImp RangeFunctionType;
   typedef BulkInterfaceGridMapperImp BulkInterfaceGridMapperType;
-  typedef typename LinearOperatorType::DomainFunctionType DomainFunctionType;
-  typedef typename LinearOperatorType::RangeFunctionType RangeFunctionType;
+  typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
   typedef typename DomainFunctionType::DiscreteFunctionSpaceType DomainSpaceType;
   typedef typename RangeFunctionType::DiscreteFunctionSpaceType RangeSpaceType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
-  typedef InterfaceCurvatureDisplacementOperator<LinearOperatorType,BulkInterfaceGridMapperType> ThisType;
+  typedef InterfaceCurvatureDisplacementOperator<DomainFunctionType,RangeFunctionType,BulkInterfaceGridMapperType,LinearOperatorImp>
+    ThisType;
 
   // constructor
   explicit InterfaceCurvatureDisplacementOperator(const DomainSpaceType& domainSpace,const RangeSpaceType& rangeSpace,

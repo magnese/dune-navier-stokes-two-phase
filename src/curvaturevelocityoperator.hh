@@ -3,7 +3,7 @@
 
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
-
+#include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
 #include "normal.hh"
@@ -17,19 +17,19 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp,typename BulkInterfaceGridMapperImp>
-class CurvatureVelocityOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,
-                                                typename LinearOperatorImp::RangeFunctionType>
+template<typename DomainFunctionImp,typename RangeFunctionImp,typename BulkInterfaceGridMapperImp,
+         template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class CurvatureVelocityOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
+  typedef DomainFunctionImp DomainFunctionType;
+  typedef RangeFunctionImp RangeFunctionType;
   typedef BulkInterfaceGridMapperImp BulkInterfaceGridMapperType;
-  typedef typename LinearOperatorType::DomainFunctionType CurvatureFunctionType;
-  typedef CurvatureFunctionType DomainFunctionType;
-  typedef typename LinearOperatorType::RangeFunctionType VelocityFunctionType;
-  typedef VelocityFunctionType RangeFunctionType;
-  typedef CurvatureVelocityOperator<LinearOperatorType,BulkInterfaceGridMapperType> ThisType;
-  typedef Operator<CurvatureFunctionType,VelocityFunctionType> BaseType;
+  typedef LinearOperatorImp<DomainFunctionImp,RangeFunctionType> LinearOperatorType;
+  typedef DomainFunctionType CurvatureFunctionType;
+  typedef RangeFunctionType VelocityFunctionType;
+  typedef CurvatureVelocityOperator<DomainFunctionType,RangeFunctionType,BulkInterfaceGridMapperType,LinearOperatorImp> ThisType;
+  typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef typename CurvatureFunctionType::DiscreteFunctionSpaceType CurvatureSpaceType;
   typedef CurvatureSpaceType DomainSpaceType;
   typedef typename VelocityFunctionType::DiscreteFunctionSpaceType VelocitySpaceType;

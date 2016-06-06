@@ -160,8 +160,8 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
 
 template<typename Op11T,typename Op12T,typename Op21T,typename Op13T,typename Op31T>
 class ExtendedOperatorGluer:public Operator<
-      ExtendedTupleDiscreteFunction<typename Op11T::DomainFunctionType,typename Op12T::DomainFunctionType,typename Op13T::DomainFunctionType>,
-      ExtendedTupleDiscreteFunction<typename Op11T::DomainFunctionType,typename Op12T::DomainFunctionType,typename Op13T::DomainFunctionType>>
+  ExtendedTupleDiscreteFunction<typename Op11T::DomainFunctionType,typename Op12T::DomainFunctionType,typename Op13T::DomainFunctionType>,
+  ExtendedTupleDiscreteFunction<typename Op11T::DomainFunctionType,typename Op12T::DomainFunctionType,typename Op13T::DomainFunctionType>>
 {
   private:
   typedef Op11T Op11Type;

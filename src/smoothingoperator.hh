@@ -3,7 +3,7 @@
 
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
-
+#include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/function/common/scalarproducts.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
@@ -15,16 +15,16 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp>
-class SmoothingOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,typename LinearOperatorImp::RangeFunctionType>
+template<typename DiscreteFunctionImp,template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class SmoothingOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
-  typedef typename LinearOperatorType::DomainFunctionType DomainFunctionType;
-  typedef typename LinearOperatorType::RangeFunctionType RangeFunctionType;
-  typedef SmoothingOperator<LinearOperatorType> ThisType;
+  typedef DiscreteFunctionImp DiscreteFunctionType;
+  typedef DiscreteFunctionType DomainFunctionType;
+  typedef DiscreteFunctionType RangeFunctionType;
+  typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
+  typedef SmoothingOperator<DiscreteFunctionType,LinearOperatorImp> ThisType;
   typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
-  typedef DomainFunctionType DiscreteFunctionType;
   typedef typename DomainFunctionType::DiscreteFunctionSpaceType DomainSpaceType;
   typedef typename RangeFunctionType::DiscreteFunctionSpaceType RangeSpaceType;
   typedef DomainSpaceType DiscreteSpaceType;

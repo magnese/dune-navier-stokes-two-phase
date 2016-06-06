@@ -9,7 +9,6 @@
 #include <dune/fem/space/common/functionspace.hh>
 #include <dune/fem/space/lagrange.hh>
 #include <dune/fem/function/blockvectorfunction.hh>
-#include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 
 #include "smoothingoperator.hh"
@@ -58,8 +57,7 @@ class MeshSmoothing
     // assemble operator and impose BC
     Timer timerAssemble(false);
     timerAssemble.start();
-    typedef SparseRowLinearOperator<DiscreteFunctionType,DiscreteFunctionType> SmoothingLinearOperatorType;
-    typedef SmoothingOperator<SmoothingLinearOperatorType> SmoothingOperatorType;
+    typedef SmoothingOperator<DiscreteFunctionType> SmoothingOperatorType;
     SmoothingOperatorType op(fluidstate_.bulkDisplacementSpace(),coeff_);
     op.assemble();
     problem_.bc().applyToOperator(op);

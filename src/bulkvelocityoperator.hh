@@ -1,6 +1,7 @@
 #ifndef DUNE_FEM_BULKVELOCITYOPERATOR_HH
 #define DUNE_FEM_BULKVELOCITYOPERATOR_HH
 
+#include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 #include <dune/fem/function/common/scalarproducts.hh>
@@ -17,17 +18,17 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp,typename ProblemImp>
-class BulkVelocityOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,typename LinearOperatorImp::RangeFunctionType>
+template<typename DiscreteFunctionImp,typename ProblemImp,template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
+  typedef DiscreteFunctionImp DiscreteFunctionType;
   typedef ProblemImp ProblemType;
-  typedef typename LinearOperatorType::DomainFunctionType DomainFunctionType;
-  typedef typename LinearOperatorType::RangeFunctionType RangeFunctionType;
-  typedef BulkVelocityOperator<LinearOperatorType,ProblemType> ThisType;
+  typedef DiscreteFunctionType DomainFunctionType;
+  typedef DiscreteFunctionType RangeFunctionType;
+  typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
+  typedef BulkVelocityOperator<DiscreteFunctionType,ProblemType,LinearOperatorImp> ThisType;
   typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
-  typedef DomainFunctionType DiscreteFunctionType;
   typedef typename DomainFunctionType::DiscreteFunctionSpaceType DomainSpaceType;
   typedef typename RangeFunctionType::DiscreteFunctionSpaceType RangeSpaceType;
   typedef DomainSpaceType DiscreteSpaceType;

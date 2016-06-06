@@ -7,6 +7,7 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
+#include <dune/common/operator/linear/spoperator.hh>
 
 #include <vector>
 #include <string>
@@ -17,18 +18,17 @@ namespace Dune
 namespace Fem
 {
 
-template<typename LinearOperatorImp>
-class InterfaceDisplacementOperator:public Operator<typename LinearOperatorImp::DomainFunctionType,
-                                                    typename LinearOperatorImp::RangeFunctionType>
+template<typename DiscreteFunctionImp,template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
+class InterfaceDisplacementOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
 {
   public:
-  typedef LinearOperatorImp LinearOperatorType;
-  typedef typename LinearOperatorType::DomainFunctionType DomainFunctionType;
-  typedef typename LinearOperatorType::RangeFunctionType RangeFunctionType;
-  typedef DomainFunctionType DiscreteFunctionType;
+  typedef DiscreteFunctionImp DiscreteFunctionType;
+  typedef DiscreteFunctionType DomainFunctionType;
+  typedef DiscreteFunctionType RangeFunctionType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
+  typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
-  typedef InterfaceDisplacementOperator<LinearOperatorType> ThisType;
+  typedef InterfaceDisplacementOperator<DiscreteFunctionType,LinearOperatorImp> ThisType;
 
   InterfaceDisplacementOperator(const ThisType& )=delete;
 
