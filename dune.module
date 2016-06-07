@@ -1,10 +1,4 @@
-################################
-# Dune module information file #
-################################
-
-#Name of the module
 Module: dune-navier-stokes-two-phase
 Version: 1.0
 Maintainer: m.agnese13@imperial.ac.uk
-#depending on
-Depends: dune-fem
+Depends: dune-istl(>= 3.0) dune-fem (>= 3.0)
