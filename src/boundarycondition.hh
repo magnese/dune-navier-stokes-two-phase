@@ -10,6 +10,7 @@
 #include <memory>
 
 #include <dune/common/exceptions.hh>
+#include <dune/fem/common/tupleforeach.hh>
 #include <dune/fem/function/common/scalarproducts.hh>
 #include <dune/fem/function/common/localfunctionadapter.hh>
 
@@ -228,34 +229,6 @@ class BoundaryCondition
       }
     }
   }
-
-  class ClearRows
-  {
-    public:
-    template<typename T>
-    ClearRows(T& tup,std::size_t row)
-    {
-      constexpr auto size(std::tuple_size<T>::value);
-      Caller<T,size> caller(tup,row);
-    }
-
-    private:
-    template<typename T,std::size_t n>
-    struct Caller
-    {
-      Caller(T& tup,std::size_t row)
-      {
-        std::get<n-1>(tup).clearRow(row);
-        Caller<T,n-1>(tup,row);
-      }
-    };
-    template<typename T>
-    struct Caller<T,0>
-    {
-      Caller(T& ,std::size_t )
-      {}
-    };
-  };
 };
 
 // Dirichlet implementation
@@ -302,7 +275,7 @@ class DirichletCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,int,Dirichl
       {
         for(auto l=0;l!=localBlockSize;++l,++row)
         {
-          typename BaseType::ClearRows clearRows(localMatrices,row);
+          for_each(localMatrices,[&row](auto& entry,auto ){entry.clearRow(row);});
           std::get<0>(localMatrices).set(row,row,1.0);
         }
       }
@@ -388,7 +361,7 @@ class FreeSlipCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,ListBlockID,
           {
             if(f[l]==0.0)
             {
-              typename BaseType::ClearRows clearRows(localMatrices,row);
+              for_each(localMatrices,[&row](auto& entry,auto ){entry.clearRow(row);});
               std::get<0>(localMatrices).set(row,row,1.0);
             }
           }

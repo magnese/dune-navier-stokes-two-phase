@@ -8,6 +8,7 @@
 #include <string>
 #include <functional>
 
+#include <dune/fem/common/tupleforeach.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/interpolate.hh>
 #include <dune/fem/function/common/localfunctionadapter.hh>
@@ -183,6 +184,23 @@ class BaseProblem
     return nulldensity_;
   }
 
+  auto& velocityBC()
+  {
+    return std::get<0>(velocitybcs_);
+  }
+
+  template<typename... Args>
+  void applyBCToOperator(Args&... args)
+  {
+    for_each(velocitybcs_,[&args...](auto& entry,auto ){entry.applyToOperator(args...);});
+  }
+
+  template<typename... Args>
+  void applyBCToRHS(Args&... args)
+  {
+    for_each(velocitybcs_,[&args...](auto& entry,auto ){entry.applyToRHS(args...);});
+  }
+
   void printInfo(std::ostream& s=std::cout) const
   {
     s<<"Problem : "<<name_<<std::endl;
@@ -226,75 +244,9 @@ class BaseProblem
   }
 
   template<std::size_t N>
-  auto getVelocityBC()->decltype(std::get<N>(velocitybcs_))
+  auto& getVelocityBC()
   {
     return std::get<N>(velocitybcs_);
-  }
-
-  struct ApplyBCToOperator
-  {
-    template<typename Tuple,typename... Args>
-    ApplyBCToOperator(Tuple& t,Args&... args)
-    {
-      Caller<Tuple,numbcs_,Args...> caller(t,args...);
-    }
-    template<typename Tuple,std::size_t pos,typename... Args>
-    struct Caller
-    {
-      Caller(Tuple& t,Args&... args)
-      {
-        std::get<pos-1>(t).applyToOperator(args...);
-        Caller<Tuple,pos-1,Args...>(t,args...);
-      }
-    };
-    template<typename Tuple,typename... Args>
-    struct Caller<Tuple,0,Args...>
-    {
-      Caller(Tuple& ,const Args&... )
-      {}
-    };
-  };
-
-  struct ApplyBCToRHS
-  {
-    template<typename Tuple,typename... Args>
-    ApplyBCToRHS(Tuple& t,Args&... args)
-    {
-      Caller<Tuple,numbcs_,Args...> caller(t,args...);
-    }
-    template<typename Tuple,std::size_t pos,typename... Args>
-    struct Caller
-    {
-      Caller(Tuple& t,Args&... args)
-      {
-        std::get<pos-1>(t).applyToRHS(args...);
-        Caller<Tuple,pos-1,Args...>(t,args...);
-      }
-    };
-    template<typename Tuple,typename... Args>
-    struct Caller<Tuple,0,Args...>
-    {
-      Caller(Tuple& ,const Args&... )
-      {}
-    };
-  };
-
-  public:
-  auto velocityBC()->decltype(this->getVelocityBC<0>())
-  {
-    return this->getVelocityBC<0>();
-  }
-
-  template<typename... Args>
-  void applyBCToOperator(Args&... args)
-  {
-    ApplyBCToOperator apply(velocitybcs_,args...);
-  }
-
-  template<typename... Args>
-  void applyBCToRHS(Args&... args)
-  {
-    ApplyBCToRHS apply(velocitybcs_,args...);
   }
 };
 
