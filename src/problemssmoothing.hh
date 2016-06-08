@@ -8,19 +8,20 @@ namespace Dune
 namespace Fem
 {
 
-template<typename DiscreteSpaceImp,typename CoupledMeshManagerImp>
+template<typename FluidStateImp>
 class ParallelepipedGeometry
 {
   public:
-  typedef DiscreteSpaceImp DiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef ParallelepipedGeometry<DiscreteSpaceType,CoupledMeshManagerType> ThisType;
+  typedef FluidStateImp FluidStateType;
+  typedef ParallelepipedGeometry<FluidStateType> ThisType;
 
   // define BC
-  typedef FreeSlipCondition<DiscreteSpaceType,DiscreteSpaceType,CoupledMeshManagerType> BoundaryConditionType;
+  typedef typename FluidStateType::BulkDisplacementDiscreteSpaceType DiscreteSpaceType;
+  typedef typename FluidStateType::CoupledMeshManagerType CoupledMeshManagerType;
+  typedef FreeSlipCondition<DiscreteSpaceType,CoupledMeshManagerType> BoundaryConditionType;
 
-  explicit ParallelepipedGeometry(CoupledMeshManagerType& meshManager):
-    bc_(meshManager)
+  explicit ParallelepipedGeometry(FluidStateType& fluidState):
+    bc_(fluidState.meshManager())
   {
     typedef typename BoundaryConditionType::DomainType DomainType;
     typedef typename BoundaryConditionType::EntityType EntityType;

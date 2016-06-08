@@ -19,8 +19,8 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,const BoundaryConditionType& 
   rhs.clear();
 
   // create discrete function to interpolate BC
-  typedef AdaptiveDiscreteFunction<typename BoundaryConditionType::DomainSpaceType> BCDiscreteFunctionType;
-  BCDiscreteFunctionType g("g",bc.domainSpace());
+  typedef AdaptiveDiscreteFunction<typename BoundaryConditionType::DiscreteSpaceType> BCDiscreteFunctionType;
+  BCDiscreteFunctionType g("g",bc.space());
 
   // compute domain volume and \int_{\partial\Omega} I\vec g . \vec n
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
@@ -41,7 +41,7 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,const BoundaryConditionType& 
           bc.localInterpolateBoundaryFunction(timeProvider.time(),intersection,g);
           const auto normal(intersection.centerUnitOuterNormal());
           typedef CachingQuadrature<typename DiscreteFunctionType::GridPartType,1> QuadratureType;
-          QuadratureType quadrature(gridPart,intersection,2*bc.domainSpace().order()+1,QuadratureType::INSIDE);
+          QuadratureType quadrature(gridPart,intersection,2*bc.space().order()+1,QuadratureType::INSIDE);
           for(const auto& qp:quadrature)
           {
             typename BCDiscreteFunctionType::RangeType gValue;

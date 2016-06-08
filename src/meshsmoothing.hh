@@ -26,15 +26,13 @@ class MeshSmoothing
   typedef FluidStateImp FluidStateType;
   typedef MeshSmoothing<FluidStateType> ThisType;
 
-  // define space, discrete function and problem
-  typedef typename FluidStateType::CoupledMeshManagerType CoupledMeshManagerType;
-  typedef typename FluidStateType::BulkDisplacementDiscreteSpaceType DiscreteSpaceType;
+  // define discrete function and problem
   typedef typename FluidStateType::BulkDisplacementDiscreteFunctionType DiscreteFunctionType;
-  typedef ParallelepipedGeometry<DiscreteSpaceType,CoupledMeshManagerType> SmoothingProblemType;
+  typedef ParallelepipedGeometry<FluidStateType> SmoothingProblemType;
 
   // constructor
   explicit MeshSmoothing(FluidStateType& fluidState):
-    fluidstate_(fluidState),problem_(fluidState.meshManager()),coeff_(Parameter::getValue<double>("CoeffSmoothing",1.0)),
+    fluidstate_(fluidState),problem_(fluidState),coeff_(Parameter::getValue<double>("CoeffSmoothing",1.0)),
     isenabled_(coeff_>0.0?true:false)
   {}
 

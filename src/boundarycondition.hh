@@ -1,13 +1,13 @@
-#ifndef DUNE_BOUNDARYCONDITION_HH
-#define DUNE_BOUNDARYCONDITION_HH
+#ifndef DUNE_FEM_BOUNDARYCONDITION_HH
+#define DUNE_FEM_BOUNDARYCONDITION_HH
 
-#include <vector>
-#include <map>
-#include <utility>
 #include <functional>
-#include <tuple>
 #include <list>
+#include <map>
 #include <memory>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 #include <dune/common/exceptions.hh>
 #include <dune/fem/common/tupleforeach.hh>
@@ -51,25 +51,24 @@ class ListBlockID
 enum BCEnumType{dirichlet,neumann,robin,freeslip};
 
 // BC interface
-template<typename DSImp,typename RSImp,typename CMMImp,typename BIDImp,typename BCImp>
+template<typename DiscreteSpaceImp,typename CoupledMeshManagerImp,typename BlockIDImp,typename BCImp>
 class BoundaryCondition
 {
   public:
-  typedef DSImp DomainSpaceType;
-  typedef RSImp RangeSpaceType;
-  typedef CMMImp CoupledMeshManagerType;
+  typedef DiscreteSpaceImp DiscreteSpaceType;
+  typedef CoupledMeshManagerImp CoupledMeshManagerType;
+  typedef BlockIDImp BlockIDType;
   typedef BCImp BCImplementation;
-  typedef BIDImp BlockIDType;
-  typedef BoundaryCondition<DomainSpaceType,RangeSpaceType,CoupledMeshManagerType,BlockIDType,BCImplementation> ThisType;
+  typedef BoundaryCondition<DiscreteSpaceType,CoupledMeshManagerType,BlockIDType,BCImplementation> ThisType;
 
-  typedef typename DomainSpaceType::GridPartType GridPartType;
-  typedef typename DomainSpaceType::DomainType DomainType;
-  typedef typename DomainSpaceType::EntityType EntityType;
+  typedef typename DiscreteSpaceType::GridPartType GridPartType;
+  typedef typename DiscreteSpaceType::DomainType DomainType;
+  typedef typename DiscreteSpaceType::RangeType RangeType;
+  typedef typename DiscreteSpaceType::EntityType EntityType;
   typedef typename GridPartType::IntersectionIteratorType::Intersection IntersectionType;
-  typedef typename RangeSpaceType::RangeType RangeType;
 
   typedef std::function<RangeType(const DomainType&,double,const EntityType&)> FunctionType;
-  typedef LocalAnalyticalFunctionBinder<DomainSpaceType> LocalAnalyticalFunctionType;
+  typedef LocalAnalyticalFunctionBinder<DiscreteSpaceType> LocalAnalyticalFunctionType;
   typedef std::map<int,LocalAnalyticalFunctionType> FunctionMapType;
   typedef LocalFunctionAdapter<LocalAnalyticalFunctionType> AdaptedDiscreteFunctionType;
   typedef std::map<int,AdaptedDiscreteFunctionType> AdaptedFunctionMapType;
@@ -79,31 +78,26 @@ class BoundaryCondition
     g_.emplace(boundaryID,g);
   }
 
-  const DomainSpaceType& domainSpace() const
+  const DiscreteSpaceType& space() const
   {
-    return *domainspace_;
-  }
-
-  const RangeSpaceType& rangeSpace() const
-  {
-    return *rangespace_;
+    return *space_;
   }
 
   template<typename... Args>
   void applyToOperator(Args&... args)
   {
     updateDOFs();
-    for(const auto& entity:domainSpace())
+    for(const auto& entity:space())
       asImp().setDOFsMatrix(entity,args...);
   }
 
   template<typename DiscreteFunctionType,typename... Args>
-  void applyToRHS(DiscreteFunctionType& w,Args&... args)
+  void applyToRHS(DiscreteFunctionType& rhs,Args&... args)
   {
     updateDOFs();
-    DiscreteFunctionType g("g",w.space());
-    for(const auto& entity:domainSpace())
-      asImp().setDOFsRHS(entity,w,g,args...);
+    DiscreteFunctionType g("g",rhs.space());
+    for(const auto& entity:space())
+      asImp().setDOFsRHS(entity,rhs,g,args...);
   }
 
   RangeType evaluateBoundaryFunction(const DomainType& x,double t,const EntityType& entity,int boundaryID) const
@@ -152,8 +146,7 @@ class BoundaryCondition
   protected:
   CoupledMeshManagerType& meshmanager_;
   std::unique_ptr<GridPartType> gridpart_;
-  std::unique_ptr<DomainSpaceType> domainspace_;
-  std::unique_ptr<RangeSpaceType> rangespace_;
+  std::unique_ptr<DiscreteSpaceType> space_;
   const BCEnumType bctype_;
   mutable FunctionMapType g_;
   mutable AdaptedFunctionMapType gadapted_;
@@ -181,17 +174,15 @@ class BoundaryCondition
     if(sequence_!=meshmanager_.sequence())
     {
       // reset space pointers (to avoid segmentation fault)
-      rangespace_.reset();
-      domainspace_.reset();
+      space_.reset();
       gridpart_.reset();
       // create grid part and spaces
-      gridpart_=std::unique_ptr<GridPartType>(new GridPartType(meshmanager_.bulkGrid()));
-      domainspace_=std::unique_ptr<DomainSpaceType>(new DomainSpaceType(*gridpart_));
-      rangespace_=std::unique_ptr<RangeSpaceType>(new RangeSpaceType(*gridpart_));
+      gridpart_=std::make_unique<GridPartType>(meshmanager_.bulkGrid());
+      space_=std::make_unique<DiscreteSpaceType>(*gridpart_);
       // set blocksIDs
       blocksIDs_.clear();
-      blocksIDs_.resize(domainSpace().blockMapper().size(),-1);
-      for(const auto& entity:domainSpace())
+      blocksIDs_.resize(space().blockMapper().size(),-1);
+      for(const auto& entity:space())
       {
         if(entity.hasBoundaryIntersections())
           setBlocksIDs(entity);
@@ -208,7 +199,7 @@ class BoundaryCondition
   // set the correct IDs for each block
   void setBlocksIDs(const EntityType& entity)
   {
-    const auto& blockMapper(domainSpace().blockMapper());
+    const auto& blockMapper(space().blockMapper());
     std::vector<std::size_t> globalIdxs(blockMapper.numDofs(entity));
     blockMapper.map(entity,globalIdxs);
     std::vector<bool> globalBlockDofsFilter(blockMapper.numDofs(entity));
@@ -232,25 +223,25 @@ class BoundaryCondition
 };
 
 // Dirichlet implementation
-template<typename DSImp,typename RSImp,typename CMMImp>
-class DirichletCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,int,DirichletCondition<DSImp,RSImp,CMMImp>>
+template<typename DiscreteSpaceImp,typename CoupledMeshManagerImp>
+class DirichletCondition:
+  public BoundaryCondition<DiscreteSpaceImp,CoupledMeshManagerImp,int,DirichletCondition<DiscreteSpaceImp,CoupledMeshManagerImp>>
 {
   public:
-  typedef DSImp DomainSpaceType;
-  typedef RSImp RangeSpaceType;
-  typedef CMMImp CoupledMeshManagerType;
-  typedef DirichletCondition<DomainSpaceType,RangeSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BoundaryCondition<DomainSpaceType,RangeSpaceType,CoupledMeshManagerType,int,ThisType> BaseType;
+  typedef DiscreteSpaceImp DiscreteSpaceType;
+  typedef CoupledMeshManagerImp CoupledMeshManagerType;
+  typedef DirichletCondition<DiscreteSpaceType,CoupledMeshManagerType> ThisType;
+  typedef BoundaryCondition<DiscreteSpaceType,CoupledMeshManagerType,int,ThisType> BaseType;
   typedef typename BaseType::EntityType EntityType;
 
-  friend class BoundaryCondition<DomainSpaceType,RangeSpaceType,CoupledMeshManagerType,int,ThisType>;
+  friend BaseType;
 
   DirichletCondition(CoupledMeshManagerType& meshManager):
     BaseType(meshManager,dirichlet)
   {}
 
   using BaseType::evaluateBoundaryFunction;
-  using BaseType::domainSpace;
+  using BaseType::space;
   using BaseType::localInterpolateBoundaryFunction;
 
   private:
@@ -262,10 +253,10 @@ class DirichletCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,int,Dirichl
   {
     typedef std::tuple<typename OperatorsType::LinearOperatorType::LocalMatrixType...> LocalMatricesType;
     LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
-    const auto localBlockSize(DomainSpaceType::localBlockSize);
+    const auto localBlockSize(DiscreteSpaceType::localBlockSize);
     const auto numLocalBlocks(std::get<0>(localMatrices).rows()/localBlockSize);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
-    domainSpace().blockMapper().map(entity,globalIdxs);
+    space().blockMapper().map(entity,globalIdxs);
 
     std::size_t row(0);
     for(auto localIdx=0;localIdx!=numLocalBlocks;++localIdx)
@@ -286,15 +277,14 @@ class DirichletCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,int,Dirichl
 
   // set in the RHS vector the Dirichlet component to the correct value
   template<typename DiscreteFunctionType,typename TimeProviderType>
-  void setDOFsRHS(const EntityType& entity,DiscreteFunctionType& w,DiscreteFunctionType& g,
-                  const TimeProviderType& timeProvider) const
+  void setDOFsRHS(const EntityType& entity,DiscreteFunctionType& rhs,DiscreteFunctionType& g,const TimeProviderType& timeProvider) const
   {
-    auto wLocal(w.localFunction(entity));
+    auto rhsLocal(rhs.localFunction(entity));
     auto gLocal(g.localFunction(entity));
-    const auto numLocalBlocks(wLocal.numScalarDofs());
+    const auto numLocalBlocks(rhsLocal.numScalarDofs());
     const auto localBlockSize(DiscreteFunctionType::DiscreteFunctionSpaceType::localBlockSize);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
-    domainSpace().blockMapper().map(entity,globalIdxs);
+    space().blockMapper().map(entity,globalIdxs);
 
     std::size_t row(0);
     for(auto localIdx=0;localIdx!=numLocalBlocks;++localIdx)
@@ -304,7 +294,7 @@ class DirichletCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,int,Dirichl
       {
         localInterpolateBoundaryFunction(timeProvider.time(),entity,boundaryID,g);
         for(auto l=0;l!=localBlockSize;++l,++row)
-          wLocal[row]=gLocal[row];
+          rhsLocal[row]=gLocal[row];
       }
       else
         row+=localBlockSize;
@@ -313,25 +303,25 @@ class DirichletCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,int,Dirichl
 };
 
 // Free-slip implementation
-template<typename DSImp,typename RSImp,typename CMMImp>
-class FreeSlipCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,ListBlockID,FreeSlipCondition<DSImp,RSImp,CMMImp>>
+template<typename DiscreteSpaceImp,typename CoupledMeshManagerImp>
+class FreeSlipCondition:
+  public BoundaryCondition<DiscreteSpaceImp,CoupledMeshManagerImp,ListBlockID,FreeSlipCondition<DiscreteSpaceImp,CoupledMeshManagerImp>>
 {
   public:
-  typedef DSImp DomainSpaceType;
-  typedef RSImp RangeSpaceType;
-  typedef CMMImp CoupledMeshManagerType;
-  typedef FreeSlipCondition<DomainSpaceType,RangeSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BoundaryCondition<DomainSpaceType,RangeSpaceType,CoupledMeshManagerType,ListBlockID,ThisType> BaseType;
+  typedef DiscreteSpaceImp DiscreteSpaceType;
+  typedef CoupledMeshManagerImp CoupledMeshManagerType;
+  typedef FreeSlipCondition<DiscreteSpaceType,CoupledMeshManagerType> ThisType;
+  typedef BoundaryCondition<DiscreteSpaceType,CoupledMeshManagerType,ListBlockID,ThisType> BaseType;
   typedef typename BaseType::EntityType EntityType;
 
-  friend class BoundaryCondition<DomainSpaceType,RangeSpaceType,CoupledMeshManagerType,ListBlockID,ThisType>;
+  friend BaseType;
 
   FreeSlipCondition(CoupledMeshManagerType& meshManager):
     BaseType(meshManager,freeslip)
   {}
 
   using BaseType::evaluateBoundaryFunction;
-  using BaseType::domainSpace;
+  using BaseType::space;
   using BaseType::localInterpolateBoundaryFunction;
 
   private:
@@ -343,10 +333,10 @@ class FreeSlipCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,ListBlockID,
   {
     typedef std::tuple<typename OperatorsType::LinearOperatorType::LocalMatrixType...> LocalMatricesType;
     LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
-    const auto localBlockSize(DomainSpaceType::localBlockSize);
+    const auto localBlockSize(DiscreteSpaceType::localBlockSize);
     const auto numLocalBlocks(std::get<0>(localMatrices).rows()/localBlockSize);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
-    domainSpace().blockMapper().map(entity,globalIdxs);
+    space().blockMapper().map(entity,globalIdxs);
 
     std::size_t row(0);
     for(auto localIdx=0;localIdx!=numLocalBlocks;++localIdx)
@@ -374,14 +364,14 @@ class FreeSlipCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,ListBlockID,
 
   // set in the RHS vector the free-slip condition
   template<typename DiscreteFunctionType,typename... Args>
-  void setDOFsRHS(const EntityType& entity,DiscreteFunctionType& w,DiscreteFunctionType& g,const Args&... ) const
+  void setDOFsRHS(const EntityType& entity,DiscreteFunctionType& rhs,DiscreteFunctionType& g,const Args&... ) const
   {
-    auto wLocal(w.localFunction(entity));
+    auto rhsLocal(rhs.localFunction(entity));
     auto gLocal(g.localFunction(entity));
-    const auto numLocalBlocks(wLocal.numScalarDofs());
+    const auto numLocalBlocks(rhsLocal.numScalarDofs());
     const auto localBlockSize(DiscreteFunctionType::DiscreteFunctionSpaceType::localBlockSize);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
-    domainSpace().blockMapper().map(entity,globalIdxs);
+    space().blockMapper().map(entity,globalIdxs);
 
     std::size_t row(0);
     for(auto localIdx=0;localIdx!=numLocalBlocks;++localIdx)
@@ -393,7 +383,7 @@ class FreeSlipCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,ListBlockID,
         {
           localInterpolateBoundaryFunction(0.0,entity,boundaryID,g);
           for(auto l=0;l!=localBlockSize;++l,++row)
-            wLocal[row]*=gLocal[row];
+            rhsLocal[row]*=gLocal[row];
           row-=localBlockSize;
         }
       }
@@ -405,4 +395,4 @@ class FreeSlipCondition:public BoundaryCondition<DSImp,RSImp,CMMImp,ListBlockID,
 }
 }
 
-#endif // DUNE_BOUNDARYCONDITION_HH
+#endif // DUNE_FEM_BOUNDARYCONDITION_HH

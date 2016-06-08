@@ -21,29 +21,28 @@ namespace Fem
 {
 
 // base problem
-template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp,
-         template<typename,typename,typename> class... VelocityBCImp>
+template<typename FluidStateImp,template<typename ,typename > typename... VelocityBCImp>
 class BaseProblem
 {
   public:
-  typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
-  typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,VelocityBCImp...> ThisType;
+  typedef FluidStateImp FluidStateType;
+  typedef BaseProblem<FluidStateType,VelocityBCImp...> ThisType;
 
+  typedef typename FluidStateType::BulkDiscreteSpaceType BulkDiscreteSpaceType;
+  typedef typename FluidStateType::CoupledMeshManagerType CoupledMeshManagerType;
+  typedef typename BulkDiscreteSpaceType::template SubDiscreteFunctionSpace<0>::Type VelocityDiscreteSpaceType;
   typedef typename VelocityDiscreteSpaceType::EntityType EntityType;
-
   typedef typename VelocityDiscreteSpaceType::DomainType VelocityDomainType;
   typedef typename VelocityDiscreteSpaceType::RangeType VelocityRangeType;
   typedef std::function<VelocityRangeType(const VelocityDomainType&,double,const EntityType&)> VelocityFunctionType;
-  typedef typename PressureDiscreteSpaceType::DomainType PressureDomainType;
-  typedef typename PressureDiscreteSpaceType::RangeType PressureRangeType;
+  typedef VelocityDomainType PressureDomainType;
+  typedef typename BulkDiscreteSpaceType::template SubDiscreteFunctionSpace<1>::Type::RangeType PressureRangeType;
   typedef std::function<PressureRangeType(const PressureDomainType&,double,const EntityType&)> PressureFunctionType;
-  typedef std::tuple<VelocityBCImp<VelocityDiscreteSpaceType,VelocityDiscreteSpaceType,CoupledMeshManagerType>...> VelocityBCsType;
+  typedef std::tuple<VelocityBCImp<VelocityDiscreteSpaceType,CoupledMeshManagerType>...> VelocityBCsType;
 
-  BaseProblem(CoupledMeshManagerType& meshManager,bool isTimeDependent,bool hasExactSolution,const std::string& name):
-    meshmanager_(meshManager),
-    velocitybcs_(VelocityBCImp<VelocityDiscreteSpaceType,VelocityDiscreteSpaceType,CoupledMeshManagerType>(meshmanager_)...),
+  BaseProblem(FluidStateType& fluidState,bool isTimeDependent,bool hasExactSolution,const std::string& name):
+    fluidstate_(fluidState),
+    velocitybcs_(VelocityBCImp<VelocityDiscreteSpaceType,CoupledMeshManagerType>(fluidstate_.meshManager())...),
     istimedependent_(isTimeDependent),
     hasexactsolution_(hasExactSolution),
     name_(name),
@@ -159,7 +158,7 @@ class BaseProblem
 
   double mu(const EntityType& entity) const
   {
-    const auto& indicator(meshmanager_.bulkIndicatorFunction());
+    const auto& indicator(fluidstate_.meshManager().bulkIndicatorFunction());
     return muinner_*indicator(entity)+muouter_*(1.0-indicator(entity));
   }
   double deltaMu() const
@@ -172,7 +171,7 @@ class BaseProblem
   }
   double rho(const EntityType& entity) const
   {
-    const auto& indicator(meshmanager_.bulkIndicatorFunction());
+    const auto& indicator(fluidstate_.meshManager().bulkIndicatorFunction());
     return rhoinner_*indicator(entity)+rhoouter_*(1.0-indicator(entity));
   }
   double deltaRho() const
@@ -212,7 +211,7 @@ class BaseProblem
   }
 
   protected:
-  CoupledMeshManagerType& meshmanager_;
+  FluidStateType& fluidstate_;
   VelocityBCsType velocitybcs_;
   const bool istimedependent_;
   const bool hasexactsolution_;
@@ -251,15 +250,17 @@ class BaseProblem
 };
 
 // Stokes test 1
-template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
-class StokesTest1Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
+template<typename FluidStateImp>
+class StokesTest1Problem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
-  typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
-  typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef StokesTest1Problem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,DirichletCondition> BaseType;
+  typedef FluidStateImp FluidStateType;
+  typedef StokesTest1Problem<FluidStateType> ThisType;
+  typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
+
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::VelocityDomainType VelocityDomainType;
+  typedef typename BaseType::VelocityRangeType VelocityRangeType;
 
   using BaseType::velocitySolution;
   using BaseType::velocityBC;
@@ -267,19 +268,19 @@ class StokesTest1Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
   using BaseType::velocityRHS;
   using BaseType::mu;
 
-  StokesTest1Problem(CoupledMeshManagerType& meshManager):
-    BaseType(meshManager,false,true,"Stokes test 1")
+  StokesTest1Problem(FluidStateType& fluidState):
+    BaseType(fluidState,false,true,"Stokes test 1")
   {
-    velocityRHS()=[&](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& entity)
+    velocityRHS()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
     {
-      typename BaseType::VelocityRangeType value(0.0);
+      VelocityRangeType value(0.0);
       value[1]=-6.0*mu(entity)*x[0];
       return value;
     };
 
-    velocitySolution()=[](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
+    velocitySolution()=[](const VelocityDomainType& x,double ,const EntityType& )
     {
-      typename BaseType::VelocityRangeType value(0.0);
+      VelocityRangeType value(0.0);
       value[1]=std::pow(x[0],3.0)-x[0];
       return value;
     };
@@ -294,15 +295,17 @@ class StokesTest1Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
 };
 
 // Stokes test 2
-template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
-class StokesTest2Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
+template<typename FluidStateImp>
+class StokesTest2Problem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
-  typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
-  typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef StokesTest2Problem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,DirichletCondition> BaseType;
+  typedef FluidStateImp FluidStateType;
+  typedef StokesTest2Problem<FluidStateType> ThisType;
+  typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
+
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::VelocityDomainType VelocityDomainType;
+  typedef typename BaseType::VelocityRangeType VelocityRangeType;
 
   using BaseType::velocitySolution;
   using BaseType::velocityBC;
@@ -310,21 +313,21 @@ class StokesTest2Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
   using BaseType::velocityRHS;
   using BaseType::mu;
 
-  StokesTest2Problem(CoupledMeshManagerType& meshManager):
-    BaseType(meshManager,false,true,"Stokes test 2")
+  StokesTest2Problem(FluidStateType& fluidState):
+    BaseType(fluidState,false,true,"Stokes test 2")
   {
-    velocityRHS()=[&](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& entity)
+    velocityRHS()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
     {
       const auto muValue(mu(entity));
-      typename BaseType::VelocityRangeType value(0.0);
+      VelocityRangeType value(0.0);
       value[0]=-12.0*muValue*std::pow(x[1],2.0);
       value[1]=-6.0*muValue*x[0];
       return value;
     };
 
-    velocitySolution()=[](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
+    velocitySolution()=[](const VelocityDomainType& x,double ,const EntityType& )
     {
-      typename BaseType::VelocityRangeType value(0.0);
+      VelocityRangeType value(0.0);
       value[0]=1.0+std::pow(x[1],4.0);
       value[1]=std::pow(x[0],3.0)-x[0];
       return value;
@@ -340,15 +343,16 @@ class StokesTest2Problem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDis
 };
 
 // stationary bubble
-template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
-class StationaryBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
+template<typename FluidStateImp>
+class StationaryBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
-  typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
-  typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef StationaryBubbleProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,DirichletCondition> BaseType;
+  typedef FluidStateImp FluidStateType;
+  typedef StationaryBubbleProblem<FluidStateType> ThisType;
+  typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
+
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::PressureDomainType PressureDomainType;
 
   using BaseType::velocitySolution;
   using BaseType::velocityBC;
@@ -356,16 +360,16 @@ class StationaryBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressu
   using BaseType::pressureIC;
   using BaseType::gamma;
   using BaseType::worlddim;
-  using BaseType::meshmanager_;
+  using BaseType::fluidstate_;
 
-  StationaryBubbleProblem(CoupledMeshManagerType& meshManager):
-    BaseType(meshManager,true,true,"stationary bubble"),r0_(0.5)
+  StationaryBubbleProblem(FluidStateType& fluidState):
+    BaseType(fluidState,true,true,"stationary bubble"),r0_(0.5)
   {
-    pressureSolution()=[&](const typename BaseType::PressureDomainType& ,double ,const typename BaseType::EntityType& entity)
+    pressureSolution()=[&](const PressureDomainType& ,double ,const EntityType& entity)
     {
       const auto rt(exactRadius());
       const auto lambda(gamma()*static_cast<double>(worlddim-1)/rt);
-      const auto& indicator(meshmanager_.bulkIndicatorFunction());
+      const auto& indicator(fluidstate_.meshManager().bulkIndicatorFunction());
       auto value(lambda*(indicator(entity)-std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)/std::pow(2.0,worlddim)));
       return value;
     };
@@ -391,15 +395,17 @@ class StationaryBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressu
 };
 
 // expanding bubble
-template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
-class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
+template<typename FluidStateImp>
+class ExpandingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
-  typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
-  typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef ExpandingBubbleProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,DirichletCondition> BaseType;
+  typedef FluidStateImp FluidStateType;
+  typedef ExpandingBubbleProblem<FluidStateType> ThisType;
+  typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
+
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::VelocityDomainType VelocityDomainType;
+  typedef typename BaseType::PressureDomainType PressureDomainType;
 
   using BaseType::velocitySolution;
   using BaseType::velocityBC;
@@ -409,12 +415,12 @@ class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressur
   using BaseType::deltaMu;
   using BaseType::gamma;
   using BaseType::worlddim;
-  using BaseType::meshmanager_;
+  using BaseType::fluidstate_;
 
-  ExpandingBubbleProblem(CoupledMeshManagerType& meshManager):
-    BaseType(meshManager,true,true,"expanding bubble"),r0_(0.5),alpha_(0.15)
+  ExpandingBubbleProblem(FluidStateType& fluidState):
+    BaseType(fluidState,true,true,"expanding bubble"),r0_(0.5),alpha_(0.15)
   {
-    velocitySolution()=[&](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
+    velocitySolution()=[&](const VelocityDomainType& x,double ,const EntityType& )
     {
       auto value(x);
       value*=alpha_;
@@ -422,11 +428,11 @@ class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressur
       return value;
     };
 
-    pressureSolution()=[&](const typename BaseType::PressureDomainType& ,double t,const typename BaseType::EntityType& entity)
+    pressureSolution()=[&](const PressureDomainType& ,double t,const EntityType& entity)
     {
       const auto rt(exactRadius(t));
       const auto lambda(static_cast<double>(worlddim-1)*(gamma()/rt+2*alpha_*deltaMu()/std::pow(rt,worlddim)));
-      const auto& indicator(meshmanager_.bulkIndicatorFunction());
+      const auto& indicator(fluidstate_.meshManager().bulkIndicatorFunction());
       auto value(lambda*(indicator(entity)-
                          (std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)-std::pow(2.0/3.0,worlddim))/
                          (std::pow(2,worlddim)-std::pow(2.0/3.0,worlddim))));
@@ -457,25 +463,27 @@ class ExpandingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressur
 };
 
 // shear flow
-template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
-class ShearFlowProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
+template<typename FluidStateImp>
+class ShearFlowProblem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
-  typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
-  typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef ShearFlowProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,DirichletCondition> BaseType;
+  typedef FluidStateImp FluidStateType;;
+  typedef ShearFlowProblem<FluidStateType> ThisType;
+  typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
+
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::VelocityDomainType VelocityDomainType;
+  typedef typename BaseType::VelocityRangeType VelocityRangeType;
 
   using BaseType::velocityBC;
   using BaseType::worlddim;
 
-  ShearFlowProblem(CoupledMeshManagerType& meshManager):
-    BaseType(meshManager,true,false,"shear flow")
+  ShearFlowProblem(FluidStateType& fluidState):
+    BaseType(fluidState,true,false,"shear flow")
   {
-    f_=[&](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
+    f_=[&](const VelocityDomainType& x,double ,const EntityType& )
     {
-      typename BaseType::VelocityDomainType value(0.0);
+      VelocityRangeType value(0.0);
       value[0]=x[worlddim-1];
       return value;
     };
@@ -493,16 +501,19 @@ class ShearFlowProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscr
 };
 
 // stationary Navier-Stokes
-template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
-class StationaryNavierStokesProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,
-                                                       DirichletCondition>
+template<typename FluidStateImp>
+class StationaryNavierStokesProblem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
-  typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
-  typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef StationaryNavierStokesProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,DirichletCondition> BaseType;
+  typedef FluidStateImp FluidStateType;
+  typedef StationaryNavierStokesProblem<FluidStateType> ThisType;
+  typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
+
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::VelocityDomainType VelocityDomainType;
+  typedef typename BaseType::VelocityRangeType VelocityRangeType;
+  typedef typename BaseType::PressureDomainType PressureDomainType;
+  typedef typename BaseType::PressureRangeType PressureRangeType;
 
   using BaseType::velocitySolution;
   using BaseType::velocityBC;
@@ -512,29 +523,29 @@ class StationaryNavierStokesProblem:public BaseProblem<VelocityDiscreteSpaceImp,
   using BaseType::pressureIC;
   using BaseType::mu;
 
-  StationaryNavierStokesProblem(CoupledMeshManagerType& meshManager):
-    BaseType(meshManager,false,true,"stationary Navier-Stokes")
+  StationaryNavierStokesProblem(FluidStateType& fluidState):
+    BaseType(fluidState,false,true,"stationary Navier-Stokes")
   {
-    velocityRHS()=[&](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& entity)
+    velocityRHS()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
     {
       const auto muValue(mu(entity));
-      typename BaseType::VelocityRangeType value(0.0);
+      VelocityRangeType value(0.0);
       value[0]=-2.0*std::pow(M_PI,2.0)*muValue*std::cos(M_PI*x[0])*std::sin(M_PI*x[1])+M_PI/2.0*std::sin(2.0*M_PI*x[0]);
       value[1]=2.0*std::pow(M_PI,2.0)*muValue*std::sin(M_PI*x[0])*std::cos(M_PI*x[1])+M_PI/2.0*std::sin(2.0*M_PI*x[1]);
       return value;
     };
 
-    velocitySolution()=[](const typename BaseType::VelocityDomainType& x,double ,const typename BaseType::EntityType& )
+    velocitySolution()=[](const VelocityDomainType& x,double ,const EntityType& )
     {
-      typename BaseType::VelocityRangeType value(0.0);
+      VelocityRangeType value(0.0);
       value[0]=-std::cos(M_PI*x[0])*std::sin(M_PI*x[1]);
       value[1]=std::sin(M_PI*x[0])*std::cos(M_PI*x[1]);
       return value;
     };
 
-    pressureSolution()=[](const typename BaseType::PressureDomainType& x,double ,const typename BaseType::EntityType& )
+    pressureSolution()=[](const PressureDomainType& x,double ,const EntityType& )
     {
-      typename BaseType::PressureRangeType value(0.0);
+      PressureRangeType value(0.0);
       value[0]=-0.25*(std::cos(2.0*M_PI*x[0])+std::cos(2.0*M_PI*x[1]));
       return value;
     };
@@ -550,15 +561,19 @@ class StationaryNavierStokesProblem:public BaseProblem<VelocityDiscreteSpaceImp,
 };
 
 // Navier-Stokes 2D
-template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
-class NavierStokes2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition>
+template<typename FluidStateImp>
+class NavierStokes2DProblem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
-  typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
-  typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef NavierStokes2DProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,DirichletCondition> BaseType;
+  typedef FluidStateImp FluidStateType;
+  typedef NavierStokes2DProblem<FluidStateType> ThisType;
+  typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
+
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::VelocityDomainType VelocityDomainType;
+  typedef typename BaseType::VelocityRangeType VelocityRangeType;
+  typedef typename BaseType::PressureDomainType PressureDomainType;
+  typedef typename BaseType::PressureRangeType PressureRangeType;
 
   using BaseType::velocitySolution;
   using BaseType::velocityBC;
@@ -567,19 +582,19 @@ class NavierStokes2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressure
   using BaseType::pressureIC;
   using BaseType::mu;
 
-  NavierStokes2DProblem(CoupledMeshManagerType& meshManager):
-    BaseType(meshManager,true,true,"Navier-Stokes 2D")
+  NavierStokes2DProblem(FluidStateType& fluidState):
+    BaseType(fluidState,true,true,"Navier-Stokes 2D")
   {
-    velocitySolution()=[&](const typename BaseType::VelocityDomainType& x,double t,const typename BaseType::EntityType& entity)
+    velocitySolution()=[&](const VelocityDomainType& x,double t,const EntityType& entity)
     {
       const auto muValue(mu(entity));
-      typename BaseType::VelocityRangeType value(0.0);
+      VelocityRangeType value(0.0);
       value[0]=-std::cos(M_PI*x[0])*std::sin(M_PI*x[1])*std::exp(-2.0*M_PI*M_PI*muValue*t);
       value[1]=std::sin(M_PI*x[0])*std::cos(M_PI*x[1])*std::exp(-2.0*M_PI*M_PI*muValue*t);
       return value;
     };
 
-    pressureSolution()=[&](const typename BaseType::PressureDomainType& x,double t,const typename BaseType::EntityType& entity)
+    pressureSolution()=[&](const PressureDomainType& x,double t,const EntityType& entity)
     {
       typename BaseType::PressureRangeType value(0.0);
       value[0]=-0.25*(std::cos(2.0*M_PI*x[0])+std::cos(2.0*M_PI*x[1]))*std::exp(-4.0*M_PI*M_PI*mu(entity)*t);
@@ -597,33 +612,29 @@ class NavierStokes2DProblem:public BaseProblem<VelocityDiscreteSpaceImp,Pressure
 };
 
 // rising bubble
-template<typename VelocityDiscreteSpaceImp,typename PressureDiscreteSpaceImp,typename CoupledMeshManagerImp>
-class RisingBubbleProblem:public BaseProblem<VelocityDiscreteSpaceImp,PressureDiscreteSpaceImp,CoupledMeshManagerImp,DirichletCondition,
-                                             FreeSlipCondition>
+template<typename FluidStateImp>
+class RisingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition,FreeSlipCondition>
 {
   public:
-  typedef VelocityDiscreteSpaceImp VelocityDiscreteSpaceType;
-  typedef PressureDiscreteSpaceImp PressureDiscreteSpaceType;
-  typedef CoupledMeshManagerImp CoupledMeshManagerType;
-  typedef RisingBubbleProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType> ThisType;
-  typedef BaseProblem<VelocityDiscreteSpaceType,PressureDiscreteSpaceType,CoupledMeshManagerType,DirichletCondition,FreeSlipCondition>
-    BaseType;
+  typedef FluidStateImp FluidStateType;
+  typedef RisingBubbleProblem<FluidStateType> ThisType;
+  typedef BaseProblem<FluidStateType,DirichletCondition,FreeSlipCondition> BaseType;
+
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::VelocityDomainType VelocityDomainType;
+  typedef typename BaseType::VelocityRangeType VelocityRangeType;
 
   using BaseType::velocityBC;
   using BaseType::velocityRHS;
   using BaseType::rho;
   using BaseType::worlddim;
 
-  RisingBubbleProblem(CoupledMeshManagerType& meshManager):
-    BaseType(meshManager,true,false,"rising bubble")
+  RisingBubbleProblem(FluidStateType& fluidState):
+    BaseType(fluidState,true,false,"rising bubble")
   {
-    typedef typename BaseType::VelocityDomainType VelocityDomainType;
-    typedef typename BaseType::VelocityRangeType VelocityRangeType;
-    typedef typename BaseType::EntityType EntityType;
-
     velocityRHS()=[&](const VelocityDomainType& ,double ,const EntityType& entity)
     {
-      typename BaseType::VelocityRangeType value(0.0);
+      VelocityRangeType value(0.0);
       value[worlddim-1]=-0.98;
       value*=rho(entity);
       return value;

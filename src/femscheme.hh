@@ -47,55 +47,37 @@ class FemScheme
   typedef FluidStateImp FluidStateType;
   typedef FemScheme<FluidStateType> ThisType;
 
-  // define grid parts
-  typedef typename FluidStateType::BulkGridType BulkGridType;
-  typedef typename FluidStateType::BulkGridPartType BulkGridPartType;
-  typedef typename FluidStateType::InterfaceGridType InterfaceGridType;
-  typedef typename FluidStateType::InterfaceGridPartType InterfaceGridPartType;
-
-  // define spaces
-  typedef typename FluidStateType::VelocityDiscreteSpaceType VelocityDiscreteSpaceType;
-  typedef typename FluidStateType::PressureDiscreteSpaceType PressureDiscreteSpaceType;
-  #if PRESSURE_SPACE_TYPE == 2
-  typedef typename FluidStateType::PressureAdditionalDiscreteSpaceType PressureAdditionalDiscreteSpaceType;
-  #endif
-  typedef typename FluidStateType::PressureDumpDiscreteSpaceType PressureDumpDiscreteSpaceType;
-  typedef typename FluidStateType::CurvatureDiscreteSpaceType CurvatureDiscreteSpaceType;
-  typedef typename FluidStateType::DisplacementDiscreteSpaceType DisplacementDiscreteSpaceType;
-
   // define discrete functions
   typedef typename FluidStateType::VelocityDiscreteFunctionType VelocityDiscreteFunctionType;
   typedef typename FluidStateType::PressureDiscreteFunctionType PressureDiscreteFunctionType;
   #if PRESSURE_SPACE_TYPE == 2
   typedef typename FluidStateType::PressureAdditionalDiscreteFunctionType PressureAdditionalDiscreteFunctionType;
   #endif
-  typedef typename FluidStateType::PressureDumpDiscreteFunctionType PressureDumpDiscreteFunctionType;
   typedef typename FluidStateType::CurvatureDiscreteFunctionType CurvatureDiscreteFunctionType;
   typedef typename FluidStateType::DisplacementDiscreteFunctionType DisplacementDiscreteFunctionType;
   typedef typename FluidStateType::BulkDiscreteFunctionType BulkDiscreteFunctionType;
   typedef typename FluidStateType::InterfaceDiscreteFunctionType InterfaceDiscreteFunctionType;
 
-  // define coupled mesh manager and bulk-interface mapper
-  typedef typename FluidStateType::CoupledMeshManagerType CoupledMeshManagerType;
-  typedef typename CoupledMeshManagerType::BulkInterfaceGridMapperType BulkInterfaceGridMapperType;
+  // define bulk-interface mapper
+  typedef typename FluidStateType::CoupledMeshManagerType::BulkInterfaceGridMapperType BulkInterfaceGridMapperType;
 
   // define problem
   #if PROBLEM_NUMBER == 0
-  typedef StokesTest1Problem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
+  typedef StokesTest1Problem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 1
-  typedef StokesTest2Problem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
+  typedef StokesTest2Problem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 2
-  typedef StationaryBubbleProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
+  typedef StationaryBubbleProblem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 3
-  typedef ExpandingBubbleProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
+  typedef ExpandingBubbleProblem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 4
-  typedef ShearFlowProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
+  typedef ShearFlowProblem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 5
-  typedef StationaryNavierStokesProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
+  typedef StationaryNavierStokesProblem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 6
-  typedef NavierStokes2DProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
+  typedef NavierStokes2DProblem<FluidStateType> ProblemType;
   #else
-  typedef RisingBubbleProblem<VelocityDiscreteSpaceType,PressureDumpDiscreteSpaceType,CoupledMeshManagerType> ProblemType;
+  typedef RisingBubbleProblem<FluidStateType> ProblemType;
   #endif
 
   // define operators for bulk
@@ -123,7 +105,7 @@ class FemScheme
 
   // constructor
   explicit FemScheme(FluidStateType& fluidState):
-    fluidstate_(fluidState),problem_(fluidstate_.meshManager())
+    fluidstate_(fluidState),problem_(fluidState)
   {}
 
   FemScheme(const ThisType& )=delete;
