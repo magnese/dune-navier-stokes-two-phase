@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <ostream>
 #include <memory>
+#include <utility>
 
 // HAVE_BLAS
 #ifdef HAVE_BLAS
@@ -281,18 +282,12 @@ class GMSHCompoundManagerBase
     holefilename_(Fem::Parameter::getValue<std::string>("HoleGeometry","")),gmodelptrs_(),hashole_(holefilename_!="")
   {
     // init gmsh
-    //GmshInitialize(argc,argv);
     GmshSetOption("General","Terminal",1.);
     if(verbosity)
       GmshSetOption("General","Verbosity",99.);
     else
       GmshSetOption("General","Verbosity",0.);
     GmshSetOption("Mesh","Algorithm",static_cast<double>(algorithm));
-  }
-
-  ~GMSHCompoundManagerBase()
-  {
-    //GmshFinalize();
   }
 
   Implementation& imp()
@@ -374,10 +369,8 @@ template<typename CharlengthPolicyType>
 class GMSHCompoundManager<2,CharlengthPolicyType>:
   public GMSHCompoundManagerBase<2,CharlengthPolicyType,GMSHCompoundManager<2,CharlengthPolicyType>>
 {
-
-  friend GMSHCompoundManagerBase<2,CharlengthPolicyType,GMSHCompoundManager<2,CharlengthPolicyType>>;
-
   typedef GMSHCompoundManagerBase<2,CharlengthPolicyType,GMSHCompoundManager<2,CharlengthPolicyType>> BaseType;
+  friend BaseType;
   using BaseType::compound;
   using BaseType::interface;
   using BaseType::domain;
@@ -388,25 +381,24 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
   public:
   template<typename... Args>
   GMSHCompoundManager(Args&&... args):
-    BaseType(args...)
+    BaseType(std::forward<Args>(args)...)
   {}
 
   private:
-  template<typename... Args>
-  void createCompoundGeo(Args&&... args)
+  void createCompoundGeo(const std::function<double(const GVertex&)>& charlength)
   {
     compound()=std::make_shared<GModel>();
     compound()->setFactory("Gmsh");
     // add domain to compound gmodel
     std::vector<GEdge*> domainEdges(0);
-    addGModelToCompound(domain(),domainEdges,args...);
+    addGModelToCompound(domain(),domainEdges,charlength);
     // add interface to compound gmodel
     std::vector<GEdge*> interfaceEdges(0);
     addGModelToCompound(interface(),interfaceEdges,FixedCharlength());
     // add hole to compound gmodel (if present)
     std::vector<GEdge*> holeEdges(0);
     if(hasHole())
-      addGModelToCompound(hole(),holeEdges,args...);
+      addGModelToCompound(hole(),holeEdges,charlength);
     // add line loops and faces to compound gmodel
     std::vector<std::vector<GEdge*>> outerLineLoop({domainEdges,interfaceEdges});
     (compound()->addPlanarFace(outerLineLoop))->addPhysicalEntity(2);
@@ -416,7 +408,8 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     (compound()->addPlanarFace(innerLineLoop))->addPhysicalEntity(1);
   }
 
-  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GEdge*>& edges,std::function<double(const GVertex&)>&& charlength)
+  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GEdge*>& edges,
+                           const std::function<double(const GVertex&)>& charlength)
   {
     long int vtxCounter(0);
     std::vector<GVertex*> vertices(0);
@@ -583,9 +576,8 @@ template<typename CharlengthPolicyType>
 class GMSHCompoundManager<3,CharlengthPolicyType>:
   public GMSHCompoundManagerBase<3,CharlengthPolicyType,GMSHCompoundManager<3,CharlengthPolicyType>>
 {
-  friend GMSHCompoundManagerBase<3,CharlengthPolicyType,GMSHCompoundManager<3,CharlengthPolicyType>>;
-
   typedef GMSHCompoundManagerBase<3,CharlengthPolicyType,GMSHCompoundManager<3,CharlengthPolicyType>> BaseType;
+  friend BaseType;
   using BaseType::compound;
   using BaseType::interface;
   using BaseType::domain;
@@ -596,25 +588,24 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
   public:
   template<typename... Args>
   GMSHCompoundManager(Args&&... args):
-    BaseType(args...)
+    BaseType(std::forward<Args>(args)...)
   {}
 
   private:
-  template<typename... Args>
-  void createCompoundGeo(Args&&... args)
+  void createCompoundGeo(const std::function<double(const GVertex&)>& charlength)
   {
     compound()=std::make_shared<GModel>();
     compound()->setFactory("Gmsh");
     // add domain to compound gmodel
     std::vector<GFace*> domainFaces(0);
-    addGModelToCompound(domain(),domainFaces,args...);
+    addGModelToCompound(domain(),domainFaces,charlength);
     // add interface to compound gmodel
     std::vector<GFace*> interfaceFaces(0);
     addGModelToCompound(interface(),interfaceFaces,FixedCharlength());
     // add hole to compound gmodel (if present)
     std::vector<GFace*> holeFaces(0);
     if(hasHole())
-      addGModelToCompound(hole(),holeFaces,args...);
+      addGModelToCompound(hole(),holeFaces,charlength);
     // add surface loops and volumes to compound gmodel
     std::vector<std::vector<GFace*>> outerSurfaceLoop({domainFaces,interfaceFaces});
     (compound()->addVolume(outerSurfaceLoop))->addPhysicalEntity(2);
@@ -624,7 +615,8 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     (compound()->addVolume(innerSurfaceLoop))->addPhysicalEntity(1);
   }
 
-  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GFace*>& faces,std::function<double(const GVertex&)>&& charlength)
+  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GFace*>& faces,
+                           const std::function<double(const GVertex&)>& charlength)
   {
     std::vector<GVertex*> vertices(0);
     std::array<GVertex*,2> vtxPtr({nullptr,nullptr});
