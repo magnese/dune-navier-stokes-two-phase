@@ -17,6 +17,7 @@
 #include <dune/geometry/referenceelements.hh>
 #include <dune/grid/common/gridfactory.hh>
 #include <dune/grid/geometrygrid/grid.hh>
+#include <dune/fem/gridpart/leafgridpart.hh>
 #include <dune/fem/io/parameter.hh>
 
 // local includes
@@ -202,6 +203,10 @@ class CoupledMeshManager
   typedef GeometryGrid<BulkHostGridType,VertexFunction<BulkHostGridType>> BulkGridType;
   typedef GeometryGrid<InterfaceHostGridType,VertexFunction<InterfaceHostGridType>> InterfaceGridType;
 
+  // define grid parts
+  typedef LeafGridPart<BulkGridType> BulkGridPartType;
+  typedef LeafGridPart<InterfaceGridType> InterfaceGridPartType;
+
   // define bulk indicator function
   typedef IndicatorFunction<BulkGridType> BulkIndicatorFunctionType;
 
@@ -243,7 +248,26 @@ class CoupledMeshManager
   CoupledMeshManager(const ThisType& )=default;
 
   // copy assignament
-  ThisType& operator=(const ThisType& )=default;
+  ThisType& operator=(const ThisType& other)
+  {
+    if(this!=&other)
+    {
+      interfacegridpart_.reset();
+      bulkgridpart_.reset();
+      boundaryids_=other.boundaryids_;
+      elementsids_=other.elementsids_;
+      manager_=other.manager_;
+      bulkgrid_=other.bulkgrid_;
+      bulkgridpart_=other.bulkgridpart_;
+      bulkindicator_=other.bulkindicator_;
+      interfacegrid_=other.interfacegrid_;
+      interfacegridpart_=other.interfacegridpart_;
+      mapper_=other.mapper_;
+      remeshingcriteria_=other.remeshingcriteria_;
+      sequence_=other.sequence_;
+    }
+    return *this;
+  }
 
   void printInfo(std::ostream& s=std::cout) const
   {
@@ -259,6 +283,14 @@ class CoupledMeshManager
   {
     return *bulkgrid_;
   }
+  BulkGridPartType& bulkGridPart()
+  {
+    return *bulkgridpart_;
+  }
+  const BulkGridPartType& bulkGridPart() const
+  {
+    return *bulkgridpart_;
+  }
   const BulkIndicatorFunctionType& bulkIndicatorFunction() const
   {
     return *bulkindicator_;
@@ -270,6 +302,14 @@ class CoupledMeshManager
   const InterfaceGridType& interfaceGrid() const
   {
     return *interfacegrid_;
+  }
+  InterfaceGridPartType& interfaceGridPart()
+  {
+    return *interfacegridpart_;
+  }
+  const InterfaceGridPartType& interfaceGridPart() const
+  {
+    return *interfacegridpart_;
   }
   BulkInterfaceGridMapperType& mapper()
   {
@@ -322,6 +362,9 @@ class CoupledMeshManager
         // create timer
         Timer timer(false);
         timer.start();
+        // reset grid part pointers to avoid dangling references
+        interfacegridpart_.reset();
+        bulkgridpart_.reset();
         // create bulk grid
         BulkHostGridFactoryType bulkHostGridFactory;
         boundaryids_=std::make_shared<std::vector<int>>();
@@ -329,6 +372,7 @@ class CoupledMeshManager
         manager_.remesh(interfaceGrid(),bulkHostGridFactory,boundaryIDs(),elementsIDs());
         bulkgrid_=std::make_shared<BulkGridType>(bulkHostGridFactory.createGrid());
         printGridInfo(bulkGrid());
+        bulkgridpart_=std::make_shared<BulkGridPartType>(bulkGrid());
         // reorder boundary IDs
         reorderBoundaryIDs(bulkHostGridFactory);
         // create bulk indicator function
@@ -338,6 +382,7 @@ class CoupledMeshManager
         extractInterface(interfaceHostGridFactory);
         interfacegrid_=std::make_shared<InterfaceGridType>(interfaceHostGridFactory.createGrid());
         printGridInfo(interfaceGrid());
+        interfacegridpart_=std::make_shared<InterfaceGridPartType>(interfaceGrid());
         // increase sequence number
         ++sequence_;
         // perform vertex check
@@ -412,8 +457,10 @@ class CoupledMeshManager
     s<<"BoundaryIDs = "<<boundaryids_.use_count()<<std::endl;;
     s<<"ElementIDs = "<<elementsids_.use_count()<<std::endl;
     s<<"BulkGrid = "<<bulkgrid_.use_count()<<std::endl;
+    s<<"BulkGridPart = "<<bulkgridpart_.use_count()<<std::endl;
     s<<"BulkIndicatorFunction = "<<bulkindicator_.use_count()<<std::endl;
     s<<"InterfaceGrid = "<<interfacegrid_.use_count()<<std::endl;
+    s<<"InterfaceGridPart = "<<interfacegridpart_.use_count()<<std::endl;
     s<<"BulkInterfaceGridMapper = "<<mapper_.use_count()<<std::endl;
     s<<std::endl;
   }
@@ -423,8 +470,10 @@ class CoupledMeshManager
   std::shared_ptr<std::vector<int>> elementsids_;
   GmshManagerType manager_;
   std::shared_ptr<BulkGridType> bulkgrid_;
+  std::shared_ptr<BulkGridPartType> bulkgridpart_;
   std::shared_ptr<BulkIndicatorFunctionType> bulkindicator_;
   std::shared_ptr<InterfaceGridType> interfacegrid_;
+  std::shared_ptr<InterfaceGridPartType> interfacegridpart_;
   std::shared_ptr<BulkInterfaceGridMapperType> mapper_;
   RemeshingCriteriaType remeshingcriteria_;
   unsigned int sequence_;
@@ -432,6 +481,9 @@ class CoupledMeshManager
 
   void init()
   {
+    // reset grid part pointers to avoid dangling references
+    interfacegridpart_.reset();
+    bulkgridpart_.reset();
     // create bulk grid
     BulkHostGridFactoryType bulkHostGridFactory;
     boundaryids_=std::make_shared<std::vector<int>>();
@@ -439,6 +491,7 @@ class CoupledMeshManager
     manager_.create(bulkHostGridFactory,boundaryIDs(),elementsIDs());
     bulkgrid_=std::make_shared<BulkGridType>(bulkHostGridFactory.createGrid());
     printGridInfo(bulkGrid());
+    bulkgridpart_=std::make_shared<BulkGridPartType>(bulkGrid());
     // reorder boundary IDs
     reorderBoundaryIDs(bulkHostGridFactory);
     // create bulk indicator function
@@ -448,6 +501,7 @@ class CoupledMeshManager
     extractInterface(interfaceHostGridFactory);
     interfacegrid_=std::make_shared<InterfaceGridType>(interfaceHostGridFactory.createGrid());
     printGridInfo(interfaceGrid());
+    interfacegridpart_=std::make_shared<InterfaceGridPartType>(interfaceGrid());
     // increase sequence number
     ++sequence_;
     // perform vertex check

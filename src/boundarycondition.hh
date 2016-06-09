@@ -61,11 +61,10 @@ class BoundaryCondition
   typedef BCImp BCImplementation;
   typedef BoundaryCondition<DiscreteSpaceType,CoupledMeshManagerType,BlockIDType,BCImplementation> ThisType;
 
-  typedef typename DiscreteSpaceType::GridPartType GridPartType;
   typedef typename DiscreteSpaceType::DomainType DomainType;
   typedef typename DiscreteSpaceType::RangeType RangeType;
   typedef typename DiscreteSpaceType::EntityType EntityType;
-  typedef typename GridPartType::IntersectionIteratorType::Intersection IntersectionType;
+  typedef typename DiscreteSpaceType::GridPartType::IntersectionIteratorType::Intersection IntersectionType;
 
   typedef std::function<RangeType(const DomainType&,double,const EntityType&)> FunctionType;
   typedef LocalAnalyticalFunctionBinder<DiscreteSpaceType> LocalAnalyticalFunctionType;
@@ -145,7 +144,6 @@ class BoundaryCondition
 
   protected:
   CoupledMeshManagerType& meshmanager_;
-  std::unique_ptr<GridPartType> gridpart_;
   std::unique_ptr<DiscreteSpaceType> space_;
   const BCEnumType bctype_;
   mutable FunctionMapType g_;
@@ -175,10 +173,8 @@ class BoundaryCondition
     {
       // reset space pointers (to avoid segmentation fault)
       space_.reset();
-      gridpart_.reset();
-      // create grid part and spaces
-      gridpart_=std::make_unique<GridPartType>(meshmanager_.bulkGrid());
-      space_=std::make_unique<DiscreteSpaceType>(*gridpart_);
+      // create space
+      space_=std::make_unique<DiscreteSpaceType>(meshmanager_.bulkGridPart());
       // set blocksIDs
       blocksIDs_.clear();
       blocksIDs_.resize(space().blockMapper().size(),-1);
@@ -190,7 +186,7 @@ class BoundaryCondition
       // create adapted discrete boundary function
       gadapted_.clear();
       for(auto& g:g_)
-        gadapted_.emplace(g.first,AdaptedDiscreteFunctionType("adapted function",g.second,*gridpart_));
+        gadapted_.emplace(g.first,AdaptedDiscreteFunctionType("adapted function",g.second,meshmanager_.bulkGridPart()));
       // update sequence number
       sequence_=meshmanager_.sequence();
     }
@@ -204,7 +200,7 @@ class BoundaryCondition
     blockMapper.map(entity,globalIdxs);
     std::vector<bool> globalBlockDofsFilter(blockMapper.numDofs(entity));
 
-    for(const auto& intersection:intersections(*gridpart_,entity))
+    for(const auto& intersection:intersections(meshmanager_.bulkGridPart(),entity))
     {
       if(intersection.boundary())
       {

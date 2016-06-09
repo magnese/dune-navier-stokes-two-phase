@@ -124,8 +124,6 @@ class FluidState
     {
       resetPointers();
       meshmanager_=other.meshmanager_;
-      bulkgridpart_=other.bulkgridpart_;
-      interfacegridpart_=other.interfacegridpart_;
       bulkspace_=other.bulkspace_;
       #if PRESSURE_SPACE_TYPE == 2
       pressuredumpspace_=other.pressuredumpspace_;
@@ -164,7 +162,15 @@ class FluidState
   {
     return meshmanager_.bulkGrid();
   }
+  const BulkGridType& bulkGrid() const
+  {
+    return meshmanager_.bulkGrid();
+  }
   InterfaceGridType& interfaceGrid()
+  {
+    return meshmanager_.interfaceGrid();
+  }
+  const InterfaceGridType& interfaceGrid() const
   {
     return meshmanager_.interfaceGrid();
   }
@@ -172,11 +178,19 @@ class FluidState
   // get grid parts
   BulkGridPartType& bulkGridPart()
   {
-    return *bulkgridpart_;
+    return meshmanager_.bulkGridPart();;
+  }
+  const BulkGridPartType& bulkGridPart() const
+  {
+    return meshmanager_.bulkGridPart();;
   }
   InterfaceGridPartType& interfaceGridPart()
   {
-    return *interfacegridpart_;
+    return meshmanager_.interfaceGridPart();
+  }
+  const InterfaceGridPartType& interfaceGridPart() const
+  {
+    return meshmanager_.interfaceGridPart();
   }
 
   // get spaces
@@ -314,8 +328,6 @@ class FluidState
   {
     // create grid parts
     resetPointers();
-    bulkgridpart_=std::make_shared<BulkGridPartType>(bulkGrid());
-    interfacegridpart_=std::make_shared<InterfaceGridPartType>(interfaceGrid());
     // create spaces
     bulkspace_=std::make_shared<BulkDiscreteSpaceType>(bulkGridPart());
     #if PRESSURE_SPACE_TYPE == 2
@@ -400,8 +412,6 @@ class FluidState
   {
     s<<std::endl;
     s<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :"<<std::endl;
-    s<<"BulkGridPart = "<<bulkgridpart_.use_count()<<std::endl;
-    s<<"InterfaceGridPart = "<<interfacegridpart_.use_count()<<std::endl;
     s<<"BulkDiscreteSpace = "<<bulkspace_.use_count()<<std::endl;
     #if PRESSURE_SPACE_TYPE == 2
     s<<"PressureDumpDiscreteSpace = "<<pressuredumpspace_.use_count()<<std::endl;
@@ -421,8 +431,6 @@ class FluidState
 
   private:
   CoupledMeshManagerType meshmanager_;
-  std::shared_ptr<BulkGridPartType> bulkgridpart_;
-  std::shared_ptr<InterfaceGridPartType> interfacegridpart_;
   std::shared_ptr<BulkDiscreteSpaceType> bulkspace_;
   #if PRESSURE_SPACE_TYPE == 2
   std::shared_ptr<PressureDumpDiscreteSpaceType> pressuredumpspace_;
@@ -460,8 +468,6 @@ class FluidState
     pressuredumpspace_.reset();
     #endif
     bulkspace_.reset();
-    interfacegridpart_.reset();
-    bulkgridpart_.reset();
   }
 };
 
