@@ -34,6 +34,8 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
   typedef typename Op21Type::MatrixType Matrix21Type;
   typedef typename Op22Type::MatrixType Matrix22Type;
 
+  static constexpr auto defaultCol=Matrix11Type::defaultCol;
+
   public:
   typedef ExtendedTupleDiscreteFunction<DomainFunction1Type,DomainFunction2Type> DiscreteFunctionType;
   typedef DiscreteFunctionType DomainFunctionType;
@@ -97,7 +99,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
       {
         const auto entry(mat11_.realValue(count1));
         const auto col(entry.second);
-        if(col>-1)
+        if(col!=defaultCol)
           op_.matrix().set(row,col,entry.first);
         ++count1;
       }
@@ -105,7 +107,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
       {
         const auto entry(mat12_.realValue(count2));
         const auto col(entry.second);
-        if(col>-1)
+        if(col!=defaultCol)
           op_.matrix().set(row,col+offset,entry.first);
         ++count2;
       }
@@ -120,7 +122,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
       {
         const auto entry(mat21_.realValue(count1));
         const auto col(entry.second);
-        if(col>-1)
+        if(col!=defaultCol)
           op_.matrix().set(row+offset,col,entry.first);
         ++count1;
       }
@@ -128,7 +130,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
       {
         const auto entry(mat22_.realValue(count2));
         const auto col(entry.second);
-        if(col>-1)
+        if(col!=defaultCol)
           op_.matrix().set(row+offset,col+offset,entry.first);
         ++count2;
       }
@@ -179,6 +181,8 @@ class ExtendedOperatorGluer:public Operator<
   typedef typename Op21Type::MatrixType Matrix21Type;
   typedef typename Op13Type::MatrixType Matrix13Type;
   typedef typename Op31Type::MatrixType Matrix31Type;
+
+  static constexpr auto defaultCol=Matrix11Type::defaultCol;
 
   public:
   typedef ExtendedTupleDiscreteFunction<DomainFunction1Type,DomainFunction2Type,DomainFunction3Type> DiscreteFunctionType;
@@ -247,7 +251,7 @@ class ExtendedOperatorGluer:public Operator<
       {
         const auto entry(mat11_.realValue(count1));
         const auto col(entry.second);
-        if(col>-1)
+        if(col!=defaultCol)
           op_.matrix().set(row,col,entry.first);
         ++count1;
       }
@@ -255,7 +259,7 @@ class ExtendedOperatorGluer:public Operator<
       {
         const auto entry(mat12_.realValue(count2));
         const auto col(entry.second);
-        if(col>-1)
+        if(col!=defaultCol)
           op_.matrix().set(row,col+offset2,entry.first);
         ++count2;
       }
@@ -263,7 +267,7 @@ class ExtendedOperatorGluer:public Operator<
       {
         const auto entry(mat13_.realValue(count3));
         const auto col(entry.second);
-        if(col>-1)
+        if(col!=defaultCol)
           op_.matrix().set(row,col+offset3,entry.first);
         ++count3;
       }
@@ -278,7 +282,7 @@ class ExtendedOperatorGluer:public Operator<
       {
         const auto entry(mat21_.realValue(count1));
         const auto col(entry.second);
-        if(col>-1)
+        if(col!=defaultCol)
           op_.matrix().set(row+offset2,col,entry.first);
         ++count1;
       }
@@ -292,7 +296,7 @@ class ExtendedOperatorGluer:public Operator<
       {
         const auto entry(mat31_.realValue(count1));
         const auto col(entry.second);
-        if(col>-1)
+        if(col!=defaultCol)
           op_.matrix().set(row+offset3,col,entry.first);
         ++count1;
       }
