@@ -52,20 +52,22 @@ class MeshSmoothing
   {
     // update fluid state
     fluidstate_.update();
-    // assemble operator and impose BC
+    // assemble operator
     Timer timerAssemble(false);
     timerAssemble.start();
     typedef SmoothingOperator<DiscreteFunctionType> SmoothingOperatorType;
     SmoothingOperatorType op(fluidstate_.bulkDisplacementSpace(),coeff_);
     op.assemble();
-    problem_.bc().applyToOperator(op);
     timerAssemble.stop();
-    // assemble RHS and impose BC
+    // assemble RHS
     timerAssemble.start();
     DiscreteFunctionType rhs("smoothing RHS",fluidstate_.bulkDisplacementSpace());
     rhs.clear();
     fluidstate_.meshManager().mapper().addInterfaceDF2BulkDF(fluidstate_.displacement(),rhs);
-    problem_.bc().applyToRHS(rhs);
+    timerAssemble.stop();
+    // impose BC
+    timerAssemble.start();
+    problem_.bc().apply(std::ignore,rhs,op);
     timerAssemble.stop();
     // impose zero displacement for the interface
     const auto localBlockSize(FluidStateType::DisplacementDiscreteSpaceType::localBlockSize);

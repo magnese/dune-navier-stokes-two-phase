@@ -189,15 +189,9 @@ class BaseProblem
   }
 
   template<typename... Args>
-  void applyBCToOperator(Args&... args)
+  void applyBC(Args&... args)
   {
-    for_each(velocitybcs_,[&args...](auto& entry,auto ){entry.applyToOperator(args...);});
-  }
-
-  template<typename... Args>
-  void applyBCToRHS(Args&... args)
-  {
-    for_each(velocitybcs_,[&args...](auto& entry,auto ){entry.applyToRHS(args...);});
+    for_each(velocitybcs_,[&args...](auto& entry,auto ){entry.apply(args...);});
   }
 
   void printInfo(std::ostream& s=std::cout) const

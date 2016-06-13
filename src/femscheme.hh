@@ -164,7 +164,7 @@ class FemScheme
     Timer timerSolveBulk(false);
     Timer timerSolveInterface(false);
 
-    // assemble bulk operators and impose BC
+    // assemble bulk operators
     timerAssembleBulk.start();
     VelocityOperatorType velocityOp(fluidstate_.velocitySpace(),problem_,fluidstate_.velocity());
     velocityOp.assemble(timeProvider);
@@ -173,9 +173,6 @@ class FemScheme
     #if PRESSURE_SPACE_TYPE == 2
     PressureAdditionalVelocityOperatorType pressureAdditionalVelocityOp(fluidstate_.pressureAdditionalSpace(),fluidstate_.velocitySpace());
     pressureAdditionalVelocityOp.assemble();
-    problem_.applyBCToOperator(velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
-    #else
-    problem_.applyBCToOperator(velocityOp,pressureVelocityOp);
     #endif
     VelocityPressureOperatorType velocityPressureOp(fluidstate_.velocitySpace(),fluidstate_.pressureSpace());
     velocityPressureOp.assemble();
@@ -251,7 +248,11 @@ class FemScheme
 
     // impose bulk bc
     timerAssembleBulk.start();
-    problem_.applyBCToRHS(velocityRHS,timeProvider);
+    #if PRESSURE_SPACE_TYPE == 2
+    problem_.applyBC(timeProvider,velocityRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
+    #else
+    problem_.applyBC(timeProvider,velocityRHS,velocityOp,pressureVelocityOp);
+    #endif
     timerAssembleBulk.stop();
 
     // compute bulk solution

@@ -13,12 +13,13 @@ namespace Fem
 {
 
 template<typename DiscreteFunctionType,typename BoundaryConditionType,typename TimeProviderType>
-void assemblePressureRHS(DiscreteFunctionType& rhs,const BoundaryConditionType& bc,const TimeProviderType& timeProvider)
+void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,const TimeProviderType& timeProvider)
 {
   // clear RHS
   rhs.clear();
 
   // create discrete function to interpolate BC
+  bc.update();
   typedef AdaptiveDiscreteFunction<typename BoundaryConditionType::DiscreteSpaceType> BCDiscreteFunctionType;
   BCDiscreteFunctionType g("g",bc.space());
 
