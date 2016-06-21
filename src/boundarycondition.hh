@@ -11,6 +11,7 @@
 
 #include <dune/common/exceptions.hh>
 #include <dune/fem/common/tupleforeach.hh>
+#include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/function/common/scalarproducts.hh>
 #include <dune/fem/function/common/localfunctionadapter.hh>
 
@@ -71,6 +72,7 @@ class BoundaryCondition
   typedef std::map<int,LocalAnalyticalFunctionType> FunctionMapType;
   typedef LocalFunctionAdapter<LocalAnalyticalFunctionType> AdaptedDiscreteFunctionType;
   typedef std::map<int,AdaptedDiscreteFunctionType> AdaptedFunctionMapType;
+  typedef AdaptiveDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
 
   void addBC(int boundaryID,const FunctionType& g)
   {
@@ -82,14 +84,23 @@ class BoundaryCondition
     return *space_;
   }
 
-  template<typename TimeProviderType,typename DiscreteFunctionType,typename... OperatorsType>
-  void apply(const TimeProviderType& timeProvider,DiscreteFunctionType& rhs,OperatorsType&... operators)
+  DiscreteFunctionType& discreteFunction()
+  {
+    return *df_;
+  }
+
+  DiscreteFunctionType& discreteFunction() const
+  {
+    return *df_;
+  }
+
+  template<typename TimeProviderType,typename RHSType,typename... OperatorsType>
+  void apply(const TimeProviderType& timeProvider,RHSType& rhs,OperatorsType&... operators)
   {
     update();
     updateDOFs();
-    DiscreteFunctionType g("g",rhs.space());
     for(const auto& entity:space())
-      asImp().setDOFs(entity,timeProvider,rhs,g,operators...);
+      asImp().setDOFs(entity,timeProvider,rhs,operators...);
   }
 
   RangeType evaluateBoundaryFunction(const DomainType& x,double t,const EntityType& entity,int boundaryID) const
@@ -107,26 +118,25 @@ class BoundaryCondition
     return evaluateBoundaryFunction(x,t,intersection.inside(),boundaryID);
   }
 
-  template<typename DiscreteFunctionType>
-  void localInterpolateBoundaryFunction(double t,const EntityType& entity,int boundaryID,DiscreteFunctionType& df) const
+  auto localBoundaryFunction(double t,const EntityType& entity,int boundaryID) const
   {
     auto gIt(gadapted_.find(boundaryID));
     if(gIt==gadapted_.end())
       DUNE_THROW(RangeError,"boundary ID not found in BC");
     auto& gAdapted(gIt->second);
     gAdapted.localFunctionImpl().initialize(t);
-    const auto interpolation(df.space().interpolation(entity));
+    const auto interpolation(space().interpolation(entity));
     typedef typename AdaptedDiscreteFunctionType::RangeFieldType RangeFieldType;
-    std::vector<RangeFieldType> localDOFs(df.space().basisFunctionSet(entity).size());
+    std::vector<RangeFieldType> localDOFs(space().basisFunctionSet(entity).size());
     interpolation(gAdapted.localFunction(entity),localDOFs);
-    df.setLocalDofs(entity,localDOFs);
+    discreteFunction().setLocalDofs(entity,localDOFs);
+    return discreteFunction().localFunction(entity);
   }
 
-  template<typename DiscreteFunctionType>
-  void localInterpolateBoundaryFunction(double t,const IntersectionType& intersection,DiscreteFunctionType& df) const
+  auto localBoundaryFunction(double t,const IntersectionType& intersection) const
   {
     const auto& boundaryID(meshmanager_.boundaryIDs()[intersection.boundarySegmentIndex()]);
-    localInterpolateBoundaryFunction(t,intersection.inside(),boundaryID,df);
+    return localBoundaryFunction(t,intersection.inside(),boundaryID);
   }
 
   // update space and gadapt
@@ -135,8 +145,11 @@ class BoundaryCondition
     // check if the mesh is changed
     if(sequence_!=meshmanager_.sequence())
     {
+      // clear discrete function
+      df_.reset();
       // create space
       space_=std::make_unique<DiscreteSpaceType>(meshmanager_.bulkGridPart());
+      df_=std::make_unique<DiscreteFunctionType>("g",space());
       // create adapted discrete boundary function
       gadapted_.clear();
       for(auto& g:g_)
@@ -155,6 +168,7 @@ class BoundaryCondition
   protected:
   CoupledMeshManagerType& meshmanager_;
   std::unique_ptr<DiscreteSpaceType> space_;
+  mutable std::unique_ptr<DiscreteFunctionType> df_;
   const BCEnumType bctype_;
   mutable FunctionMapType g_;
   mutable AdaptedFunctionMapType gadapted_;
@@ -241,23 +255,22 @@ class DirichletCondition:
 
   using BaseType::evaluateBoundaryFunction;
   using BaseType::space;
-  using BaseType::localInterpolateBoundaryFunction;
+  using BaseType::discreteFunction;
+  using BaseType::localBoundaryFunction;
 
   private:
   using BaseType::blocksIDs_;
 
   // clear as unit rows the ones which have a Dirichlet condition (first operator is the one on the diagonal)
   // set in the RHS vector the Dirichlet component to the correct value
-  template<typename TimeProviderType,typename DiscreteFunctionType,typename... OperatorsType>
-  void setDOFs(const EntityType& entity,const TimeProviderType& timeProvider,DiscreteFunctionType& rhs,DiscreteFunctionType& g,
-               OperatorsType&... operators) const
+  template<typename TimeProviderType,typename RHSType,typename... OperatorsType>
+  void setDOFs(const EntityType& entity,const TimeProviderType& timeProvider,RHSType& rhs,OperatorsType&... operators) const
   {
     typedef std::tuple<typename OperatorsType::LinearOperatorType::LocalMatrixType...> LocalMatricesType;
     LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
     auto rhsLocal(rhs.localFunction(entity));
-    auto gLocal(g.localFunction(entity));
     const auto localBlockSize(DiscreteSpaceType::localBlockSize);
-    const auto numLocalBlocks(rhsLocal.numScalarDofs());
+    const auto numLocalBlocks(discreteFunction().localFunction(entity).numScalarDofs());
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
     space().blockMapper().map(entity,globalIdxs);
 
@@ -267,12 +280,12 @@ class DirichletCondition:
       const auto& boundaryID(blocksIDs_[globalIdxs[localIdx]]);
       if(boundaryID>-1)
       {
-        localInterpolateBoundaryFunction(timeProvider.time(),entity,boundaryID,g);
+        const auto& localBC(localBoundaryFunction(timeProvider.time(),entity,boundaryID));
         for(auto l=0;l!=localBlockSize;++l,++row)
         {
           for_each(localMatrices,[&row](auto& entry,auto ){entry.clearRow(row);});
           std::get<0>(localMatrices).set(row,row,1.0);
-          rhsLocal[row]=gLocal[row];
+          rhsLocal[row]=localBC[row];
         }
       }
       else
@@ -301,23 +314,22 @@ class FreeSlipCondition:
 
   using BaseType::evaluateBoundaryFunction;
   using BaseType::space;
-  using BaseType::localInterpolateBoundaryFunction;
+  using BaseType::discreteFunction;
+  using BaseType::localBoundaryFunction;
 
   private:
   using BaseType::blocksIDs_;
 
   // clear as unit rows the one which have a free-slip condition (first operator is the one on the diagonal)
   // set in the RHS vector the free-slip condition
-  template<typename Foo,typename DiscreteFunctionType,typename... OperatorsType>
-  void setDOFs(const EntityType& entity,const Foo& ,DiscreteFunctionType& rhs,DiscreteFunctionType& g,
-               OperatorsType&... operators) const
+  template<typename Foo,typename RHSType,typename... OperatorsType>
+  void setDOFs(const EntityType& entity,const Foo& ,RHSType& rhs,OperatorsType&... operators) const
   {
     typedef std::tuple<typename OperatorsType::LinearOperatorType::LocalMatrixType...> LocalMatricesType;
     LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
     auto rhsLocal(rhs.localFunction(entity));
-    auto gLocal(g.localFunction(entity));
     const auto localBlockSize(DiscreteSpaceType::localBlockSize);
-    const auto numLocalBlocks(rhsLocal.numScalarDofs());
+    const auto numLocalBlocks(discreteFunction().localFunction(entity).numScalarDofs());
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
     space().blockMapper().map(entity,globalIdxs);
 
@@ -329,7 +341,7 @@ class FreeSlipCondition:
       {
         for(const auto& boundaryID:boundaryIDs)
         {
-          localInterpolateBoundaryFunction(0.0,entity,boundaryID,g);
+          const auto& localBC(localBoundaryFunction(0.0,entity,boundaryID));
           const auto f(evaluateBoundaryFunction(typename BaseType::DomainType(0.0),0.0,entity,boundaryID));
           for(auto l=0;l!=localBlockSize;++l,++row)
           {
@@ -338,7 +350,7 @@ class FreeSlipCondition:
               for_each(localMatrices,[&row](auto& entry,auto ){entry.clearRow(row);});
               std::get<0>(localMatrices).set(row,row,1.0);
             }
-            rhsLocal[row]*=gLocal[row];
+            rhsLocal[row]*=localBC[row];
           }
           row-=localBlockSize;
         }

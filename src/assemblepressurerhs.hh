@@ -1,7 +1,6 @@
 #ifndef DUNE_FEM_ASSEMBLEPRESSURERHS_HH
 #define DUNE_FEM_ASSEMBLEPRESSURERHS_HH
 
-#include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
 #include <cmath>
@@ -18,10 +17,8 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
   // clear RHS
   rhs.clear();
 
-  // create discrete function to interpolate BC
+  // create necessary quantities in BC
   bc.update();
-  typedef AdaptiveDiscreteFunction<typename BoundaryConditionType::DiscreteSpaceType> BCDiscreteFunctionType;
-  BCDiscreteFunctionType g("g",bc.space());
 
   // compute domain volume and \int_{\partial\Omega} I\vec g . \vec n
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
@@ -35,17 +32,16 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
     vol+=std::abs(entity.geometry().volume());
     if(entity.hasBoundaryIntersections())
     {
-      auto gLocal(g.localFunction(entity));
       for(const auto& intersection:intersections(gridPart,entity))
         if(intersection.boundary())
         {
-          bc.localInterpolateBoundaryFunction(timeProvider.time(),intersection,g);
+          const auto& gLocal(bc.localBoundaryFunction(timeProvider.time(),intersection));
           const auto normal(intersection.centerUnitOuterNormal());
           typedef CachingQuadrature<typename DiscreteFunctionType::GridPartType,1> QuadratureType;
           QuadratureType quadrature(gridPart,intersection,2*bc.space().order()+1,QuadratureType::INSIDE);
           for(const auto& qp:quadrature)
           {
-            typename BCDiscreteFunctionType::RangeType gValue;
+            typename BoundaryConditionType::RangeType gValue;
             gLocal.evaluate(qp.position(),gValue);
             const auto weight(intersection.geometry().integrationElement(qp.localPosition())*qp.weight());
             integral+=(normal*gValue)*weight;
