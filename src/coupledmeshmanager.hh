@@ -164,7 +164,7 @@ class RemeshingVolumeCriteria
     }
     if(coeff_==1.0)
     {
-      std::cout<<std::endl<<"Remeshing performed at each time step."<<std::endl<<std::endl;;
+      std::cout<<std::endl<<"Remeshing performed at each time step."<<std::endl<<std::endl;
       needed=true;
     }
     return needed;
@@ -454,7 +454,7 @@ class CoupledMeshManager
   {
     s<<std::endl;
     s<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :"<<std::endl;
-    s<<"BoundaryIDs = "<<boundaryids_.use_count()<<std::endl;;
+    s<<"BoundaryIDs = "<<boundaryids_.use_count()<<std::endl;
     s<<"ElementIDs = "<<elementsids_.use_count()<<std::endl;
     s<<"BulkGrid = "<<bulkgrid_.use_count()<<std::endl;
     s<<"BulkGridPart = "<<bulkgridpart_.use_count()<<std::endl;
@@ -575,7 +575,7 @@ class CoupledMeshManager
   void printGridInfo(const GT& grid) const
   {
     std::cout<<std::endl<<"Created grid (dimgrid = "<<GT::dimension<<") with "<<grid.size(0)<<" elements and "
-      <<grid.size(GT::dimension)<<" vertices."<<std::endl<<std::endl;;
+      <<grid.size(GT::dimension)<<" vertices."<<std::endl<<std::endl;
   }
 };
 

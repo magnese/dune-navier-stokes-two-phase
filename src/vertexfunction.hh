@@ -106,7 +106,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
 
   void evaluate(const HostVertexType& vertex,unsigned int ,RangeVectorType& y) const
   {
-    coord_.evaluate(vertex.geometry().center(),y);;
+    coord_.evaluate(vertex.geometry().center(),y);
   }
 
   void adapt()

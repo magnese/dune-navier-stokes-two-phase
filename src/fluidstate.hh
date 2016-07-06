@@ -178,11 +178,11 @@ class FluidState
   // get grid parts
   BulkGridPartType& bulkGridPart()
   {
-    return meshmanager_.bulkGridPart();;
+    return meshmanager_.bulkGridPart();
   }
   const BulkGridPartType& bulkGridPart() const
   {
-    return meshmanager_.bulkGridPart();;
+    return meshmanager_.bulkGridPart();
   }
   InterfaceGridPartType& interfaceGridPart()
   {

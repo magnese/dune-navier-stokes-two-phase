@@ -461,7 +461,7 @@ template<typename FluidStateImp>
 class ShearFlowProblem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
-  typedef FluidStateImp FluidStateType;;
+  typedef FluidStateImp FluidStateType;
   typedef ShearFlowProblem<FluidStateType> ThisType;
   typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
 
