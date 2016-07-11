@@ -84,16 +84,6 @@ class BoundaryCondition
     return *space_;
   }
 
-  DiscreteFunctionType& discreteFunction()
-  {
-    return *df_;
-  }
-
-  DiscreteFunctionType& discreteFunction() const
-  {
-    return *df_;
-  }
-
   template<typename TimeProviderType,typename RHSType,typename... OperatorsType>
   void apply(const TimeProviderType& timeProvider,RHSType& rhs,OperatorsType&... operators)
   {
@@ -129,8 +119,8 @@ class BoundaryCondition
     typedef typename AdaptedDiscreteFunctionType::RangeFieldType RangeFieldType;
     std::vector<RangeFieldType> localDOFs(space().basisFunctionSet(entity).size());
     interpolation(gAdapted.localFunction(entity),localDOFs);
-    discreteFunction().setLocalDofs(entity,localDOFs);
-    return discreteFunction().localFunction(entity);
+    df_->setLocalDofs(entity,localDOFs);
+    return df_->localFunction(entity);
   }
 
   auto localBoundaryFunction(double t,const IntersectionType& intersection) const
@@ -255,11 +245,11 @@ class DirichletCondition:
 
   using BaseType::evaluateBoundaryFunction;
   using BaseType::space;
-  using BaseType::discreteFunction;
   using BaseType::localBoundaryFunction;
 
   private:
   using BaseType::blocksIDs_;
+  using BaseType::df_;
 
   // clear as unit rows the ones which have a Dirichlet condition (first operator is the one on the diagonal)
   // set in the RHS vector the Dirichlet component to the correct value
@@ -270,7 +260,7 @@ class DirichletCondition:
     LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
     auto rhsLocal(rhs.localFunction(entity));
     const auto localBlockSize(DiscreteSpaceType::localBlockSize);
-    const auto numLocalBlocks(discreteFunction().localFunction(entity).numScalarDofs());
+    const auto numLocalBlocks(df_->localFunction(entity).numDofs()/DiscreteSpaceType::dimRange);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
     space().blockMapper().map(entity,globalIdxs);
 
@@ -314,11 +304,11 @@ class FreeSlipCondition:
 
   using BaseType::evaluateBoundaryFunction;
   using BaseType::space;
-  using BaseType::discreteFunction;
   using BaseType::localBoundaryFunction;
 
   private:
   using BaseType::blocksIDs_;
+  using BaseType::df_;
 
   // clear as unit rows the one which have a free-slip condition (first operator is the one on the diagonal)
   // set in the RHS vector the free-slip condition
@@ -329,7 +319,7 @@ class FreeSlipCondition:
     LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
     auto rhsLocal(rhs.localFunction(entity));
     const auto localBlockSize(DiscreteSpaceType::localBlockSize);
-    const auto numLocalBlocks(discreteFunction().localFunction(entity).numScalarDofs());
+    const auto numLocalBlocks(df_->localFunction(entity).numDofs()/DiscreteSpaceType::dimRange);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
     space().blockMapper().map(entity,globalIdxs);
 

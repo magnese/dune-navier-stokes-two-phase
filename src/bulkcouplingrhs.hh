@@ -28,13 +28,15 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
     // define space, local function and basis for velocity
     const auto& velocitySpace(rhs.space());
     typedef typename VelocityDiscreteFunctionType::LocalFunctionType::RangeType VelocityLocalFunctionRangeType;
-    const auto velocityLocalBlockSize(VelocityDiscreteFunctionType::DiscreteFunctionSpaceType::localBlockSize);
+    typedef typename VelocityDiscreteFunctionType::DiscreteFunctionSpaceType VelocitySpaceType;
+    const auto velocityLocalBlockSize(VelocitySpaceType::localBlockSize);
     std::vector<VelocityLocalFunctionRangeType> phiVelocity(velocitySpace.blockMapper().maxNumDofs()*velocityLocalBlockSize);
 
     // define space, local function and basis for curvature
     const auto& curvatureSpace(curvatureSolutiontm.space());
     typedef typename CurvatureDiscreteFunctionType::LocalFunctionType::RangeType CurvatureLocalFunctionRangeType;
-    const auto curvatureLocalBlockSize(CurvatureDiscreteFunctionType::DiscreteFunctionSpaceType::localBlockSize);
+    typedef typename CurvatureDiscreteFunctionType::DiscreteFunctionSpaceType CurvatureSpaceType;
+    const auto curvatureLocalBlockSize(CurvatureSpaceType::localBlockSize);
     std::vector<CurvatureLocalFunctionRangeType> phiCurvature(curvatureSpace.blockMapper().maxNumDofs()*curvatureLocalBlockSize);
 
     // define normal functor and normal vector
@@ -78,8 +80,8 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
         velocityBaseSet.evaluateAll(qp,phiVelocity);
         const auto weight(intersection.geometry().integrationElement(qp.localPosition())*qp.weight());
 
-        const auto curvatureNumLocalBlocks(localCurvature.numScalarDofs());
-        const auto velocityNumLocalBlocks(localRHS.numScalarDofs());
+        const auto curvatureNumLocalBlocks(localCurvature.numDofs()/CurvatureSpaceType::dimRange);
+        const auto velocityNumLocalBlocks(localRHS.numDofs()/VelocitySpaceType::dimRange);
         std::size_t row(0);
         for(auto localIdx=0;localIdx!=velocityNumLocalBlocks;++localIdx)
         {
@@ -87,7 +89,7 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
           {
             auto value(phiVelocity[row]*normalVector);
 
-            typename CurvatureDiscreteFunctionType::DiscreteFunctionSpaceType::RangeFieldType temp(0.0);
+            typename CurvatureSpaceType::RangeFieldType temp(0.0);
             for(auto k=0;k!=(curvatureLocalBlockSize*curvatureNumLocalBlocks);++k)
               temp+=localCurvature[k]*phiCurvature[k][0];
 

@@ -37,7 +37,7 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& o
       baseSet.evaluateAll(qp,phi);
       const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
-      const auto numLocalBlocks(localRHS.numScalarDofs());
+      const auto numLocalBlocks(localRHS.numDofs()/DiscreteSpaceType::dimRange);
       const auto localSize(numLocalBlocks*localBlockSize);
       std::size_t row(0);
       for(auto localIdx=0;localIdx!=numLocalBlocks;++localIdx)
