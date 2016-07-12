@@ -1,6 +1,7 @@
 #ifndef DUNE_FEM_ASSEMBLEPRESSURERHS_HH
 #define DUNE_FEM_ASSEMBLEPRESSURERHS_HH
 
+#include <dune/fem/function/localfunction/localfunction.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
 #include <cmath>
@@ -35,7 +36,10 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
       for(const auto& intersection:intersections(gridPart,entity))
         if(intersection.boundary())
         {
-          const auto& gLocal(bc.localBoundaryFunction(timeProvider.time(),intersection));
+          const auto& gLocalDOFs(bc.localBoundaryDOFs(timeProvider.time(),intersection));
+          typedef LocalFunction<typename BoundaryConditionType::DiscreteSpaceType::BasisFunctionSetType,
+                                typename BoundaryConditionType::LocalBoundaryDOFsType> GLocalType;
+          GLocalType gLocal(bc.space().basisFunctionSet(entity),gLocalDOFs);
           const auto normal(intersection.centerUnitOuterNormal());
           typedef CachingQuadrature<typename DiscreteFunctionType::GridPartType,1> QuadratureType;
           QuadratureType quadrature(gridPart,intersection,2*bc.space().order()+1,QuadratureType::INSIDE);
