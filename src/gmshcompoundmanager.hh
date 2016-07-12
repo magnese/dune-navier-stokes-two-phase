@@ -7,7 +7,6 @@
 #include <vector>
 #include <list>
 #include <map>
-#include <functional>
 #include <algorithm>
 #include <ostream>
 #include <memory>
@@ -385,7 +384,8 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
   {}
 
   private:
-  void createCompoundGeo(const std::function<double(const GVertex&)>& charlength)
+  template<typename CharlengthType>
+  void createCompoundGeo(const CharlengthType& charlength)
   {
     compound()=std::make_shared<GModel>();
     compound()->setFactory("Gmsh");
@@ -408,8 +408,8 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     (compound()->addPlanarFace(innerLineLoop))->addPhysicalEntity(1);
   }
 
-  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GEdge*>& edges,
-                           const std::function<double(const GVertex&)>& charlength)
+  template<typename CharlengthType>
+  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GEdge*>& edges,const CharlengthType& charlength)
   {
     long int vtxCounter(0);
     std::vector<GVertex*> vertices(0);
@@ -592,7 +592,8 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
   {}
 
   private:
-  void createCompoundGeo(const std::function<double(const GVertex&)>& charlength)
+  template<typename CharlengthType>
+  void createCompoundGeo(const CharlengthType& charlength)
   {
     compound()=std::make_shared<GModel>();
     compound()->setFactory("Gmsh");
@@ -615,8 +616,8 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     (compound()->addVolume(innerSurfaceLoop))->addPhysicalEntity(1);
   }
 
-  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GFace*>& faces,
-                           const std::function<double(const GVertex&)>& charlength)
+  template<typename CharlengthType>
+  void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GFace*>& faces,const CharlengthType& charlength)
   {
     std::vector<GVertex*> vertices(0);
     std::array<GVertex*,2> vtxPtr({nullptr,nullptr});
