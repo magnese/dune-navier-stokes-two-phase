@@ -89,8 +89,8 @@ class SortedView
   typedef GridImp GridType;
   typedef SortedView<GridType> ThisType;
 
-  static constexpr auto dimensionworld=GridType::dimensionworld;
-  static constexpr auto dimension=GridType::dimension;
+  static constexpr unsigned int dimensionworld=GridType::dimensionworld;
+  static constexpr unsigned int dimension=GridType::dimension;
 
   typedef typename GridType::template Codim<0>::Entity EntityType;
   typedef typename EntityType::EntitySeed EntitySeedType;
@@ -106,13 +106,13 @@ class SortedView
     // epsilon = (bounding_box_volume / num_entities)^(1/dimensionworld)*k where k is 1.5 if dimensionworld==2 and 2 if dimensionworld==3
     const auto dx(bulkBoundingBox.second-bulkBoundingBox.first);
     double boundingBoxVolume(1.0);
-    for(std::size_t i=0;i!=dimensionworld;++i)
+    for(auto i=decltype(dimensionworld){0};i!=dimensionworld;++i)
       boundingBoxVolume*=dx[i];
     double epsilon(std::pow(boundingBoxVolume/static_cast<double>(grid.size(0)),1.0/static_cast<double>(dimensionworld)));
     epsilon*=(dimensionworld==2?1.5:2.0);
     // compute sizes of reticulus
     std::array<unsigned int,3> size{1,1,1};
-    for(std::size_t i=0;i!=dimensionworld;++i)
+    for(auto i=decltype(dimensionworld){0};i!=dimensionworld;++i)
       size[i]+=static_cast<unsigned int>(std::ceil(dx[i]/epsilon));
     // resize vector of entities
     entities_.resize(size[0]*size[1]*size[2]);
@@ -124,7 +124,7 @@ class SortedView
       const auto centre(entity.geometry().center());
       // compute position inside entitites
       std::array<unsigned int,3> idx{0,0,0};
-      for(std::size_t i=0;i!=dimensionworld;++i)
+      for(auto i=decltype(dimensionworld){0};i!=dimensionworld;++i)
         idx[i]=static_cast<unsigned int>(std::round((centre[i]-bulkBoundingBox.first[i])/epsilon));
       auto position(idx[2]*size[0]*size[1]);
       if(idx[2]%2==0)

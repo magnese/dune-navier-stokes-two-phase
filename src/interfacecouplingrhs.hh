@@ -27,18 +27,18 @@ void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDi
   const auto& velocitySpace(velocitySolutiontm.space());
   typedef typename VelocityDiscreteFunctionType::LocalFunctionType::RangeType VelocityLocalFunctionRangeType;
   typedef typename VelocityDiscreteFunctionType::DiscreteFunctionSpaceType VelocitySpaceType;
-  const auto velocityLocalBlockSize(VelocitySpaceType::localBlockSize);
+  constexpr std::size_t velocityLocalBlockSize(VelocitySpaceType::localBlockSize);
   std::vector<VelocityLocalFunctionRangeType> phiVelocity(velocitySpace.blockMapper().maxNumDofs()*velocityLocalBlockSize);
 
   // define space, local function and basis for curvature
   const auto& curvatureSpace(rhs.space());
   typedef typename CurvatureDiscreteFunctionType::LocalFunctionType::RangeType CurvatureLocalFunctionRangeType;
   typedef typename CurvatureDiscreteFunctionType::DiscreteFunctionSpaceType CurvatureSpaceType;
-  const auto curvatureLocalBlockSize(CurvatureSpaceType::localBlockSize);
+  constexpr std::size_t curvatureLocalBlockSize(CurvatureSpaceType::localBlockSize);
   std::vector<CurvatureLocalFunctionRangeType> phiCurvature(curvatureSpace.blockMapper().maxNumDofs()*curvatureLocalBlockSize);
 
   // define normal functor and normal vector
-  constexpr auto worlddim(VelocityDiscreteFunctionType::GridType::dimensionworld);
+  constexpr unsigned int worlddim(VelocityDiscreteFunctionType::GridType::dimensionworld);
   typedef typename CurvatureDiscreteFunctionType::GridType::ctype ctype;
   typedef Normal<ctype,worlddim> NormalType;
   NormalType normal;
@@ -80,15 +80,15 @@ void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDi
 
       const auto curvatureNumLocalBlocks(localRHS.numDofs()/CurvatureSpaceType::dimRange);
       const auto velocityNumLocalBlocks(localVelocity.numDofs()/VelocitySpaceType::dimRange);
-      for(auto row=0;row!=(curvatureLocalBlockSize*curvatureNumLocalBlocks);++row)
+      for(auto row=decltype(curvatureNumLocalBlocks){0};row!=(curvatureLocalBlockSize*curvatureNumLocalBlocks);++row)
       {
         auto value(phiCurvature[row][0]);
 
         typename CurvatureSpaceType::RangeFieldType temp(0.0);
         std::size_t k(0);
-        for(auto localIdx=0;localIdx!=velocityNumLocalBlocks;++localIdx)
+        for(auto localIdx=decltype(velocityNumLocalBlocks){0};localIdx!=velocityNumLocalBlocks;++localIdx)
         {
-          for(auto l=0;l!=velocityLocalBlockSize;++l,++k)
+          for(auto l=decltype(velocityLocalBlockSize){0};l!=velocityLocalBlockSize;++l,++k)
             temp+=localVelocity[k]*phiVelocity[localIdx][l]*normalVector[l];
         }
 

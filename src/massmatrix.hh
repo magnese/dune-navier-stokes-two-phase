@@ -70,7 +70,7 @@ class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
     op_.reserve(stencil);
     op_.clear();
 
-    const auto localBlockSize(DiscreteSpaceType::localBlockSize);
+    constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
     std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
 
@@ -85,9 +85,9 @@ class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
         baseSet.evaluateAll(qp,phi);
         const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
         const auto localSize(localMatrix.rows());
-        for(auto i=0;i!=localSize;++i)
+        for(auto i=decltype(localSize){0};i!=localSize;++i)
         {
-          for(auto j=0;j!=localSize;++j)
+          for(auto j=decltype(localSize){0};j!=localSize;++j)
           {
             const auto value((phi[i]*phi[j])*weight);
             localMatrix.add(i,j,value);

@@ -70,10 +70,10 @@ class MeshSmoothing
     problem_.bc().apply(std::ignore,rhs,op);
     timerAssemble.stop();
     // impose zero displacement for the interface
-    const auto localBlockSize(FluidStateType::DisplacementDiscreteSpaceType::localBlockSize);
+    constexpr std::size_t localBlockSize(FluidStateType::DisplacementDiscreteSpaceType::localBlockSize);
     const auto numBlocks(fluidstate_.displacement().blocks());
-    for(auto i=0;i!=numBlocks;++i)
-      for(auto l=0;l!=localBlockSize;++l)
+    for(auto i=decltype(numBlocks){0};i!=numBlocks;++i)
+      for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l)
       {
         const auto row((fluidstate_.meshManager().mapper().vtxInterface2Bulk(i))*localBlockSize+l);
         op.systemMatrix().matrix().clearRow(row);

@@ -113,7 +113,7 @@ bool isBulkConsistentWithInterface(const InterfaceGridType& interfaceGrid,const 
                                    const BulkInterfaceGridMapperType& mapper)
 {
   // perform an interface walkthrough
-  const auto bulkGriddim(BulkGridType::dimension);
+  const unsigned int bulkGriddim(BulkGridType::dimension);
   const auto interfaceLeafGridView(interfaceGrid.leafGridView());
   for(const auto& interfaceEntity:elements(interfaceLeafGridView))
   {
@@ -124,7 +124,7 @@ bool isBulkConsistentWithInterface(const InterfaceGridType& interfaceGrid,const 
     // create reference element
     const auto& refElement(ReferenceElements<typename BulkGridType::ctype,bulkGriddim>::general(bulkEntity.type()));
     // check inconsitency between bulk and interface
-    for(auto i=0;i!=bulkGriddim;++i)
+    for(auto i=decltype(bulkGriddim){0};i!=bulkGriddim;++i)
     {
       const auto bulkVtxLocalIndex(refElement.subEntity(faceLocalIndex,1,i,bulkGriddim));
       if(interfaceEntity.geometry().corner(i)!=bulkEntity.geometry().corner(bulkVtxLocalIndex))
@@ -307,7 +307,7 @@ static struct TrianglesDump
   void add(const EntityType& entity)
   {
     const auto& geo(entity.geometry());
-    for(std::size_t i=0;i!=geo.corners();++i)
+    for(auto i=decltype(geo.corners()){0};i!=geo.corners();++i)
       writer_.add(std::move(geo.corner(i)[0]),std::move(geo.corner(i)[1]));
     writer_.add(std::move(geo.corner(0)[0]),std::move(geo.corner(0)[1]),true);
   }

@@ -109,13 +109,13 @@ class BulkInterfaceGridMapper
   template<typename InterfaceFunction,typename BulkFunction>
   void addInterfaceDF2BulkDF(const InterfaceFunction& interfaceFunction,BulkFunction& bulkFunction) const
   {
-    const auto interfaceLocalBlockSize(InterfaceFunction::DiscreteFunctionSpaceType::localBlockSize);
+    constexpr std::size_t interfaceLocalBlockSize(InterfaceFunction::DiscreteFunctionSpaceType::localBlockSize);
     const auto interfaceNumBlocks(interfaceFunction.blocks());
     auto interfaceIt(interfaceFunction.dbegin());
-    for(auto i=0;i!=interfaceNumBlocks;++i)
+    for(auto i=decltype(interfaceNumBlocks){0};i!=interfaceNumBlocks;++i)
     {
       const auto blockPos(vtxinterface2bulk_[i]);
-      for(auto l=0;l!=interfaceLocalBlockSize;++l,++interfaceIt)
+      for(auto l=decltype(interfaceLocalBlockSize){0};l!=interfaceLocalBlockSize;++l,++interfaceIt)
         bulkFunction.dofVector()[blockPos][l]+=*interfaceIt;
     }
   }
@@ -191,9 +191,9 @@ class CoupledMeshManager
   typedef CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,useCompoundManager,CharlengthPolicyType,RemeshingCriteriaType> ThisType;
 
   // extract dimensions
-  static constexpr auto bulkGriddim=BulkHostGridType::dimension;
-  static constexpr auto interfaceGriddim=InterfaceHostGridType::dimension;
-  static constexpr auto worlddim=BulkHostGridType::dimensionworld;
+  static constexpr unsigned int bulkGriddim=BulkHostGridType::dimension;
+  static constexpr unsigned int interfaceGriddim=InterfaceHostGridType::dimension;
+  static constexpr unsigned int worlddim=BulkHostGridType::dimensionworld;
 
   // grid factories types
   typedef GridFactory<BulkHostGridType> BulkHostGridFactoryType;
@@ -422,8 +422,8 @@ class CoupledMeshManager
     FieldVector<double,worlddim> boundigBoxMin(std::numeric_limits<double>::max());
     FieldVector<double,worlddim> boundigBoxMax(std::numeric_limits<double>::min());
     const auto& coords(bulkGrid().coordFunction().discreteFunction().dofVector());
-    for(std::size_t i=0;i!=bulkGrid().size(0);++i)
-      for(std::size_t j=0;j!=worlddim;++j)
+    for(auto i=decltype(bulkGrid().size(0)){0};i!=bulkGrid().size(0);++i)
+      for(auto j=decltype(worlddim){0};j!=worlddim;++j)
       {
         boundigBoxMin[j]=std::min(boundigBoxMin[j],coords[i][j]);
         boundigBoxMax[j]=std::max(boundigBoxMax[j],coords[i][j]);
@@ -537,7 +537,7 @@ class CoupledMeshManager
             if(!(bulkindicator_->isInner(outsideIntersection)))
             {
               const auto faceLocalIndex(intersection.indexInInside());
-              for(auto i=0;i!=bulkGriddim;++i)
+              for(auto i=decltype(bulkGriddim){0};i!=bulkGriddim;++i)
               {
                 const auto vtxLocalIndex(refElement.subEntity(faceLocalIndex,1,i,bulkGriddim));
                 vtxGlobalIndex[i]=bulkGrid().leafIndexSet().subIndex(entity,vtxLocalIndex,bulkGriddim);

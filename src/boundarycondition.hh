@@ -253,13 +253,13 @@ class DirichletCondition:
     typedef std::tuple<typename OperatorsType::LinearOperatorType::LocalMatrixType...> LocalMatricesType;
     LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
     auto rhsLocal(rhs.localFunction(entity));
-    const auto localBlockSize(DiscreteSpaceType::localBlockSize);
+    constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     const auto numLocalBlocks(space().basisFunctionSet(entity).size()/DiscreteSpaceType::dimRange);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
     space().blockMapper().map(entity,globalIdxs);
 
     std::size_t row(0);
-    for(auto localIdx=0;localIdx!=numLocalBlocks;++localIdx)
+    for(auto localIdx=decltype(numLocalBlocks){0};localIdx!=numLocalBlocks;++localIdx)
     {
       const auto& boundaryID(blocksIDs_[globalIdxs[localIdx]]);
       if(boundaryID>-1)
@@ -311,13 +311,13 @@ class FreeSlipCondition:
     typedef std::tuple<typename OperatorsType::LinearOperatorType::LocalMatrixType...> LocalMatricesType;
     LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
     auto rhsLocal(rhs.localFunction(entity));
-    const auto localBlockSize(DiscreteSpaceType::localBlockSize);
+    constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     const auto numLocalBlocks(space().basisFunctionSet(entity).size()/DiscreteSpaceType::dimRange);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
     space().blockMapper().map(entity,globalIdxs);
 
     std::size_t row(0);
-    for(auto localIdx=0;localIdx!=numLocalBlocks;++localIdx)
+    for(auto localIdx=decltype(numLocalBlocks){0};localIdx!=numLocalBlocks;++localIdx)
     {
       const auto& boundaryIDs(blocksIDs_[globalIdxs[localIdx]].get());
       if(boundaryIDs.front()>-1)
@@ -326,7 +326,7 @@ class FreeSlipCondition:
         {
           const auto& localBCDOFs(localBoundaryDOFs(0.0,entity,boundaryID));
           const auto f(evaluateBoundaryFunction(typename BaseType::DomainType(0.0),0.0,entity,boundaryID));
-          for(auto l=0;l!=localBlockSize;++l,++row)
+          for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
           {
             if(f[l]==0.0)
             {

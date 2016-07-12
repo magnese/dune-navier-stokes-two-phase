@@ -75,8 +75,8 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
     op_.reserve(stencil);
     op_.clear();
 
-    const auto domainLocalBlockSize(DomainSpaceType::localBlockSize);
-    const auto rangeLocalBlockSize(RangeSpaceType::localBlockSize);
+    constexpr std::size_t domainLocalBlockSize(DomainSpaceType::localBlockSize);
+    constexpr std::size_t rangeLocalBlockSize(RangeSpaceType::localBlockSize);
     typedef typename DomainSpaceType::RangeType DomainType;
     typedef typename RangeSpaceType::RangeType RangeType;
     std::vector<DomainType> phiDomain(domainspace_.blockMapper().maxNumDofs()*domainLocalBlockSize);
@@ -84,13 +84,13 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
 
     // define normal functor and normal vector
     typedef typename DomainSpaceType::GridType::ctype ctype;
-    constexpr auto worlddim(DomainSpaceType::GridType::dimensionworld);
+    constexpr unsigned int worlddim(DomainSpaceType::GridType::dimensionworld);
     typedef Normal<ctype,worlddim> NormalType;
     NormalType normal;
     typename NormalType::NormalVectorType normalVector;
 
     // define selector
-    constexpr auto dim(DomainType::dimension);
+    constexpr unsigned int dim(DomainType::dimension);
     typedef Selector<dim,typename DomainSpaceType::RangeFieldType> SelectorType;
     SelectorType selector;
 
@@ -114,9 +114,9 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
 
         const auto rows(localMatrix.rows());
         const auto columns(localMatrix.columns());
-        for(auto i=0;i!=rows;++i)
+        for(auto i=decltype(rows){0};i!=rows;++i)
         {
-          for(auto j=0;j!=columns;++j)
+          for(auto j=decltype(columns){0};j!=columns;++j)
           {
             auto value(selector(phiRange,phiDomain,normalVector,i,j));
             value*=weight;
@@ -128,7 +128,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
   }
 
   private:
-  template<std::size_t dim,typename R>
+  template<unsigned int dim,typename R>
   struct Selector;
 
   template<typename R>

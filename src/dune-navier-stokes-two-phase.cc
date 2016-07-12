@@ -52,8 +52,8 @@ int main(int argc,char** argv)
 
     // create coupled grids and fluid state
     typedef Dune::GridSelector::GridType BulkHostGridType;
-    constexpr auto worlddim(BulkHostGridType::dimensionworld);
-    constexpr auto bulkGriddim(BulkHostGridType::dimension);
+    constexpr unsigned int worlddim(BulkHostGridType::dimensionworld);
+    constexpr unsigned int bulkGriddim(BulkHostGridType::dimension);
     typedef Dune::AlbertaGrid<bulkGriddim-1,worlddim> InterfaceHostGridType;
     #if REMESH_TYPE == 0
     typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,false> CoupledMeshManagerType;

@@ -22,8 +22,8 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
   typedef GridImp GridType;
   typedef VertexFunction<GridType> ThisType;
   typedef typename GridType::ctype ctype;
-  static constexpr auto griddim=GridType::dimension;
-  static constexpr auto worlddim=GridType::dimensionworld;
+  static constexpr unsigned int griddim=GridType::dimension;
+  static constexpr unsigned int worlddim=GridType::dimensionworld;
   typedef DiscreteCoordFunction<ctype,worlddim,ThisType> BaseType;
   typedef typename BaseType::RangeVector RangeVectorType;
 
@@ -62,7 +62,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
   void initialize(const GridType& grid)
   {
     // fill the vertices coordinates with the grid vertices
-    const std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
+    constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     for(const auto& entity:entities(coord_))
     {
       auto localCoord(coord_.localFunction(entity));

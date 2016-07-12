@@ -68,7 +68,7 @@ class SmoothingOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
     op_.reserve(stencil);
     op_.clear();
 
-    const auto localBlockSize(DiscreteSpaceType::localBlockSize);
+    constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
     std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
@@ -90,15 +90,15 @@ class SmoothingOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
         const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
         const auto localSize(localMatrix.rows());
-        for(auto i=0;i!=localSize;++i)
+        for(auto i=decltype(localSize){0};i!=localSize;++i)
         {
-          for(auto j=0;j!=localSize;++j)
+          for(auto j=decltype(localSize){0};j!=localSize;++j)
           {
             // laplacian part
             RangeFieldType value(0.0);
-            for(auto k=0;k!=localBlockSize;++k)
+            for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
             {
-              for(auto kk=0;kk!=localBlockSize;++kk)
+              for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
               {
                 value+=gradphi[i][k][kk]*gradphi[j][k][kk]+gradphi[i][kk][k]*gradphi[j][kk][k];
                 value+=gradphi[i][k][kk]*gradphi[j][kk][k]+gradphi[i][kk][k]*gradphi[j][k][kk];
@@ -108,10 +108,10 @@ class SmoothingOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
 
             // divergence part
             RangeFieldType valueDivergenceTest(0.0);
-            for(auto k=0;k!=localBlockSize;++k)
+            for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
               valueDivergenceTest+=gradphi[i][k][k];
             RangeFieldType valueDivergenceTrial(0.0);
-            for(auto k=0;k!=localBlockSize;++k)
+            for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
               valueDivergenceTrial+=gradphi[j][k][k];
 
             // add to the local matrix

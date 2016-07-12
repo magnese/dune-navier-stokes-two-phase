@@ -18,7 +18,7 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& o
 
   typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
-  const auto localBlockSize(DiscreteSpaceType::localBlockSize);
+  constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
   const auto& space(rhs.space());
   std::vector<LocalFunctionRangeType> phi(space.blockMapper().maxNumDofs()*localBlockSize);
 
@@ -40,15 +40,15 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& o
       const auto numLocalBlocks(localRHS.numDofs()/DiscreteSpaceType::dimRange);
       const auto localSize(numLocalBlocks*localBlockSize);
       std::size_t row(0);
-      for(auto localIdx=0;localIdx!=numLocalBlocks;++localIdx)
+      for(auto localIdx=decltype(numLocalBlocks){0};localIdx!=numLocalBlocks;++localIdx)
       {
-        for(auto l=0;l!=localBlockSize;++l,++row)
+        for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
         {
           auto value(fValue*phi[row]);
 
           typename DiscreteSpaceType::RangeFieldType temp(0.0);
-          for(auto k=0;k!=localBlockSize;++k)
-            for(auto kk=0;kk!=localSize;++kk)
+          for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+            for(auto kk=decltype(localSize){0};kk!=localSize;++kk)
               temp+=localOldSolution[kk]*phi[kk][k]*phi[row][k];
           temp*=(rho/timeProvider.deltaT());
 

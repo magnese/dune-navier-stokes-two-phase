@@ -176,7 +176,7 @@ struct AdaptiveCharlength
     for(const auto& vertex:vertices(interfaceGridLeafView))
     {
       FieldVector<double,3> temp({vtx.x(),vtx.y(),vtx.z()});
-      for(auto i=0;i!=InterfaceGridType::dimensionworld;i++)
+      for(std::size_t i=0;i!=InterfaceGridType::dimensionworld;i++)
         temp[i]-=vertex.geometry().center()[i];
       dist=std::min(dist,temp.two_norm());
     }
@@ -499,7 +499,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     std::array<long int,worlddim> posVtx;
     for(const auto& entity:elements(interfaceLeafGridView))
     {
-      for(auto i=0;i!=worlddim;++i)
+      for(auto i=decltype(worlddim){0};i!=worlddim;++i)
       {
         posVtx[i]=interfaceGrid.leafIndexSet().subIndex(entity,i,worlddim-1);
         if(vertices[posVtx[i]]==nullptr)
@@ -546,7 +546,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
       for(auto i=decltype((*faceIt)->triangles.size()){0};i!=(*faceIt)->triangles.size();++i)
       {
         auto simplexPtr((*faceIt)->triangles[i]);
-        for(auto j=0;j!=(worlddim+1);++j)
+        for(auto j=decltype(worlddim){0};j!=(worlddim+1);++j)
           entityConnectivity[j]=verticesMap[simplexPtr->getVertex(j)->getNum()];
         gridFactory.insertElement(entityType,entityConnectivity);
         elementsIDs.push_back(entityID);
@@ -562,7 +562,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
         for(auto i=decltype((*edgeIt)->lines.size()){0};i!=(*edgeIt)->lines.size();++i)
         {
           auto linePtr((*edgeIt)->lines[i]);
-          for(auto j=0;j!=worlddim;++j)
+          for(auto j=decltype(worlddim){0};j!=worlddim;++j)
             boundaryConnectivity[j]=verticesMap[linePtr->getVertex(j)->getNum()];
           gridFactory.insertBoundarySegment(boundaryConnectivity);
           boundaryIDs.push_back(boundaryID);
@@ -708,7 +708,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
       {
         auto simplexPtr((*faceIt)->triangles[i]);
         // loop over edges
-        for(auto l=0;l!=worlddim;++l)
+        for(auto l=decltype(worlddim){0};l!=worlddim;++l)
         {
           // get index of the 2 vertices
           for(int k=0;k!=2;++k)
@@ -761,7 +761,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     for(const auto& entity:elements(interfaceLeafGridView))
     {
       const auto& refElement(ReferenceElements<typename InterfaceGridType::ctype,worlddim-1>::general(entity.type()));
-      for(auto i=0;i!=worlddim;++i)
+      for(auto i=decltype(worlddim){0};i!=worlddim;++i)
       {
         posVtx[i]=interfaceGrid.leafIndexSet().subIndex(entity,i,worlddim-1);
         if(vertices[posVtx[i]]==nullptr)
@@ -770,7 +770,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
           vertices[posVtx[i]]=interface()->addVertex(vtx[0],vtx[1],vtx[2],charlength);
         }
       }
-      for(auto i=0;i!=worlddim;++i)
+      for(auto i=decltype(worlddim){0};i!=worlddim;++i)
       {
         posEdge[i]=interfaceGrid.leafIndexSet().subIndex(entity,i,worlddim-2);
         if(edges[posEdge[i]]==nullptr)
@@ -817,7 +817,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
       for(auto i=decltype((*regionIt)->tetrahedra.size()){0};i!=(*regionIt)->tetrahedra.size();++i)
       {
         auto simplexPtr((*regionIt)->tetrahedra[i]);
-        for(auto j=0;j!=(worlddim+1);++j)
+        for(auto j=decltype(worlddim){0};j!=(worlddim+1);++j)
           entityConnectivity[j]=verticesMap[simplexPtr->getVertex(j)->getNum()];
         gridFactory.insertElement(entityType,entityConnectivity);
         elementsIDs.push_back(entityID);
@@ -833,7 +833,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
         for(auto i=decltype((*faceIt)->triangles.size()){0};i!=(*faceIt)->triangles.size();++i)
         {
           auto trianglePtr((*faceIt)->triangles[i]);
-          for(auto j=0;j!=worlddim;++j)
+          for(auto j=decltype(worlddim){0};j!=worlddim;++j)
             boundaryConnectivity[j]=verticesMap[trianglePtr->getVertex(j)->getNum()];
           gridFactory.insertBoundarySegment(boundaryConnectivity);
           boundaryIDs.push_back(boundaryID);

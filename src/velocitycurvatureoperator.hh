@@ -92,15 +92,15 @@ class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionI
     op_.clear();
 
     // define local functions and basis
-    const auto velocityLocalBlockSize(VelocitySpaceType::localBlockSize);
+    constexpr std::size_t velocityLocalBlockSize(VelocitySpaceType::localBlockSize);
     typedef typename VelocityFunctionType::LocalFunctionType::RangeType VelocityRangeType;
     std::vector<VelocityRangeType> phiVelocity(velocityspace_.blockMapper().maxNumDofs()*velocityLocalBlockSize);
-    const auto curvatureLocalBlockSize(CurvatureSpaceType::localBlockSize);
+    constexpr std::size_t curvatureLocalBlockSize(CurvatureSpaceType::localBlockSize);
     typedef typename CurvatureFunctionType::LocalFunctionType::RangeType CurvatureRangeType;
     std::vector<CurvatureRangeType> phiCurvature(curvaturespace_.blockMapper().maxNumDofs()*curvatureLocalBlockSize);
 
     // define normal functor and normal vector
-    constexpr auto worlddim(BulkGridType::dimensionworld);
+    constexpr unsigned int worlddim(BulkGridType::dimensionworld);
     typedef Normal<typename InterfaceGridType::ctype,worlddim> NormalType;
     NormalType normal;
     typename NormalType::NormalVectorType normalVector;
@@ -140,9 +140,9 @@ class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionI
 
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());
-        for(auto i=0;i!=rowLocalSize;++i)
+        for(auto i=decltype(rowLocalSize){0};i!=rowLocalSize;++i)
         {
-          for(auto j=0;j!=columnLocalSize;++j)
+          for(auto j=decltype(columnLocalSize){0};j!=columnLocalSize;++j)
           {
             const auto value((phiVelocity[j]*normalVector)*phiCurvature[i]*weight);
             localMatrix.add(i,j,value);

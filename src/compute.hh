@@ -187,7 +187,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       // store if a dof has already been interpolated
       std::vector<bool> dofAlreadyInterpolated(fluidState.velocitySpace().blockMapper().size(),false);
       // interpolate velocity onto the new grid
-      const auto velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
+      constexpr std::size_t velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
       const auto& velocitySpace(fluidState.velocitySpace());
       #if INTERPOLATION_TYPE != 0
       auto oldEntity=(*(oldFluidState.velocitySpace().begin()));
@@ -220,7 +220,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
             auto localOldVelocity(oldFluidState.velocity().localFunction(oldEntity));
             localOldVelocity.evaluate(oldEntity.geometry().local(xGlobal),temp);
             #endif
-            for(auto l=0;l!=velocityLocalBlockSize;++l,++row)
+            for(auto l=decltype(velocityLocalBlockSize){0};l!=velocityLocalBlockSize;++l,++row)
               localVelocity[row]=temp[l];
             dofAlreadyInterpolated[globalIdxs[pt]]=true;
           }

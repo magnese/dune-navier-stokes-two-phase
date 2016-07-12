@@ -8,8 +8,9 @@
 #include <dune/fem/function/common/scalarproducts.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
-#include <string>
+#include <algorithm>
 #include <fstream>
+#include <string>
 
 namespace Dune
 {
@@ -68,8 +69,8 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
     op_.reserve(stencil);
     op_.clear();
 
-    const auto domainLocalBlockSize(DomainSpaceType::localBlockSize);
-    const auto rangeLocalBlockSize(RangeSpaceType::localBlockSize);
+    constexpr std::size_t domainLocalBlockSize(DomainSpaceType::localBlockSize);
+    constexpr std::size_t rangeLocalBlockSize(RangeSpaceType::localBlockSize);
     typedef typename DomainFunctionType::LocalFunctionType::JacobianRangeType DomainJacobianRangeType;
     std::vector<DomainJacobianRangeType> gradphi(domainspace_.blockMapper().maxNumDofs()*domainLocalBlockSize);
     typedef typename RangeFunctionType::LocalFunctionType::RangeType RangeRangeType;
@@ -90,12 +91,12 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
 
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());
-        for(auto i=0;i!=rowLocalSize;++i)
+        for(auto i=decltype(rowLocalSize){0};i!=rowLocalSize;++i)
         {
-          for(auto j=0;j!=columnLocalSize;++j)
+          for(auto j=decltype(columnLocalSize){0};j!=columnLocalSize;++j)
           {
             typename RangeSpaceType::RangeFieldType value(0.0);
-            for(auto k=0;k!=domainLocalBlockSize;++k)
+            for(auto k=decltype(domainLocalBlockSize){0};k!=domainLocalBlockSize;++k)
               value+=gradphi[j][k][k];
             value*=(-1.0*weight*phi[i][0]);
             localMatrix.add(i,j,value);

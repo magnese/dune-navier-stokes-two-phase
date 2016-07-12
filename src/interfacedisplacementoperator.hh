@@ -75,11 +75,11 @@ class InterfaceDisplacementOperator:public Operator<DiscreteFunctionImp,Discrete
     op_.reserve(stencil);
     op_.clear();
 
-    const auto localBlockSize(DiscreteSpaceType::localBlockSize);
+    constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
     std::vector<LocalFunctionJacobianRangeType> gradphi(space_.blockMapper().maxNumDofs()*localBlockSize);
 
-    constexpr auto rangedim(DiscreteSpaceType::FunctionSpaceType::dimRange);
+    constexpr std::size_t rangedim(DiscreteSpaceType::FunctionSpaceType::dimRange);
 
     for(const auto& entity:space_)
     {
@@ -94,12 +94,12 @@ class InterfaceDisplacementOperator:public Operator<DiscreteFunctionImp,Discrete
 
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());
-        for(auto i=0;i!=rowLocalSize;++i)
+        for(auto i=decltype(rowLocalSize){0};i!=rowLocalSize;++i)
         {
-          for(auto j=0;j!=columnLocalSize;++j)
+          for(auto j=decltype(columnLocalSize){0};j!=columnLocalSize;++j)
           {
             typename DiscreteSpaceType::RangeFieldType value(0.0);
-            for(auto k=0;k!=rangedim;++k)
+            for(auto k=decltype(rangedim){0};k!=rangedim;++k)
               value+=gradphi[i][k]*gradphi[j][k];
             value*=weight;
             localMatrix.add(i,j,value);

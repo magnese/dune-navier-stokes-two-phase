@@ -16,7 +16,7 @@ FieldVector<double,EntityType::dimension+1> barycentricCoordinates(const EntityT
 {
   FieldVector<double,EntityType::dimension+1> coor(1);
   const auto xLocal(entity.geometry().local(x));
-  for(std::size_t i=0;i!=x.size();++i)
+  for(auto i=decltype(x.size()){0};i!=x.size();++i)
   {
     coor[0]-=xLocal[i];
     coor[i+1]=xLocal[i];
@@ -39,7 +39,7 @@ unsigned int searchForEntity(const GridPartType& gridPart,EntityType&& entity,co
     // check if x is inside the entity
     double minCoor(std::numeric_limits<double>::max());
     std::size_t faceIdx(0);
-    for(std::size_t i=0;i!=coor.size();++i)
+    for(auto i=decltype(coor.size()){0};i!=coor.size();++i)
       if(coor[i]<-toll)
         if(coor[i]<minCoor)
         {
