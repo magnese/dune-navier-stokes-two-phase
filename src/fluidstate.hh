@@ -340,7 +340,7 @@ class FluidState
     velocity().name()="velocity";
     pressure().name()="pressure";
     #if PRESSURE_SPACE_TYPE == 2
-    pressureAdditional().name="additional pressure";
+    pressureAdditional().name()="additional pressure";
     pressuredump_=std::make_shared<PressureDumpDiscreteFunctionType>("pressure",pressureDumpSpace());
     #endif
     bulkdisplacement_=std::make_shared<BulkDisplacementDiscreteFunctionType>("bulk displacement",bulkDisplacementSpace());
