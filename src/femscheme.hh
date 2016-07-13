@@ -173,10 +173,14 @@ class FemScheme
     pressureAdditionalVelocityOp.assemble();
     #endif
     VelocityPressureOperatorType velocityPressureOp(fluidstate_.velocitySpace(),fluidstate_.pressureSpace());
-    velocityPressureOp.assemble();
+    #if !USE_SYMMETRIC_DIRICHLET
+    velocityPressureOp.assembleTransposingOp(pressureVelocityOp);
+    #endif
     #if PRESSURE_SPACE_TYPE == 2
     VelocityPressureAdditionalOperatorType velocityPressureAdditionalOp(fluidstate_.velocitySpace(),fluidstate_.pressureAdditionalSpace());
-    velocityPressureAdditionalOp.assemble();
+    #if !USE_SYMMETRIC_DIRICHLET
+    velocityPressureAdditionalOp.assembleTransposingOp(pressureAdditionalVelocityOp);
+    #endif
     #endif
     PressureOperatorType pressureOp(fluidstate_.pressureSpace(),fluidstate_.pressureSpace());
     //pressureOp.assemble(); // not needed since it is never used
@@ -244,11 +248,21 @@ class FemScheme
     // impose bulk bc
     timerAssembleBulk.start();
     #if PRESSURE_SPACE_TYPE == 2
-    problem_.applyBC(timeProvider,velocityRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
+    problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
     #else
-    problem_.applyBC(timeProvider,velocityRHS,velocityOp,pressureVelocityOp);
+    problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp);
     #endif
     timerAssembleBulk.stop();
+
+    // assemble bulk operators
+    #if USE_SYMMETRIC_DIRICHLET
+    timerAssembleBulk.start();
+    velocityPressureOp.assembleTransposingOp(pressureVelocityOp);
+    #if PRESSURE_SPACE_TYPE == 2
+    velocityPressureAdditionalOp.assembleTransposingOp(pressureAdditionalVelocityOp);
+    #endif
+    timerAssembleBulk.stop();
+    #endif
 
     // compute bulk solution
     const int verbosity(Parameter::getValue<int>("SolverVerbosity",0));

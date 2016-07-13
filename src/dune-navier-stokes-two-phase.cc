@@ -15,6 +15,8 @@
 #define PROBLEM_NUMBER 2 // 0 StokesTest1, 1 StokesTest2, 2 StationaryBubble, 3 ExpandingBubble, 4 ShearFlow
                          // 5 StationaryNavierStokes, 6 NavierStokes2D, 7 RisingBubble
 
+#define USE_SYMMETRIC_DIRICHLET 1 // compulsory for LDL
+
 #include <string>
 #include <vector>
 #include <memory>

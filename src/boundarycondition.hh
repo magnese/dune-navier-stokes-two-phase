@@ -247,9 +247,12 @@ class DirichletCondition:
 
   // clear as unit rows the ones which have a Dirichlet condition (first operator is the one on the diagonal)
   // set in the RHS vector the Dirichlet component to the correct value
-  template<typename TimeProviderType,typename RHSType,typename... OperatorsType>
-  void setDOFs(const EntityType& entity,const TimeProviderType& timeProvider,RHSType& rhs,OperatorsType&... operators) const
+  template<typename TimeProviderType,typename RHSType,typename FirstOperatorType,typename... OperatorsType>
+  void setDOFs(const EntityType& entity,const TimeProviderType& timeProvider,RHSType& rhs,FirstOperatorType& firstOperator,
+               OperatorsType&... operators) const
   {
+    typedef typename FirstOperatorType::LinearOperatorType::LocalMatrixType FirstLocalMatrixType;
+    FirstLocalMatrixType firstLocalMatrix(firstOperator.systemMatrix().localMatrix(entity,entity));
     typedef std::tuple<typename OperatorsType::LinearOperatorType::LocalMatrixType...> LocalMatricesType;
     LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
     auto rhsLocal(rhs.localFunction(entity));
@@ -265,10 +268,35 @@ class DirichletCondition:
       if(boundaryID>-1)
       {
         const auto& localBCDOFs(localBoundaryDOFs(timeProvider.time(),entity,boundaryID));
-        for(auto l=0;l!=localBlockSize;++l,++row)
+        for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
         {
+          // impose bc on first operator
+          firstLocalMatrix.clearRow(row);
+          #if USE_SYMMETRIC_DIRICHLET
+          for(auto j=decltype(firstLocalMatrix.rows()){0};j!=firstLocalMatrix.rows();++j)
+          {
+            // keep matrix symmetric
+            rhsLocal[j]-=firstLocalMatrix.get(j,row)*localBCDOFs[row];
+            firstLocalMatrix.set(j,row,0.0);
+          }
+          #endif
+          firstLocalMatrix.set(row,row,1.0);
+          // impose bc on others operators
+          #if USE_SYMMETRIC_DIRICHLET
+          std::size_t offset(firstLocalMatrix.rows());
+          for_each(localMatrices,[&row,&localBCDOFs,&rhsLocal,&offset](auto& entry,auto )
+                                 {
+                                   for(auto j=decltype(entry.columns()){0};j!=entry.columns();++j)
+                                   {
+                                     rhsLocal[j+offset]-=entry.get(row,j)*localBCDOFs[row];
+                                     entry.set(row,j,0.0);
+                                   }
+                                   offset+=entry.columns();
+                                 });
+          #else
           for_each(localMatrices,[&row](auto& entry,auto ){entry.clearRow(row);});
-          std::get<0>(localMatrices).set(row,row,1.0);
+          #endif
+          // impose bc on RHS term
           rhsLocal[row]=localBCDOFs[row];
         }
       }

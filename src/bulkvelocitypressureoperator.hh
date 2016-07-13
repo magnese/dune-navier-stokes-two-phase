@@ -107,6 +107,23 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
 
   }
 
+  template<typename TransposeOperatorType>
+  void assembleTransposingOp(const TransposeOperatorType& opT)
+  {
+    DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
+    op_.reserve(stencil);
+    op_.clear();
+
+    for(const auto& entity:domainspace_)
+    {
+      auto localMatrix(op_.localMatrix(entity,entity));
+      const auto localMatrixT(opT.systemMatrix().localMatrix(entity,entity));
+      for(auto i=decltype(localMatrix.rows()){0};i!=localMatrix.rows();++i)
+        for(auto j=decltype(localMatrix.columns()){0};j!=localMatrix.columns();++j)
+            localMatrix.set(i,j,localMatrixT.get(j,i));
+    }
+  }
+
   private:
   const DomainSpaceType& domainspace_;
   const RangeSpaceType& rangespace_;
