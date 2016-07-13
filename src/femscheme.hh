@@ -140,6 +140,7 @@ class FemScheme
 
     //assemble rhs
     InterfaceDiscreteFunctionType rhs("interface RHS",fluidstate_.interfaceSpace());
+    rhs.clear();
     assembleInterfaceRHS(rhs,interfaceOp);
     rhs*=-1.0;
 
@@ -209,14 +210,10 @@ class FemScheme
     // assemble bulk RHS
     timerAssembleBulk.start();
     BulkDiscreteFunctionType bulkRHS("bulk RHS",fluidstate_.bulkSpace());
+    bulkRHS.clear();
     auto& velocityRHS(bulkRHS.template subDiscreteFunction<0>());
     assembleVelocityRHS(velocityRHS,fluidstate_.velocity(),problem_,timeProvider);
-    #if PROBLEM_NUMBER==0 || PROBLEM_NUMBER==1 || PROBLEM_NUMBER==2 || PROBLEM_NUMBER==5 || PROBLEM_NUMBER==6 || PROBLEM_NUMBER==7
-    bulkRHS.template subDiscreteFunction<1>().clear();
-    #if PRESSURE_SPACE_TYPE == 2
-    bulkRHS.template subDiscreteFunction<2>().clear();
-    #endif
-    #else
+    #if PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 4
     assemblePressureRHS(bulkRHS.template subDiscreteFunction<1>(),problem_.velocityBC(),timeProvider);
     #if PRESSURE_SPACE_TYPE == 2
     assemblePressureRHS(bulkRHS.template subDiscreteFunction<2>(),problem_.velocityBC(),timeProvider);
@@ -227,6 +224,7 @@ class FemScheme
     // assemble interface RHS
     timerAssembleInterface.start();
     InterfaceDiscreteFunctionType interfaceRHS("interface RHS",fluidstate_.interfaceSpace());
+    interfaceRHS.clear();
     assembleInterfaceRHS(interfaceRHS,interfaceOp);
     timerAssembleInterface.stop();
 

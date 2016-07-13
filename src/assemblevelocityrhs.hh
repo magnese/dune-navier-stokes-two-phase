@@ -14,8 +14,6 @@ template<typename DiscreteFunctionType,typename ProblemType,typename TimeProvide
 void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& oldSolution,const ProblemType& problem,
                          const TimeProviderType& timeProvider)
 {
-  rhs.clear();
-
   typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
   constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);

@@ -15,9 +15,6 @@ namespace Fem
 template<typename DiscreteFunctionType,typename BoundaryConditionType,typename TimeProviderType>
 void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,const TimeProviderType& timeProvider)
 {
-  // clear RHS
-  rhs.clear();
-
   // create necessary quantities in BC
   bc.update();
 
