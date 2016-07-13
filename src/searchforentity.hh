@@ -50,7 +50,7 @@ unsigned int searchForEntity(const GridPartType& gridPart,EntityType&& entity,co
     // search the point x in the neighbouring entity closer to x
     if(!found)
       for(const auto& intersection:intersections(gridPart,entity))
-        if(intersection.indexInInside()==faceIdx)
+        if(static_cast<std::size_t>(intersection.indexInInside())==faceIdx)
         {
           if(intersection.boundary())
             DUNE_THROW(InvalidStateException,"ERROR: searchForEntity is trying to go outside the domain --> domain not convex!");

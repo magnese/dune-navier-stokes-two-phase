@@ -54,7 +54,7 @@ void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDi
 
     // extract the associated intersection
     auto intersectionIt(bulkGridPart.ibegin(bulkEntity));
-    while(intersectionIt->indexInInside()!=faceLocalIdx)
+    while(static_cast<std::size_t>(intersectionIt->indexInInside())!=faceLocalIdx)
       ++intersectionIt;
     const auto intersection(*intersectionIt);
 

@@ -108,7 +108,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       // store an inner and an outer entity, needed for indicator function
       const auto innerEntity(fluidState.bulkGrid().entity(fluidState.meshManager().mapper().entitySeedInterface2Bulk(0)));
       auto intersectionIt(fluidState.bulkGridPart().ibegin(innerEntity));
-      while(intersectionIt->indexInInside()!=fluidState.meshManager().mapper().faceLocalIdxInterface2Bulk(0))
+      while(static_cast<std::size_t>(intersectionIt->indexInInside())!=fluidState.meshManager().mapper().faceLocalIdxInterface2Bulk(0))
         ++intersectionIt;
       const auto outerEntity(intersectionIt->outside());
       // compute error
