@@ -142,6 +142,10 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
     const auto row(mat11_.cols());
     op_.matrix().clearRow(row);
     op_.matrix().set(row,row,1.0);
+    #if USE_SYMMETRIC_DIRICHLET
+    for(auto i=decltype(mat11_.rows()){0};i!=mat11_.rows();++i)
+      op_.matrix().set(i,row,0.0);
+    #endif
   }
 
   template<typename RHSType>
@@ -308,9 +312,17 @@ class ExtendedOperatorGluer:public Operator<
     auto row(mat11_.cols());
     op_.matrix().clearRow(row);
     op_.matrix().set(row,row,1.0);
+    #if USE_SYMMETRIC_DIRICHLET
+    for(auto i=decltype(mat11_.rows()){0};i!=mat11_.rows();++i)
+      op_.matrix().set(i,row,0.0);
+    #endif
     row+=mat12_.cols();
     op_.matrix().clearRow(row);
     op_.matrix().set(row,row,1.0);
+    #if USE_SYMMETRIC_DIRICHLET
+    for(auto i=decltype(mat11_.rows()){0};i!=mat11_.rows();++i)
+      op_.matrix().set(i,row,0.0);
+    #endif
   }
 
   template<typename RHSType>

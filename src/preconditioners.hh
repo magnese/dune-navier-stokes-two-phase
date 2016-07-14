@@ -3,6 +3,7 @@
 
 #include <dune/istl/preconditioner.hh>
 #include <dune/fem/common/tupleforeach.hh>
+#include <dune/fem/solver/spqrsolver.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 
 #include <type_traits>
@@ -159,7 +160,7 @@ class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunction
   typedef InvOperT<domain_type,OperType,false> InvOperType;
 
   explicit DirectPrecond(OperType& op):
-    op_(op),invop_(op_),usedoctoring_(std::is_same<InvOperType,UMFPACKOp<domain_type,OperType,false>>::value),
+    op_(op),invop_(op_),usedoctoring_((std::is_same<InvOperType,SPQROp<domain_type,OperType,false>>::value)?false:true),
     b_(op_.domainSpace().size(),0),x_(op_.domainSpace().size(),0)
   {}
 
