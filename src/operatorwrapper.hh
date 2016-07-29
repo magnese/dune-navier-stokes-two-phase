@@ -3,13 +3,17 @@
 
 #include <dune/istl/operators.hh>
 
+#include "extendedtuplediscretefunction.hh"
+
 namespace Dune
 {
 namespace Fem
 {
 
-template<typename DFT,typename Oper11T,typename Oper12T,typename Oper21T,typename Oper22T>
-class OperatorWrapper:public Dune::LinearOperator<DFT,DFT>
+template<typename Oper11T,typename Oper12T,typename Oper21T,typename Oper22T>
+class OperatorWrapper:public Dune::LinearOperator<
+  ExtendedTupleDiscreteFunction<typename Oper11T::DomainFunctionType,typename Oper12T::DomainFunctionType>,
+  ExtendedTupleDiscreteFunction<typename Oper11T::RangeFunctionType,typename Oper21T::RangeFunctionType>>
 {
   public:
   typedef Oper11T Oper11Type;
@@ -17,8 +21,8 @@ class OperatorWrapper:public Dune::LinearOperator<DFT,DFT>
   typedef Oper21T Oper21Type;
   typedef Oper22T Oper22Type;
 
-  typedef DFT domain_type;
-  typedef domain_type range_type;
+  typedef ExtendedTupleDiscreteFunction<typename Oper11T::DomainFunctionType,typename Oper12T::DomainFunctionType> domain_type;
+  typedef ExtendedTupleDiscreteFunction<typename Oper11T::RangeFunctionType,typename Oper21T::RangeFunctionType> range_type;
   typedef typename domain_type::field_type field_type;
   enum {category=SolverCategory::sequential};
 
@@ -69,8 +73,12 @@ class OperatorWrapper:public Dune::LinearOperator<DFT,DFT>
   const Oper22Type& oper22_;
 };
 
-template<typename DFT,typename Oper11T,typename Oper12T,typename Oper21T,typename Oper13T,typename Oper31T>
-class ExtendedOperatorWrapper:public Dune::LinearOperator<DFT,DFT>
+template<typename Oper11T,typename Oper12T,typename Oper21T,typename Oper13T,typename Oper31T>
+class ExtendedOperatorWrapper:public Dune::LinearOperator<
+  ExtendedTupleDiscreteFunction<
+    typename Oper11T::DomainFunctionType,typename Oper12T::DomainFunctionType,typename Oper13T::DomainFunctionType>,
+  ExtendedTupleDiscreteFunction<
+    typename Oper11T::RangeFunctionType,typename Oper21T::RangeFunctionType,typename Oper31T::RangeFunctionType>>
 {
   public:
   typedef Oper11T Oper11Type;
@@ -79,8 +87,10 @@ class ExtendedOperatorWrapper:public Dune::LinearOperator<DFT,DFT>
   typedef Oper13T Oper13Type;
   typedef Oper31T Oper31Type;
 
-  typedef DFT domain_type;
-  typedef domain_type range_type;
+  typedef ExtendedTupleDiscreteFunction<typename Oper11T::DomainFunctionType,typename Oper12T::DomainFunctionType,
+    typename Oper13T::DomainFunctionType> domain_type;
+  typedef ExtendedTupleDiscreteFunction<typename Oper11T::RangeFunctionType,typename Oper21T::RangeFunctionType,
+    typename Oper31T::RangeFunctionType> range_type;
   typedef typename domain_type::field_type field_type;
   enum {category=SolverCategory::sequential};
 

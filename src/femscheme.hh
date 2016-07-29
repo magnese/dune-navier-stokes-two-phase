@@ -264,7 +264,7 @@ class FemScheme
     CoupledOperatorWrapperType coupledWrapperOp(velocityOp,curvatureVelocityOp,interfaceOp,interfaceInvOp,velocityCurvatureOp,gamma);
 
     #if PRESSURE_SPACE_TYPE != 2
-    typedef OperatorWrapper<BulkDiscreteFunctionType,CoupledOperatorWrapperType,PressureVelocityOperatorType,
+    typedef OperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,
                             VelocityPressureOperatorType,PressureOperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureOp);
     #if PRECONDITIONER_TYPE == 0
@@ -289,8 +289,8 @@ class FemScheme
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
     #else
-    typedef ExtendedOperatorWrapper<BulkDiscreteFunctionType,CoupledOperatorWrapperType,PressureVelocityOperatorType,
-      VelocityPressureOperatorType,PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> BulkOperatorWrapperType;
+    typedef ExtendedOperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,VelocityPressureOperatorType,
+      PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,
                                    velocityPressureAdditionalOp);
     #if PRECONDITIONER_TYPE == 0
