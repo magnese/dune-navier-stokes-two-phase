@@ -37,10 +37,10 @@ static class BubbleStatistics
     // compute height barycenter
     barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegration(
                                                 fluidState.meshManager().bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
-                                                fluidState.meshManager().bulkIndicatorFunction()));
+                                                fluidState.meshManager().bulkInnerIndicatorFunction()));
     // compute average rising velocity
     velocitywriter_.add(timeProvider.time(),verticalComponentInnerIntegration(fluidState.velocity(),bulkInnerVolume,
-                                                                              fluidState.meshManager().bulkIndicatorFunction()));
+                                                                              fluidState.meshManager().bulkInnerIndicatorFunction()));
   }
 
   void printInfo() const
@@ -78,9 +78,9 @@ static class BubbleStatistics
     return equivalentCircleLength/interfaceLength;
   }
 
-  template<typename DiscreteFunctionType,typename BulkIndicatorFunctionType>
+  template<typename DiscreteFunctionType,typename BulkInnerIndicatorFunctionType>
   double verticalComponentInnerIntegration(const DiscreteFunctionType& f,double bulkInnerVolume,
-                                           const BulkIndicatorFunctionType& indicator) const
+                                           const BulkInnerIndicatorFunctionType& innerIndicator) const
   {
     // compute \int_{\Omega_-}(\vec f * \vec e_d) / \int_{\Omega_-}( 1 )
     const auto& space(f.space());
@@ -89,7 +89,7 @@ static class BubbleStatistics
     e_d[DiscreteFunctionType::GridType::dimensionworld-1]=1.0;
     double integral(0.0);
     for(const auto& entity:space)
-      if(indicator.isInner(entity))
+      if(innerIndicator.contains(entity))
       {
         const auto fLocal(f.localFunction(entity));
         CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(entity,2*space.order()+1);

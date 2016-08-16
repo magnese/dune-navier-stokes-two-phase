@@ -158,8 +158,7 @@ class BaseProblem
 
   double mu(const EntityType& entity) const
   {
-    const auto& indicator(fluidstate_.meshManager().bulkIndicatorFunction());
-    return muinner_*indicator(entity)+muouter_*(1.0-indicator(entity));
+    return fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?muinner_:muouter_;
   }
   double deltaMu() const
   {
@@ -171,8 +170,7 @@ class BaseProblem
   }
   double rho(const EntityType& entity) const
   {
-    const auto& indicator(fluidstate_.meshManager().bulkIndicatorFunction());
-    return rhoinner_*indicator(entity)+rhoouter_*(1.0-indicator(entity));
+    return  fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?rhoinner_:rhoouter_;
   }
   double deltaRho() const
   {
@@ -363,8 +361,8 @@ class StationaryBubbleProblem:public BaseProblem<FluidStateImp,DirichletConditio
     {
       const auto rt(exactRadius());
       const auto lambda(gamma()*static_cast<double>(worlddim-1)/rt);
-      const auto& indicator(fluidstate_.meshManager().bulkIndicatorFunction());
-      auto value(lambda*(indicator(entity)-std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)/std::pow(2.0,worlddim)));
+      const auto indicatorValue(fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?1.0:0.0);
+      auto value(lambda*(indicatorValue-std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)/std::pow(2.0,worlddim)));
       return value;
     };
 
@@ -426,8 +424,8 @@ class ExpandingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition
     {
       const auto rt(exactRadius(t));
       const auto lambda(static_cast<double>(worlddim-1)*(gamma()/rt+2*alpha_*deltaMu()/std::pow(rt,worlddim)));
-      const auto& indicator(fluidstate_.meshManager().bulkIndicatorFunction());
-      auto value(lambda*(indicator(entity)-
+      const auto indicatorValue(fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?1.0:0.0);
+      auto value(lambda*(indicatorValue-
                          (std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)-std::pow(2.0/3.0,worlddim))/
                          (std::pow(2,worlddim)-std::pow(2.0/3.0,worlddim))));
       return value;

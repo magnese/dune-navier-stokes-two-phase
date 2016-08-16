@@ -1,55 +1,42 @@
-#ifndef DUNE_INDICATORFUNCTION_HH
-#define DUNE_INDICATORFUNCTION_HH
+#ifndef DUNE_FEM_INDICATORFUNCTION_HH
+#define DUNE_FEM_INDICATORFUNCTION_HH
 
 #include <vector>
 
+#include <dune/fem/gridpart/filter/threadfilter.hh>
+
 namespace Dune
 {
+namespace Fem
+{
 
-// indicator function of the inner part of the bulk grid
-template<typename BulkGridImp>
-class IndicatorFunction
+template<typename GridPartImp>
+class InnerBulkGridFilter:public ThreadFilter<GridPartImp,std::vector<int>>
 {
   public:
-  typedef BulkGridImp BulkGridType;
-  typedef IndicatorFunction<BulkGridType> ThisType;
+  typedef GridPartImp GridPartType;
+  typedef ThreadFilter<GridPartType,std::vector<int>> BaseType;
+  typedef InnerBulkGridFilter<GridPartType> ThisType;
 
-  typedef typename BulkGridType::template Codim<0>::Entity BulkEntityType;
-  typedef typename BulkGridType::HostGrid::template Codim<0>::Entity HostEntityType;
-
-  // constructor
-  explicit IndicatorFunction(const BulkGridType& bulkGrid,const std::vector<int>& elementIDs):
-    bulkgrid_(bulkGrid),elementids_(elementIDs)
+  InnerBulkGridFilter(const GridPartType& gridPart,const std::vector<int>& elementIDs):
+    BaseType(gridPart,elementIDs,1)
   {}
+};
 
-  IndicatorFunction(const ThisType& )=delete;
+template<typename GridPartImp>
+class OuterBulkGridFilter:public ThreadFilter<GridPartImp,std::vector<int>>
+{
+  public:
+  typedef GridPartImp GridPartType;
+  typedef ThreadFilter<GridPartType,std::vector<int>> BaseType;
+  typedef InnerBulkGridFilter<GridPartType> ThisType;
 
-  // check if the host entity is inner or outer
-  bool isInner(const HostEntityType& entity) const
-  {
-    const auto idx(bulkgrid_.hostGrid().levelIndexSet(0).index(entity));
-    return elementids_[idx]==1?true:false;
-  }
-
-  // check if the bulk entity is inner or outer
-  bool isInner(const BulkEntityType& entity) const
-  {
-    const auto idx(bulkgrid_.levelIndexSet(0).index(entity));
-    return elementids_[idx]==1?true:false;
-  }
-
-  // return 1.0 if the entity is inner or 0.0 if outer
-  template<typename EntityType>
-  double operator()(const EntityType& entity) const
-  {
-    return static_cast<double>(isInner(entity));
-  }
-
-  private:
-  const BulkGridType& bulkgrid_;
-  const std::vector<int>& elementids_;
+  OuterBulkGridFilter(const GridPartType& gridPart,const std::vector<int>& elementIDs):
+    BaseType(gridPart,elementIDs,2)
+  {}
 };
 
 }
+}
 
-#endif // DUNE_INDICATORFUNCTION_HH
+#endif // DUNE_FEM_INDICATORFUNCTION_HH
