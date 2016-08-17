@@ -117,8 +117,7 @@ class SortedView
     // resize vector of entities
     entities_.resize(size[0]*size[1]*size[2]);
     // fill entities
-    const auto& leafGridView(grid.leafGridView());
-    for(const auto& entity:elements(leafGridView))
+    for(const auto& entity:elements(grid.leafGridView()))
     {
       // compute barycenter
       const auto centre(entity.geometry().center());

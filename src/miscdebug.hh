@@ -27,12 +27,11 @@ namespace Fem
 {
 
 // compute total mesh volume, min and max entity volume
-template<typename GridType>
-std::array<double,3> meshVolumesInfo(const GridType& grid,const std::string& info="")
+template<typename GridPartType>
+std::array<double,3> meshVolumesInfo(const GridPartType& gridPart,const std::string& info="")
 {
   std::array<double,3> volumes({0.0,std::numeric_limits<double>::max(),std::numeric_limits<double>::min()});
-  auto leafGridView(grid.leafGridView());
-  for(const auto& entity:elements(leafGridView))
+  for(const auto& entity:elements(gridPart))
   {
     const auto volume(std::abs(entity.geometry().volume()));
     volumes[0]+=volume;
@@ -108,21 +107,20 @@ static struct BulkNormalizedInnerVolumeInfo
 } bulkNormalizedInnerVolumeInfo;
 
 // check if bulk and interface are consistent
-template<typename InterfaceGridType,typename BulkGridType,typename BulkInterfaceGridMapperType>
-bool isBulkConsistentWithInterface(const InterfaceGridType& interfaceGrid,const BulkGridType& bulkGrid,
+template<typename InterfaceGridPartType,typename BulkGridPartType,typename BulkInterfaceGridMapperType>
+bool isBulkConsistentWithInterface(const InterfaceGridPartType& interfaceGridPart,const BulkGridPartType& bulkGridPart,
                                    const BulkInterfaceGridMapperType& mapper)
 {
   // perform an interface walkthrough
-  const unsigned int bulkGriddim(BulkGridType::dimension);
-  const auto interfaceLeafGridView(interfaceGrid.leafGridView());
-  for(const auto& interfaceEntity:elements(interfaceLeafGridView))
+  const unsigned int bulkGriddim(BulkGridPartType::dimension);
+  for(const auto& interfaceEntity:elements(interfaceGridPart))
   {
     // extract the corresponding bulk entity
-    const auto interfaceIdx(interfaceGrid.leafIndexSet().index(interfaceEntity));
-    const auto bulkEntity(bulkGrid.entity(mapper.entitySeedInterface2Bulk(interfaceIdx)));
+    const auto interfaceIdx(interfaceGridPart.grid().leafIndexSet().index(interfaceEntity));
+    const auto bulkEntity(bulkGridPart.grid().entity(mapper.entitySeedInterface2Bulk(interfaceIdx)));
     const auto& faceLocalIndex(mapper.faceLocalIdxInterface2Bulk(interfaceIdx));
     // create reference element
-    const auto& refElement(ReferenceElements<typename BulkGridType::ctype,bulkGriddim>::general(bulkEntity.type()));
+    const auto& refElement(ReferenceElements<typename BulkGridPartType::GridType::ctype,bulkGriddim>::general(bulkEntity.type()));
     // check inconsitency between bulk and interface
     for(auto i=decltype(bulkGriddim){0};i!=bulkGriddim;++i)
     {

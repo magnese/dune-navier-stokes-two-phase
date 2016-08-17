@@ -123,8 +123,7 @@ struct UniformCharlength
     charlength_(0)
   {
     // average volume
-    const auto interfaceGridLeafView(interfaceGrid.leafGridView());
-    for(const auto& entity:elements(interfaceGridLeafView))
+    for(const auto& entity:elements(interfaceGrid.leafGridView()))
       charlength_+=std::abs(entity.geometry().volume());
     charlength_/=static_cast<double>(interfaceGrid.size(0));
     // in 3D charlength is not the average volume but the edge length of an equilateral triangle with that area
@@ -154,8 +153,7 @@ struct AdaptiveCharlength
     charlength_(0)
   {
     // average volume
-    const auto interfaceGridLeafView(interfaceGrid.leafGridView());
-    for(const auto& entity:elements(interfaceGridLeafView))
+    for(const auto& entity:elements(interfaceGrid.leafGridView()))
       charlength_+=std::abs(entity.geometry().volume());
     charlength_/=static_cast<double>(interfaceGrid.size(0));
     // in 3D charlength is not the average volume but the edge length of an equilateral triangle with that area
@@ -172,8 +170,7 @@ struct AdaptiveCharlength
   double operator()(const VertexType& vtx,const InterfaceGridType& interfaceGrid) const
   {
     double dist(8.0*charlength_);
-    const auto interfaceGridLeafView(interfaceGrid.leafGridView());
-    for(const auto& vertex:vertices(interfaceGridLeafView))
+    for(const auto& vertex:vertices(interfaceGrid.leafGridView()))
     {
       FieldVector<double,3> temp({vtx.x(),vtx.y(),vtx.z()});
       for(std::size_t i=0;i!=InterfaceGridType::dimensionworld;i++)
@@ -494,7 +491,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     constexpr double charlength(1000);
     constexpr int physicalID(1);
     // insert all simplicies and all vertices of the interface in the GModel
-    typename InterfaceGridType::LeafGridView interfaceLeafGridView(interfaceGrid.leafGridView());
+    auto interfaceLeafGridView(interfaceGrid.leafGridView());
     std::vector<GVertex*> vertices(interfaceLeafGridView.size(worlddim-1),nullptr);
     std::array<long int,worlddim> posVtx;
     for(const auto& entity:elements(interfaceLeafGridView))

@@ -137,16 +137,15 @@ class RemeshingVolumeCriteria
     s<<"coeff_remesh = "<<coeff_<<(coeff_<1.0?" (WARNING: remesh disabled!)":"")<<std::endl;
   }
 
-  template<typename GridType>
-  bool remshingIsNeeded(const GridType& grid) const
+  template<typename BulkGridPartType>
+  bool remeshingIsNeeded(const BulkGridPartType& bulkGridPart) const
   {
     bool needed(false);
     if(coeff_>1.0)
     {
       double maxVolume(std::numeric_limits<double>::min());
       double minVolume(std::numeric_limits<double>::max());
-      auto leafGridView(grid.leafGridView());
-      for(const auto& entity:elements(leafGridView))
+      for(const auto& entity:elements(bulkGridPart))
       {
         const auto volume(std::abs(entity.geometry().volume()));
         minVolume=std::min(volume,minVolume);
@@ -354,7 +353,7 @@ class CoupledMeshManager
     if(GmshManagerType::remeshingSupported)
     {
       // check if the remeshing is necessary
-      if(remeshingcriteria_.remshingIsNeeded(bulkGrid()))
+      if(remeshingcriteria_.remeshingIsNeeded(bulkGridPart()))
       {
         // create timer
         Timer timer(false);
@@ -408,8 +407,7 @@ class CoupledMeshManager
   double interfaceLength() const
   {
     double length(0.0);
-    const auto leafGridView(interfaceGrid().leafGridView());
-    for(const auto& entity:elements(leafGridView))
+    for(const auto& entity:elements(interfaceGridPart()))
       length+=std::abs(entity.geometry().volume());
     return length;
   }
@@ -432,13 +430,12 @@ class CoupledMeshManager
 
   bool existEntityWithNoVerticesInDomain() const
   {
-    const auto gridLeafView(bulkGrid().leafGridView());
-    for(const auto& entity:elements(gridLeafView))
+    for(const auto& entity:elements(bulkGridPart()))
       if(entity.hasBoundaryIntersections())
       {
         // count how many faces are boundary faces
         int count(0);
-        for(const auto& intersection:intersections(gridLeafView,entity))
+        for(const auto& intersection:intersections(bulkGridPart(),entity))
           if(intersection.boundary())
             ++count;
         // if the number of boundary faces is equal to worlddim it means that this entity has all vertices on the boundary
