@@ -1,20 +1,17 @@
 #ifndef DUEN_FEM_FEMSCHEME_HH
 #define DUEN_FEM_FEMSCHEME_HH
 
-// C++ includes
 #include <iostream>
 #include <vector>
 #include <cmath>
 #include <algorithm>
 
-// dune includes
 #include <dune/common/timer.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/istl/solvers.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 #include <dune/fem/solver/spqrsolver.hh>
 
-// local includes
 #include "problems.hh"
 #include "nulloperator.hh"
 #include "massmatrix.hh"

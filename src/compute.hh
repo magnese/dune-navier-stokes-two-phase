@@ -1,13 +1,11 @@
 #ifndef DUNE_FEM_COMPUTE_HH
 #define DUNE_FEM_COMPUTE_HH
 
-// C++ includes
 #include <vector>
 #include <iostream>
 #include <algorithm>
 #include <cmath>
 
-// dune includes
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/misc/h1norm.hh>

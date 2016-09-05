@@ -1,7 +1,6 @@
 #ifndef DUNE_FEM_COUPLEDMESHMANAGER_HH
 #define DUNE_FEM_COUPLEDMESHMANAGER_HH
 
-// C++ includes
 #include <iostream>
 #include <limits>
 #include <algorithm>
@@ -10,7 +9,6 @@
 #include <memory>
 #include <string>
 
-// dune includes
 #include <dune/common/timer.hh>
 #include <dune/common/exceptions.hh>
 #include <dune/common/fvector.hh>
@@ -20,7 +18,6 @@
 #include <dune/fem/gridpart/leafgridpart.hh>
 #include <dune/fem/io/parameter.hh>
 
-// local includes
 #include "indicatorfunction.hh"
 #include "vertexfunction.hh"
 #include "gmshcompoundmanager.hh"

@@ -1,18 +1,15 @@
 #ifndef DUNE_FEM_FLUIDSTATE_HH
 #define DUNE_FEM_FLUIDSTATE_HH
 
-// C++ includes
 #include <iostream>
 #include <memory>
 #include <string>
 #include <tuple>
 #include <utility>
 
-// dune includes
 #include <dune/fem/common/tupleforeach.hh>
 #include <dune/fem/io/file/dataoutput.hh>
 
-// local includes
 #include "femtraits.hh"
 
 namespace Dune

@@ -15,19 +15,16 @@
 #define PROBLEM_NUMBER 2 // 0 StokesTest1, 1 StokesTest2, 2 StationaryBubble, 3 ExpandingBubble, 4 ShearFlow
                          // 5 StationaryNavierStokes, 6 NavierStokes2D, 7 RisingBubble
 
-// C++ includes
 #include <string>
 #include <vector>
 #include <memory>
 #include <algorithm>
 
-// dune includes
 #include "config.h"
 #include <dune/common/timer.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/fem/io/parameter.hh>
 
-// local includes
 #include "coupledmeshmanager.hh"
 #include "fluidstate.hh"
 #include "femscheme.hh"

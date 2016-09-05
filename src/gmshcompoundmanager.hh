@@ -1,5 +1,5 @@
-#ifndef GMSHCOMPOUNDMANAGER_HH
-#define GMSHCOMPOUNDMANAGER_HH
+#ifndef DUNE_GMSHCOMPOUNDMANAGER_HH
+#define DUNE_GMSHCOMPOUNDMANAGER_HH
 
 #include <string>
 #include <array>
@@ -843,4 +843,4 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
 };
 
 }
-#endif //GMSHCOMPOUNDMANAGER_HH
+#endif // DUNE_GMSHCOMPOUNDMANAGER_HH
