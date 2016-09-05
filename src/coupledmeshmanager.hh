@@ -421,13 +421,15 @@ class CoupledMeshManager
   {
     FieldVector<double,worlddim> boundigBoxMin(std::numeric_limits<double>::max());
     FieldVector<double,worlddim> boundigBoxMax(std::numeric_limits<double>::min());
-    const auto& coords(bulkGrid().coordFunction().discreteFunction().dofVector());
-    for(auto i=decltype(bulkGrid().size(0)){0};i!=bulkGrid().size(0);++i)
+    for(const auto& vertex:vertices(bulkGridPart()))
+    {
+      const auto& pt(vertex.geometry().center());
       for(auto j=decltype(worlddim){0};j!=worlddim;++j)
       {
-        boundigBoxMin[j]=std::min(boundigBoxMin[j],coords[i][j]);
-        boundigBoxMax[j]=std::max(boundigBoxMax[j],coords[i][j]);
+        boundigBoxMin[j]=std::min(boundigBoxMin[j],pt[j]);
+        boundigBoxMax[j]=std::max(boundigBoxMax[j],pt[j]);
       }
+    }
     return std::make_pair(std::move(boundigBoxMin),std::move(boundigBoxMax));
   }
 
