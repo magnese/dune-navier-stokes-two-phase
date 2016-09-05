@@ -1,5 +1,5 @@
-#ifndef DUNE_FEM_SEARCHFORENTITY_HH
-#define DUNE_FEM_SEARCHFORENTITY_HH
+#ifndef DUNE_FEM_BARYCENTRICENTITYSEARCH_HH
+#define DUNE_FEM_BARYCENTRICENTITYSEARCH_HH
 
 #include <limits>
 
@@ -25,7 +25,7 @@ FieldVector<double,EntityType::dimension+1> barycentricCoordinates(const EntityT
 }
 
 template<typename GridPartType,typename EntityType,typename GlobalCoordinateType>
-unsigned int searchForEntity(const GridPartType& gridPart,EntityType&& entity,const GlobalCoordinateType& x)
+unsigned int barycentricEntitySearch(const GridPartType& gridPart,EntityType&& entity,const GlobalCoordinateType& x)
 {
   constexpr double toll(1.e-12);
   // starting form entity, find the entity which contains x
@@ -65,4 +65,4 @@ unsigned int searchForEntity(const GridPartType& gridPart,EntityType&& entity,co
 }
 }
 
-#endif // DUNE_FEM_SEARCHFORENTITY_HH
+#endif // DUNE_FEM_BARYCENTRICENTITYSEARCH_HH

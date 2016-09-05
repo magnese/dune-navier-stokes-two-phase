@@ -12,7 +12,7 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/solver/timeprovider.hh>
 
-#include "searchforentity.hh"
+#include "barycentricentitysearch.hh"
 #include "sortedview.hh"
 
 namespace Dune
@@ -214,7 +214,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
             #if INTERPOLATION_TYPE == 0
             oldFluidState.velocity().evaluate(xGlobal,temp);
             #else
-            averageResearchDepth+=searchForEntity(oldFluidState.bulkGridPart(),std::move(oldEntity),xGlobal);
+            averageResearchDepth+=barycentricEntitySearch(oldFluidState.bulkGridPart(),std::move(oldEntity),xGlobal);
             auto localOldVelocity(oldFluidState.velocity().localFunction(oldEntity));
             localOldVelocity.evaluate(oldEntity.geometry().local(xGlobal),temp);
             #endif
