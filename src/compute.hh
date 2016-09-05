@@ -12,8 +12,8 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/solver/timeprovider.hh>
 
-#include "barycentricentitysearch.hh"
 #include "sortedview.hh"
+#include "differentmeshlocalevaluator.hh"
 
 namespace Dune
 {
@@ -182,53 +182,33 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         oldFluidState.bulkGrid().coordFunction()-=fluidState.bulkDisplacement();
         oldFluidState.velocity().assign(fluidState.velocity());
       }
-      // store if a dof has already been interpolated
-      std::vector<bool> dofAlreadyInterpolated(fluidState.velocitySpace().blockMapper().size(),false);
-      // interpolate velocity onto the new grid
-      constexpr std::size_t velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
-      const auto& velocitySpace(fluidState.velocitySpace());
-      #if INTERPOLATION_TYPE != 0
-      auto oldEntity=(*(oldFluidState.velocitySpace().begin()));
-      unsigned int averageResearchDepth(0);
-      #endif
-      #if INTERPOLATION_TYPE == 2
-      SortedView<typename FluidStateType::BulkGridType> sortedView(fluidState.bulkGrid(),bulkBoundingBox);
-      for(const auto& entity:elements(sortedView))
+      #if INTERPOLATION_TYPE == 0
+      constexpr bool useBarycentricEntitySearch(false);
+      auto& newBulkGridPart(fluidState.bulkGridPart());
+      #elif INTERPOLATION_TYPE == 1
+      constexpr bool useBarycentricEntitySearch(true);
+      auto& newBulkGridPart(fluidState.bulkGridPart());
       #else
-      for(const auto& entity:velocitySpace)
+      constexpr bool useBarycentricEntitySearch(true);
+      SortedView<typename FluidStateType::BulkGridType> newBulkGridPart(fluidState.bulkGrid(),bulkBoundingBox);
       #endif
+      constexpr std::size_t velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
+      std::vector<typename FluidStateType::VelocityDiscreteFunctionType::RangeFieldType> interpolatedDOFs;
+      interpolatedDOFs.reserve(fluidState.velocitySpace().blockMapper().maxNumDofs()*velocityLocalBlockSize);
+      DifferentMeshLocalEvaluator<typename FluidStateType::VelocityDiscreteFunctionType,useBarycentricEntitySearch>
+        localOldVelocity(oldFluidState.velocity());
+      for(const auto& entity:elements(newBulkGridPart))
       {
-        auto localVelocity(fluidState.velocity().localFunction(entity));
-        const auto& lagrangePointSet(velocitySpace.lagrangePointSet(entity));
-        std::size_t row(0);
-        std::vector<std::size_t> globalIdxs(velocitySpace.blockMapper().numDofs(entity));
-        velocitySpace.blockMapper().map(entity,globalIdxs);
-        for(auto pt=decltype(lagrangePointSet.nop()){0};pt!=lagrangePointSet.nop();++pt)
-        {
-          if(dofAlreadyInterpolated[globalIdxs[pt]])
-            row+=velocityLocalBlockSize;
-          else
-          {
-            typename FluidStateType::VelocityDiscreteFunctionType::RangeType temp;
-            const auto xGlobal(entity.geometry().global(lagrangePointSet.point(pt)));
-            #if INTERPOLATION_TYPE == 0
-            oldFluidState.velocity().evaluate(xGlobal,temp);
-            #else
-            averageResearchDepth+=barycentricEntitySearch(oldFluidState.bulkGridPart(),std::move(oldEntity),xGlobal);
-            auto localOldVelocity(oldFluidState.velocity().localFunction(oldEntity));
-            localOldVelocity.evaluate(oldEntity.geometry().local(xGlobal),temp);
-            #endif
-            for(auto l=decltype(velocityLocalBlockSize){0};l!=velocityLocalBlockSize;++l,++row)
-              localVelocity[row]=temp[l];
-            dofAlreadyInterpolated[globalIdxs[pt]]=true;
-          }
-        }
+        localOldVelocity.init(entity);
+        interpolatedDOFs.resize(fluidState.velocitySpace().basisFunctionSet(entity).size());
+        fluidState.velocitySpace().interpolation(entity)(localOldVelocity,interpolatedDOFs);
+        fluidState.velocity().setLocalDofs(entity,interpolatedDOFs);
       }
       timerInterpolation.stop();
-      #if INTERPOLATION_TYPE != 0
-      std::cout<<"Average research depth : "<<static_cast<double>(averageResearchDepth)/static_cast<double>(dofAlreadyInterpolated.size())
-        <<"."<<std::endl;
-      #endif
+      if(useBarycentricEntitySearch)
+        std::cout<<"Average research depth : "<<
+          static_cast<double>(localOldVelocity.searchIterations())/static_cast<double>(fluidState.velocitySpace().blockMapper().size())
+          <<"."<<std::endl;
       std::cout<<"Velocity interpolation time: "<<timerInterpolation.elapsed()<<" seconds."<<std::endl;
     }
     timerStep.stop();
