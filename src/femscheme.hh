@@ -74,8 +74,12 @@ class FemScheme
   typedef StationaryNavierStokesProblem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 6
   typedef NavierStokes2DProblem<FluidStateType> ProblemType;
-  #else
+  #elif PROBLEM_NUMBER == 7
   typedef RisingBubbleProblem<FluidStateType> ProblemType;
+  #elif PROBLEM_NUMBER == 8
+  typedef NavierStokesTest1Problem<FluidStateType> ProblemType;
+  #else
+  typedef NavierStokesTest2Problem<FluidStateType> ProblemType;
   #endif
 
   // define operators for bulk
@@ -218,7 +222,7 @@ class FemScheme
     bulkRHS.clear();
     auto& velocityRHS(bulkRHS.template subDiscreteFunction<0>());
     assembleVelocityRHS(velocityRHS,fluidstate_.velocity(),problem_,timeProvider);
-    #if PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 4
+    #if PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 4 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9
     assemblePressureRHS(bulkRHS.template subDiscreteFunction<1>(),problem_.velocityBC(),timeProvider);
     #if PRESSURE_SPACE_TYPE == 2
     assemblePressureRHS(bulkRHS.template subDiscreteFunction<2>(),problem_.velocityBC(),timeProvider);
