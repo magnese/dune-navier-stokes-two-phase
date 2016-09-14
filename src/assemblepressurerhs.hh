@@ -52,7 +52,7 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
   }
 
   // if coeff is not 0 assemble RHS which is coeff*(1,\phi)
-  const auto coeff(integral/vol);
+  const auto coeff(-integral/vol);
   if(std::abs(coeff)>1.e-14)
   {
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
