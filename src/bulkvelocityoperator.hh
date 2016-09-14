@@ -35,7 +35,8 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
   explicit BulkVelocityOperator(const DiscreteSpaceType& space,const ProblemType& problem,const DiscreteFunctionType& oldSolution):
-    space_(space),op_("bulk velocity operator",space_,space_),problem_(problem),oldsolution_(oldSolution)
+    space_(space),op_("bulk velocity operator",space_,space_),problem_(problem),oldsolution_(oldSolution),
+    nulldensity_(problem.isDensityNull())
   {}
 
   BulkVelocityOperator(const ThisType& )=delete;
@@ -99,56 +100,50 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
 
         const auto localSize(localMatrix.rows());
         for(auto i=decltype(localSize){0};i!=localSize;++i)
-        {
           for(auto j=decltype(localSize){0};j!=localSize;++j)
           {
             // laplacian part
             RangeFieldType value(0.0);
             #if USE_SYMMETRIC_FORMULATION
             for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
-            {
               for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
               {
                 value+=gradphi[i][k][kk]*gradphi[j][k][kk]+gradphi[i][kk][k]*gradphi[j][kk][k];
                 value+=gradphi[i][k][kk]*gradphi[j][kk][k]+gradphi[i][kk][k]*gradphi[j][k][kk];
               }
-            }
             value*=0.5;
             #else
             for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
               value+=gradphi[i][k]*gradphi[j][k];
             #endif
             value*=mu;
-            // convective part
-            RangeFieldType valueConvective(0.0);
-            for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+            // navier-stokes only
+            if(!nulldensity_)
             {
-              for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
-              {
-                for(auto l=decltype(localSize){0};l!=localSize;++l)
-                {
-                  valueConvective+=localOldSolution[l]*phi[l][kk]*gradphi[j][k][kk]*phi[i][k];
-                  valueConvective-=localOldSolution[l]*phi[l][kk]*gradphi[i][k][kk]*phi[j][k];
-                }
-              }
+              // convective part
+              RangeFieldType valueConvective(0.0);
+              for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+                for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
+                  for(auto l=decltype(localSize){0};l!=localSize;++l)
+                  {
+                    valueConvective+=localOldSolution[l]*phi[l][kk]*gradphi[j][k][kk]*phi[i][k];
+                    valueConvective-=localOldSolution[l]*phi[l][kk]*gradphi[i][k][kk]*phi[j][k];
+                  }
+              valueConvective*=(0.5*rho);
+              value+=valueConvective;
+              // time dependent part
+              RangeFieldType valueTime(0.0);
+              for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+                valueTime+=phi[j][k]*phi[i][k];
+              valueTime*=(rho/timeProvider.deltaT());
+              value+=valueTime;
             }
-            valueConvective*=0.5*rho;
-            // time dependent part
-            RangeFieldType valueTime(0.0);
-            for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
-              valueTime+=phi[j][k]*phi[i][k];
-            valueTime*=(rho/timeProvider.deltaT());
             // add to the local matrix
-            value+=valueConvective;
-            value+=valueTime;
             value*=weight;
             localMatrix.add(i,j,value);
           }
-        }
-
       }
     }
-
   }
 
   private:
@@ -157,6 +152,7 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
   const ProblemType& problem_;
   // solution at the previous time step
   const DiscreteFunctionType& oldsolution_;
+  const bool nulldensity_;
 };
 
 }

@@ -39,22 +39,21 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& o
       const auto localSize(numLocalBlocks*localBlockSize);
       std::size_t row(0);
       for(auto localIdx=decltype(numLocalBlocks){0};localIdx!=numLocalBlocks;++localIdx)
-      {
         for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
         {
           auto value(fValue*phi[row]);
-
-          typename DiscreteSpaceType::RangeFieldType temp(0.0);
-          for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
-            for(auto kk=decltype(localSize){0};kk!=localSize;++kk)
-              temp+=localOldSolution[kk]*phi[kk][k]*phi[row][k];
-          temp*=(rho/timeProvider.deltaT());
-
-          value+=temp;
+          if(!problem.isDensityNull())
+          {
+            typename DiscreteSpaceType::RangeFieldType temp(0.0);
+            for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+              for(auto kk=decltype(localSize){0};kk!=localSize;++kk)
+                temp+=localOldSolution[kk]*phi[kk][k]*phi[row][k];
+             temp*=(rho/timeProvider.deltaT());
+            value+=temp;
+          }
           value*=weight;
           localRHS[row]+=value;
         }
-      }
     }
   }
 }
