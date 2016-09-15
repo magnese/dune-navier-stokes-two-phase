@@ -323,7 +323,7 @@ class FluidState
   // rebuild all quantities
   void init()
   {
-    // create grid parts
+    // reset pointers to avoid dangling references
     resetPointers();
     // create spaces
     bulkspace_=std::make_shared<BulkDiscreteSpaceType>(bulkGridPart());
