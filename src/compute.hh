@@ -177,6 +177,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
       else
       {
+        // TODO: broken! you need to recreate the old mesh and define the velocity on it!
         oldFluidState.init();
         oldFluidState.bulkGrid().coordFunction()=fluidState.bulkGrid().coordFunction();
         oldFluidState.bulkGrid().coordFunction()-=fluidState.bulkDisplacement();
