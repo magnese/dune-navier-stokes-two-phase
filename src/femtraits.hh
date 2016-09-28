@@ -1,7 +1,6 @@
 #ifndef DUNE_FEM_FEMTRAITS_HH
 #define DUNE_FEM_FEMTRAITS_HH
 
-#include <dune/fem/gridpart/leafgridpart.hh>
 #include <dune/fem/space/common/functionspace.hh>
 #include <dune/fem/space/lagrange.hh>
 #if PRESSURE_SPACE_TYPE != 1
@@ -18,14 +17,17 @@ namespace Dune
 namespace Fem
 {
 
-template<typename BulkGridImp,typename InterfaceGridImp>
+template<typename CoupledMeshManagerImp>
 struct FemTraits
 {
-  // define grids
-  typedef BulkGridImp BulkGridType;
-  typedef LeafGridPart<BulkGridType> BulkGridPartType;
-  typedef InterfaceGridImp InterfaceGridType;
-  typedef LeafGridPart<InterfaceGridType> InterfaceGridPartType;
+  // extract grids and grid parts
+  typedef CoupledMeshManagerImp CoupledMeshManagerType;
+  typedef typename CoupledMeshManagerType::BulkGridType BulkGridType;
+  typedef typename CoupledMeshManagerType::BulkGridPartType BulkGridPartType;
+  typedef typename CoupledMeshManagerType::BulkInnerGridPartType BulkInnerGridPartType;
+  typedef typename CoupledMeshManagerType::BulkOuterGridPartType BulkOuterGridPartType;
+  typedef typename CoupledMeshManagerType::InterfaceGridType InterfaceGridType;
+  typedef typename CoupledMeshManagerType::InterfaceGridPartType InterfaceGridPartType;
   // define continuos spaces
   typedef FunctionSpace<double,double,BulkGridType::dimensionworld,BulkGridType::dimensionworld> VelocityContinuosSpaceType;
   typedef FunctionSpace<double,double,BulkGridType::dimensionworld,1> PressureContinuosSpaceType;

@@ -55,8 +55,7 @@ class OutputParameters:public DataOutputParameters
   double startsavetime_;
 };
 
-template<typename CoupledMeshManagerImp,typename Traits=FemTraits<typename CoupledMeshManagerImp::BulkGridType,
-                                                                  typename CoupledMeshManagerImp::InterfaceGridType>>
+template<typename CoupledMeshManagerImp,typename Traits=FemTraits<CoupledMeshManagerImp>>
 class FluidState
 {
   public:
