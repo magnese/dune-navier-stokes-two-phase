@@ -36,11 +36,11 @@ static class BubbleStatistics
     circularitywriter_.add(timeProvider.time(),circularity<worlddim>(bulkInnerVolume,interfaceLength));
     // compute height barycenter
     barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegration(
-                                                fluidState.meshManager().bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
-                                                fluidState.meshManager().bulkInnerGridPart()));
+                                                fluidState.bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
+                                                fluidState.bulkInnerGridPart()));
     // compute average rising velocity
     velocitywriter_.add(timeProvider.time(),verticalComponentInnerIntegration(fluidState.velocity(),bulkInnerVolume,
-                                                                              fluidState.meshManager().bulkInnerGridPart()));
+                                                                              fluidState.bulkInnerGridPart()));
   }
 
   void printInfo() const

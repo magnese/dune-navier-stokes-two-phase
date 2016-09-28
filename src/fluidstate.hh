@@ -181,6 +181,22 @@ class FluidState
   {
     return meshmanager_.bulkGridPart();
   }
+  BulkInnerGridPartType& bulkInnerGridPart()
+  {
+    return meshmanager_.bulkInnerGridPart();
+  }
+  const BulkInnerGridPartType& bulkInnerGridPart() const
+  {
+    return meshmanager_.bulkInnerGridPart();
+  }
+  BulkOuterGridPartType& bulkOuterGridPart()
+  {
+    return meshmanager_.bulkOuterGridPart();
+  }
+  const BulkOuterGridPartType& bulkOuterGridPart() const
+  {
+    return meshmanager_.bulkOuterGridPart();
+  }
   InterfaceGridPartType& interfaceGridPart()
   {
     return meshmanager_.interfaceGridPart();
