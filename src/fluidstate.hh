@@ -65,6 +65,8 @@ class FluidState
   // define grid parts
   typedef typename Traits::BulkGridType BulkGridType;
   typedef typename Traits::BulkGridPartType BulkGridPartType;
+  typedef typename Traits::BulkInnerGridPartType BulkInnerGridPartType;
+  typedef typename Traits::BulkOuterGridPartType BulkOuterGridPartType;
   typedef typename Traits::InterfaceGridType InterfaceGridType;
   typedef typename Traits::InterfaceGridPartType InterfaceGridPartType;
   // define spaces
