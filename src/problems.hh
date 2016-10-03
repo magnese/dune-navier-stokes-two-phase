@@ -448,7 +448,7 @@ class ExpandingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition
     return std::pow(std::pow(r0_,worlddim)+alpha_*t*static_cast<double>(worlddim),1.0/static_cast<double>(worlddim));
   }
 
-  private:
+  protected:
   const double r0_;
   const double alpha_;
 };
@@ -827,6 +827,34 @@ class NavierStokesTest2Problem:public BaseProblem<FluidStateImp,DirichletConditi
   const double alpha2_;
 };
 
+// Navier-Stokes expanding bubble
+template<typename FluidStateImp>
+class NavierStokesExpandingBubbleProblem:public ExpandingBubbleProblem<FluidStateImp>
+{
+  public:
+  typedef FluidStateImp FluidStateType;
+  typedef NavierStokesExpandingBubbleProblem<FluidStateType> ThisType;
+  typedef ExpandingBubbleProblem<FluidStateType> BaseType;
+
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::VelocityDomainType VelocityDomainType;
+
+  using BaseType::velocityRHS;
+  using BaseType::alpha_;
+  using BaseType::worlddim;
+
+  NavierStokesExpandingBubbleProblem(FluidStateType& fluidState):
+    BaseType(fluidState)
+  {
+    velocityRHS()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
+    {
+      auto value(x);
+      value*=-std::pow(alpha_,2)*(worlddim-1);
+      value/=std::pow(x.two_norm(),2*worlddim);
+      return value;
+    };
+  }
+};
 
 }
 }

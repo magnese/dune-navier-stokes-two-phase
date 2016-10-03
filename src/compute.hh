@@ -102,7 +102,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       for(auto velocityIt=fluidState.velocity().dbegin();velocityIt!=fluidState.velocity().dend();++velocityIt,++exactVelocityIt)
         errors[3]=std::max(errors[3],std::abs(*velocityIt-*exactVelocityIt));
       // compute L2 pressure error
-      #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9
+      #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
       // store an inner and an outer entity, needed for indicator function
       const auto innerEntity(fluidState.bulkGrid().entity(fluidState.meshManager().mapper().entitySeedInterface2Bulk(0)));
       auto intersectionIt(fluidState.bulkGridPart().ibegin(innerEntity));
@@ -142,7 +142,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     // compute Linfinity radius error
     if(computeErrors)
     {
-      #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9
+      #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
       const auto interfaceGridLeafView(fluidState.interfaceGrid().leafGridView());
       for(const auto& vertex:vertices(interfaceGridLeafView))
         errors[0]=std::max(errors[0],std::abs(femScheme.problem().exactRadius(timeProvider.time())-vertex.geometry().center().two_norm()));
@@ -226,13 +226,13 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     std::cout<<std::endl<<"Errors:"<<std::endl;
     std::cout.precision(5);
     std::cout<<std::scientific;
-    #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9
+    #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
     std::cout<<"||X-x||_{L^oo} = "<<errors[0]<<std::endl;
     #endif
     std::cout<<"||U-Iu||_{L^2} = "<<errors[1]<<std::endl;
     std::cout<<"||U-Iu||_{H^1} = "<<errors[2]<<std::endl;
     std::cout<<"||U-Iu||_{L^oo} = "<<errors[3]<<std::endl;
-    #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9
+    #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
     std::cout<<"||P-p||_{L^2} = "<<errors[4]<<std::endl;
     #endif
     std::cout<<"||P-Ip||_{L^oo} = "<<errors[5]<<std::endl;
