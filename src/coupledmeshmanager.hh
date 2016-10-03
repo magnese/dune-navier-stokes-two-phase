@@ -254,10 +254,7 @@ class CoupledMeshManager
   {
     if(this!=&other)
     {
-      interfacegridpart_.reset();
-      bulkoutergridpart_.reset();
-      bulkinnergridpart_.reset();
-      bulkgridpart_.reset();
+      resetPointers();
       boundaryids_=other.boundaryids_;
       elementsids_=other.elementsids_;
       manager_=other.manager_;
@@ -389,11 +386,8 @@ class CoupledMeshManager
         // create timer
         Timer timer(false);
         timer.start();
-        // reset grid part pointers to avoid dangling references
-        interfacegridpart_.reset();
-        bulkoutergridpart_.reset();
-        bulkinnergridpart_.reset();
-        bulkgridpart_.reset();
+        // reset pointers to avoid dangling references
+        resetPointers(false);
         // create bulk grid and bulk grid part
         BulkHostGridFactoryType bulkHostGridFactory;
         boundaryids_=std::make_shared<std::vector<int>>();
@@ -515,13 +509,27 @@ class CoupledMeshManager
   unsigned int sequence_;
   const bool performentityverticescheck_;
 
-  void init()
+  // reset pointers to avoid dangling references
+  void resetPointers(bool freeInterface=true)
   {
-    // reset grid part pointers to avoid dangling references
+    mapper_.reset();
     interfacegridpart_.reset();
+    if(freeInterface)
+      interfacegrid_.reset();
     bulkoutergridpart_.reset();
     bulkinnergridpart_.reset();
+    bulkouterindicator_.reset();
+    bulkinnerindicator_.reset();
     bulkgridpart_.reset();
+    bulkgrid_.reset();
+    elementsids_.reset();
+    boundaryids_.reset();
+  }
+
+  void init()
+  {
+    // reset pointers to avoid dangling references
+    resetPointers();
     // create bulk grid and bulk grid part
     BulkHostGridFactoryType bulkHostGridFactory;
     boundaryids_=std::make_shared<std::vector<int>>();
