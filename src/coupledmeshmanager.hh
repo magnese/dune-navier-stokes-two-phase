@@ -444,9 +444,9 @@ class CoupledMeshManager
   {
     FieldVector<double,worlddim> boundigBoxMin(std::numeric_limits<double>::max());
     FieldVector<double,worlddim> boundigBoxMax(std::numeric_limits<double>::min());
-    for(const auto& vertex:vertices(bulkGridPart()))
+    for(const auto& vtx:vertices(bulkGridPart()))
     {
-      const auto& pt(vertex.geometry().center());
+      const auto& pt(vtx.geometry().center());
       for(auto j=decltype(worlddim){0};j!=worlddim;++j)
       {
         boundigBoxMin[j]=std::min(boundigBoxMin[j],pt[j]);
@@ -567,7 +567,7 @@ class CoupledMeshManager
     mapper().vtxBulk2Interface().resize(bulkGrid().levelGridView(0).size(worlddim),defaultValue);
     // create necessary variables
     std::size_t vtxInsertionCounter(0);
-    typename BulkGridType::template Codim<0>::Entity::Geometry::GlobalCoordinate vertex;
+    typename BulkGridType::template Codim<0>::Entity::Geometry::GlobalCoordinate vtx;
     std::array<std::size_t,bulkGriddim> vtxGlobalIndex;
     GeometryType faceType(GeometryType::BasicType::simplex,interfaceGriddim);
     std::vector<unsigned int> faceConnectivity(bulkGriddim);
@@ -586,8 +586,8 @@ class CoupledMeshManager
               if(mapper().vtxBulk2Interface(vtxGlobalIndex[i])==defaultValue)
               {
                 mapper().vtxBulk2Interface(vtxGlobalIndex[i])=vtxInsertionCounter;
-                vertex=entity.geometry().corner(vtxLocalIndex);
-                interfaceHostGridFactory.insertVertex(vertex);
+                vtx=entity.geometry().corner(vtxLocalIndex);
+                interfaceHostGridFactory.insertVertex(vtx);
                 mapper().vtxInterface2Bulk().push_back(vtxGlobalIndex[i]);
                 ++vtxInsertionCounter;
               }

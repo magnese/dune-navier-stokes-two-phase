@@ -143,8 +143,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     if(computeErrors)
     {
       #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
-      const auto interfaceGridLeafView(fluidState.interfaceGrid().leafGridView());
-      for(const auto& vertex:vertices(interfaceGridLeafView))
+      for(const auto& vertex:vertices(fluidState.interfaceGridPart()))
         errors[0]=std::max(errors[0],std::abs(femScheme.problem().exactRadius(timeProvider.time())-vertex.geometry().center().two_norm()));
       #endif
     }
