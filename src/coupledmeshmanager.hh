@@ -1,13 +1,13 @@
 #ifndef DUNE_FEM_COUPLEDMESHMANAGER_HH
 #define DUNE_FEM_COUPLEDMESHMANAGER_HH
 
+#include <algorithm>
 #include <iostream>
 #include <limits>
-#include <algorithm>
-#include <vector>
-#include <utility>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <dune/common/timer.hh>
 #include <dune/common/exceptions.hh>
@@ -35,12 +35,16 @@ class BulkInterfaceGridMapper
   public:
   typedef BulkGridImp BulkGridType;
   typedef InterfaceGridImp InterfaceGridType;
+  typedef BulkInterfaceGridMapper<BulkGridType,InterfaceGridType> ThisType;
   typedef typename BulkGridType::template Codim<0>::Entity BulkEntityType;
   typedef typename BulkEntityType::EntitySeed BulkEntitySeedType;
 
   BulkInterfaceGridMapper():
     vtxbulk2interface_(0),vtxinterface2bulk_(0)
   {}
+
+  BulkInterfaceGridMapper(const ThisType& )=default;
+  ThisType& operator=(const ThisType& )=default;
 
   std::vector<std::size_t>& vtxBulk2Interface()
   {
@@ -128,10 +132,19 @@ class BulkInterfaceGridMapper
 class RemeshingVolumeCriteria
 {
   public:
+  typedef RemeshingVolumeCriteria ThisType;
+
   // constructor
   explicit RemeshingVolumeCriteria():
     coeff_(Parameter::getValue<double>("CoeffRemeshing",3.0))
   {}
+
+  RemeshingVolumeCriteria(const ThisType& )=default;
+
+  ThisType& operator=(const ThisType& )
+  {
+    return *this;
+  }
 
   void printInfo(std::ostream& s=std::cout) const
   {

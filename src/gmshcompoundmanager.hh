@@ -99,9 +99,14 @@ enum GmshAlgorithmType {automatic=2,delaunay=5,frontal=6,meshadapt=1};
 // fixed charlength policy
 struct FixedCharlength
 {
+  typedef FixedCharlength ThisType;
+
   template<typename... Args>
   FixedCharlength(const Args&... )
   {}
+
+  FixedCharlength(const ThisType& )=default;
+  ThisType& operator=(const ThisType& )=default;
 
   static void printInfo(std::ostream& s=std::cout)
   {
@@ -118,6 +123,8 @@ struct FixedCharlength
 // uniform charlength policy
 struct UniformCharlength
 {
+  typedef UniformCharlength ThisType;
+
   template<typename InterfaceGridType>
   UniformCharlength(const InterfaceGridType& interfaceGrid):
     charlength_(0)
@@ -130,6 +137,9 @@ struct UniformCharlength
     if(InterfaceGridType::dimensionworld==3)
       charlength_=2.0*std::pow(3.0,-0.25)*std::pow(charlength_,0.5);
   }
+
+  UniformCharlength(const ThisType& )=default;
+  ThisType& operator=(const ThisType& )=default;
 
   static void printInfo(std::ostream& s=std::cout)
   {
@@ -148,6 +158,8 @@ struct UniformCharlength
 // adaptive charlength policy
 struct AdaptiveCharlength
 {
+  typedef AdaptiveCharlength ThisType;
+
   template<typename InterfaceGridType>
   AdaptiveCharlength(const InterfaceGridType& interfaceGrid):
     charlength_(0)
@@ -160,6 +172,9 @@ struct AdaptiveCharlength
     if(InterfaceGridType::dimensionworld==3)
       charlength_=2.0*std::pow(3.0,-0.25)*std::pow(charlength_,0.5);
   }
+
+  AdaptiveCharlength(const ThisType& )=default;
+  ThisType& operator=(const ThisType& )=default;
 
   static void printInfo(std::ostream& s=std::cout)
   {
@@ -187,10 +202,20 @@ struct AdaptiveCharlength
 class GMSHSimpleManager
 {
   public:
+
+  typedef GMSHSimpleManager ThisType;
+
   template<typename... Args>
   GMSHSimpleManager(const Args&... ):
     filename_(Fem::Parameter::getValue<std::string>("CompoundFileName","compound.msh"))
   {}
+
+  GMSHSimpleManager(const ThisType& )=default;
+
+  ThisType& operator=(const ThisType& )
+  {
+    return *this;
+  }
 
   void printInfo(std::ostream& s=std::cout) const
   {
@@ -271,6 +296,7 @@ class GMSHCompoundManagerBase
   protected:
   typedef Imp Implementation;
   typedef CharlengthPolicyImp CharlengthPolicyType;
+  typedef GMSHCompoundManagerBase<dim,CharlengthPolicyType,Implementation> ThisType;
 
   GMSHCompoundManagerBase(int argc,char** argv,const GmshAlgorithmType& algorithm,bool verbosity):
     domainfilename_(Fem::Parameter::getValue<std::string>("DomainGeometry","domain.geo")),
@@ -284,6 +310,15 @@ class GMSHCompoundManagerBase
     else
       GmshSetOption("General","Verbosity",0.);
     GmshSetOption("Mesh","Algorithm",static_cast<double>(algorithm));
+  }
+
+  GMSHCompoundManagerBase(const ThisType& )=default;
+
+  ThisType& operator=(const ThisType& other)
+  {
+    gmodelptrs_=other.gmodelptrs_;
+    hashole_=other.hashole_;
+    return *this;
   }
 
   Implementation& imp()
