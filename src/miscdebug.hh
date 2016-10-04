@@ -47,54 +47,63 @@ std::array<double,3> meshVolumesInfo(const GridPartType& gridPart,const std::str
 }
 
 // dump interface volume
-static struct InterfaceVolumeInfo
+static struct InterfaceVolumeInfo:public GnuplotWriter
 {
+  typedef GnuplotWriter BaseType;
+
   InterfaceVolumeInfo():
-    writer_("interface_volume")
+    BaseType("interface_volume")
   {}
+
+  using BaseType::add;
 
   template<typename CoupledMeshManagerType,typename TimeProviderType>
   void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    writer_.add(timeProvider.time(),meshManager.interfaceLength());
+    add(timeProvider.time(),meshManager.interfaceLength());
   }
-
-  GnuplotWriter writer_;
 } interfaceVolumeInfo;
 
 // dump bulk inner volume
-static struct BulkInnerVolumeInfo
+static struct BulkInnerVolumeInfo:public GnuplotWriter
 {
+  typedef GnuplotWriter BaseType;
+
   BulkInnerVolumeInfo():
-    writer_("bulk_inner_volume")
+    BaseType("bulk_inner_volume")
   {}
+
+  using BaseType::add;
 
   template<typename CoupledMeshManagerType,typename TimeProviderType>
   void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    writer_.add(timeProvider.time(),meshManager.bulkInnerVolume());
+    add(timeProvider.time(),meshManager.bulkInnerVolume());
   }
-
-  GnuplotWriter writer_;
 } bulkInnerVolumeInfo;
 
 // dump normalized bulk inner volume
-static struct BulkNormalizedInnerVolumeInfo
+static struct BulkNormalizedInnerVolumeInfo:public GnuplotWriter
 {
+  typedef GnuplotWriter BaseType;
+
   BulkNormalizedInnerVolumeInfo():
-    writer_("bulk_normalized_inner_volume")
+    BaseType("bulk_normalized_inner_volume")
   {}
+
+  using BaseType::add;
+  using BaseType::get;
 
   template<typename CoupledMeshManagerType,typename TimeProviderType>
   void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    writer_.add(timeProvider.time(),meshManager.bulkInnerVolume());
+    add(timeProvider.time(),meshManager.bulkInnerVolume());
   }
 
   ~BulkNormalizedInnerVolumeInfo()
   {
     // normalize by intial volume
-    auto& values=writer_.get();
+    auto& values=get();
     if(values.size()!=0)
     {
       const auto initialVolume(values.front().second);
@@ -102,8 +111,6 @@ static struct BulkNormalizedInnerVolumeInfo
         value.second/=initialVolume;
     }
   }
-
-  GnuplotWriter writer_;
 } bulkNormalizedInnerVolumeInfo;
 
 // check if bulk and interface are consistent
@@ -181,11 +188,15 @@ std::array<typename DF::RangeFieldType,3> checkFunctionRange(const DF& df)
 }
 
 // dump function range
-static struct FunctionRangeInfo
+static struct FunctionRangeInfo:public GnuplotWriter
 {
+  typedef GnuplotWriter BaseType;
+
   FunctionRangeInfo():
-    writer_("function_range")
+    BaseType("function_range")
   {}
+
+  using BaseType::add;
 
   template<typename DF,typename TimeProviderType>
   void add(const DF& df,const TimeProviderType& timeProvider)
@@ -196,18 +207,20 @@ static struct FunctionRangeInfo
       values[0]=std::min(dof,values[0]);
       values[1]=std::max(dof,values[1]);
     }
-    writer_.add(timeProvider.time(),values[1]-values[0]);
+    add(timeProvider.time(),values[1]-values[0]);
   }
-
-  GnuplotWriter writer_;
 } functionRangeInfo;
 
 // dump function max
-static struct FunctionMaxInfo
+static struct FunctionMaxInfo:public GnuplotWriter
 {
+  typedef GnuplotWriter BaseType;
+
   FunctionMaxInfo():
-    writer_("function_max")
+    BaseType("function_max")
   {}
+
+  using BaseType::add;
 
   template<typename DF,typename TimeProviderType>
   void add(const DF& df,const TimeProviderType& timeProvider)
@@ -215,10 +228,8 @@ static struct FunctionMaxInfo
     double value(std::numeric_limits<double>::min());
     for(const auto& dof:dofs(df))
       value=std::max(std::abs(dof),value);
-    writer_.add(timeProvider.time(),std::move(value));
+    add(timeProvider.time(),std::move(value));
   }
-
-  GnuplotWriter writer_;
 } functionMaxInfo;
 
 // dump Tex log
@@ -295,22 +306,24 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
 }
 
 // dump triangles in gnuplot format
-static struct TrianglesDump
+static struct TrianglesDump:public GnuplotWriter
 {
+  typedef GnuplotWriter BaseType;
+
   TrianglesDump():
-    writer_("triangles")
+    BaseType("triangles")
   {}
+
+  using BaseType::add;
 
   template<typename EntityType>
   void add(const EntityType& entity)
   {
     const auto& geo(entity.geometry());
     for(auto i=decltype(geo.corners()){0};i!=geo.corners();++i)
-      writer_.add(std::move(geo.corner(i)[0]),std::move(geo.corner(i)[1]));
-    writer_.add(std::move(geo.corner(0)[0]),std::move(geo.corner(0)[1]),true);
+      add(std::move(geo.corner(i)[0]),std::move(geo.corner(i)[1]));
+    add(std::move(geo.corner(0)[0]),std::move(geo.corner(0)[1]),true);
   }
-
-  GnuplotWriter writer_;
 } trianglesDump;
 
 
