@@ -42,15 +42,44 @@ class MeshSmoothing
     s<<"coeff_smooth = "<<coeff_<<(isenabled_?"":" (WARNING: smooth disabled!)")<<std::endl;
   }
 
+  void enable()
+  {
+    isenabled_=true;
+    if(coeff_<=0.0)
+    {
+      coeff_=1.0;
+      std::cout<<"WARNING: setting coeff_smooth = "<<coeff_<<std::endl;
+    }
+  }
+
+  void disable()
+  {
+    isenabled_=false;
+  }
+
   bool isEnabled() const
   {
     return isenabled_;
   }
 
-  void apply()
+  void computeBulkDisplacement()
   {
     // update fluid state
     fluidstate_.update();
+    if(isenabled_)
+      apply();
+    else
+      fluidstate_.meshManager().mapper().setInterfaceDFInBulkDF(fluidstate_.displacement(),fluidstate_.bulkDisplacement());
+  }
+
+  private:
+  FluidStateType& fluidstate_;
+  SmoothingProblemType problem_;
+  double coeff_;
+  bool isenabled_;
+
+  void apply()
+  {
     // assemble operator
     Timer timerAssemble(false);
     timerAssemble.start();
@@ -62,7 +91,7 @@ class MeshSmoothing
     timerAssemble.start();
     DiscreteFunctionType rhs("smoothing RHS",fluidstate_.bulkDisplacementSpace());
     rhs.clear();
-    fluidstate_.meshManager().mapper().addInterfaceDF2BulkDF(fluidstate_.displacement(),rhs);
+    fluidstate_.meshManager().mapper().setInterfaceDFInBulkDF(fluidstate_.displacement(),rhs);
     timerAssemble.stop();
     // impose BC
     timerAssemble.start();
@@ -88,12 +117,6 @@ class MeshSmoothing
     std::cout<<"Assemble mesh smoothing operator time: "<<timerAssemble.elapsed()<<" seconds."<<std::endl;
     std::cout<<"Solve mesh smoothing time: "<<timerSolve.elapsed()<<" seconds."<<std::endl;
   }
-
-  private:
-  FluidStateType& fluidstate_;
-  SmoothingProblemType problem_;
-  const double coeff_;
-  const bool isenabled_;
 };
 
 }

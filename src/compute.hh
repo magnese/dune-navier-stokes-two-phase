@@ -1,10 +1,10 @@
 #ifndef DUNE_FEM_COMPUTE_HH
 #define DUNE_FEM_COMPUTE_HH
 
-#include <vector>
-#include <iostream>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
+#include <vector>
 
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/misc/l2norm.hh>
@@ -148,21 +148,26 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       #endif
     }
 
-    // perform mesh smoothing
-    const auto smoothPerformed(meshSmoothing.isEnabled());
-    if(smoothPerformed)
-      meshSmoothing.apply();
-    else
-    {
-      fluidState.bulkDisplacement().clear();
-      fluidState.meshManager().mapper().addInterfaceDF2BulkDF(fluidState.displacement(),fluidState.bulkDisplacement());
-    }
+    // update bulk grid
+    meshSmoothing.computeBulkDisplacement();
     fluidState.bulkGrid().coordFunction()+=fluidState.bulkDisplacement();
 
     // perform remesh and keep also the original fluid state to interpolate the velocity onto the new grid
     auto oldFluidState(fluidState);
     const auto remeshPerformed(fluidState.meshManager().remesh());
-    const auto interpolationNeeded((!(femScheme.problem().isDensityNull()))&&(smoothPerformed||remeshPerformed));
+    auto interpolationNeeded((!femScheme.problem().isDensityNull())&&remeshPerformed);
+
+    // check if the smoothing has modified the bulk mesh (only when velocity interpolation is needed)
+    if((!femScheme.problem().isDensityNull())&&(!remeshPerformed))
+    {
+      // check if the bulk displacement is not null
+      for(const auto& dof:dofs(fluidState.bulkDisplacement()))
+        if(std::abs(dof)>1.e-8)
+        {
+          interpolationNeeded=true;
+          break;
+        }
+    }
 
     // interpolate velocity onto the new grid
     if(interpolationNeeded)
@@ -176,9 +181,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
       else
       {
-        // TODO: broken! you need to recreate the old mesh and define the velocity on it!
+        // deep copy of the old mesh manager from the new mesh manager to have independent fluid states
+        oldFluidState.meshManager().deepCopy(fluidState.meshManager());
         oldFluidState.init();
-        oldFluidState.bulkGrid().coordFunction()=fluidState.bulkGrid().coordFunction();
+        // set old bulk grid and old velocity to the correct values
         oldFluidState.bulkGrid().coordFunction()-=fluidState.bulkDisplacement();
         oldFluidState.velocity().assign(fluidState.velocity());
       }

@@ -109,7 +109,7 @@ class BulkInterfaceGridMapper
   }
 
   template<typename InterfaceFunction,typename BulkFunction>
-  void addInterfaceDF2BulkDF(const InterfaceFunction& interfaceFunction,BulkFunction& bulkFunction) const
+  void setInterfaceDFInBulkDF(const InterfaceFunction& interfaceFunction,BulkFunction& bulkFunction) const
   {
     constexpr std::size_t interfaceLocalBlockSize(InterfaceFunction::DiscreteFunctionSpaceType::localBlockSize);
     const auto interfaceNumBlocks(interfaceFunction.blocks());
@@ -118,7 +118,7 @@ class BulkInterfaceGridMapper
     {
       const auto blockPos(vtxinterface2bulk_[i]);
       for(auto l=decltype(interfaceLocalBlockSize){0};l!=interfaceLocalBlockSize;++l,++interfaceIt)
-        bulkFunction.dofVector()[blockPos][l]+=*interfaceIt;
+        bulkFunction.dofVector()[blockPos][l]=*interfaceIt;
     }
   }
 

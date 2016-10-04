@@ -380,6 +380,7 @@ class FluidState
       init();
       meshIsChanged=true;
       bulkSolution().clear();
+      bulkDisplacement().clear();
       interfaceSolution().clear();
     }
     return meshIsChanged;
