@@ -286,6 +286,69 @@ class CoupledMeshManager
     return *this;
   }
 
+  void deepCopy(ThisType& other)
+  {
+    if(this!=&other)
+    {
+      std::cout<<"Deep copying of coupled mesh manager"<<std::endl;
+      // reset pointers to avoid dangling references
+      resetPointers();
+      // copy IDs
+      boundaryids_=std::make_shared<std::vector<int>>(other.boundaryIDs());
+      elementsids_=std::make_shared<std::vector<int>>(other.elementsIDs());
+      // copy bulk grid
+      std::vector<unsigned int> verticesMap(other.bulkGrid().size(bulkGriddim));
+      unsigned int count(0);
+      BulkHostGridFactoryType bulkHostGridFactory;
+      for(const auto& vtx:vertices(other.bulkGridPart()))
+      {
+        bulkHostGridFactory.insertVertex(vtx.geometry().center());
+        verticesMap[other.bulkGridPart().indexSet().index(vtx)]=(count++);
+      }
+      std::vector<unsigned int> entityConnectivity(bulkGriddim+1);
+      for(const auto& entity:elements(other.bulkGridPart()))
+      {
+        for(auto vtxLocalIndex=decltype(entityConnectivity.size()){0};vtxLocalIndex!=entityConnectivity.size();++vtxLocalIndex)
+          entityConnectivity[vtxLocalIndex]=verticesMap[other.bulkGridPart().indexSet().subIndex(entity,vtxLocalIndex,bulkGriddim)];
+        bulkHostGridFactory.insertElement(entity.type(),entityConnectivity);
+      }
+      bulkgrid_=std::make_shared<BulkGridType>(bulkHostGridFactory.createGrid());
+      printGridInfo(bulkGrid());
+      // create bulk indicator functions and bulk grid parts
+      bulkgridpart_=std::make_shared<BulkGridPartType>(bulkGrid());
+      bulkinnerindicator_=std::make_shared<BulkInnerIndicatorFunctionType>(bulkGridPart(),elementsIDs());
+      bulkouterindicator_=std::make_shared<BulkOuterIndicatorFunctionType>(bulkGridPart(),elementsIDs());
+      bulkinnergridpart_=std::make_shared<BulkInnerGridPartType>(bulkGridPart(),bulkInnerIndicatorFunction());
+      bulkoutergridpart_=std::make_shared<BulkOuterGridPartType>(bulkGridPart(),bulkOuterIndicatorFunction());
+      // copy interface grid
+      verticesMap.resize(other.interfaceGrid().size(interfaceGriddim));
+      count=0;
+      InterfaceHostGridFactoryType interfaceHostGridFactory;
+      for(const auto& vtx:vertices(other.interfaceGridPart()))
+      {
+        interfaceHostGridFactory.insertVertex(vtx.geometry().center());
+        verticesMap[other.interfaceGridPart().indexSet().index(vtx)]=(count++);
+      }
+      entityConnectivity.resize(interfaceGriddim+1);
+      for(const auto& entity:elements(other.interfaceGridPart()))
+      {
+        for(auto vtxLocalIndex=decltype(entityConnectivity.size()){0};vtxLocalIndex!=entityConnectivity.size();++vtxLocalIndex)
+          entityConnectivity[vtxLocalIndex]
+            =verticesMap[other.interfaceGridPart().indexSet().subIndex(entity,vtxLocalIndex,interfaceGriddim)];
+        interfaceHostGridFactory.insertElement(entity.type(),entityConnectivity);
+      }
+      interfacegrid_=std::make_shared<InterfaceGridType>(interfaceHostGridFactory.createGrid());
+      printGridInfo(interfaceGrid());
+      // create interface grid part
+      interfacegridpart_=std::make_shared<InterfaceGridPartType>(interfaceGrid());
+      // copy sequence, manager, remeshing criteria and mapper
+      sequence_=other.sequence_;
+      manager_=other.manager_;
+      remeshingcriteria_=other.remeshingcriteria_;
+      mapper_=std::make_shared<BulkInterfaceGridMapperType>(other.mapper());
+    }
+  }
+
   void printInfo(std::ostream& s=std::cout) const
   {
     manager_.printInfo(s);
