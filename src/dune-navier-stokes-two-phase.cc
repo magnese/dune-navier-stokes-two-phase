@@ -16,6 +16,9 @@
                          // 5 StationaryNavierStokes, 6 NavierStokes2D, 7 RisingBubble, 8 NavierStokesTest1, 9 NavierStokesTest2,
                          // 10 NavierStokesExpandingBubble
 
+#define USE_SYMMETRIC_LAPLACIAN_TERM 1
+#define USE_ANTISYMMETRIC_CONVECTIVE_TERM 1
+
 #if PRECONDITIONER_TYPE == 3
 #define USE_SYMMETRIC_DIRICHLET 1
 #else

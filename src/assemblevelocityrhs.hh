@@ -11,7 +11,7 @@ namespace Fem
 {
 
 template<typename DiscreteFunctionType,typename ProblemType,typename TimeProviderType>
-void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& oldSolution,const ProblemType& problem,
+void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& oldVelocity,const ProblemType& problem,
                          const TimeProviderType& timeProvider)
 {
   typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
@@ -24,7 +24,7 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& o
   for(const auto& entity:space)
   {
     auto localRHS(rhs.localFunction(entity));
-    const auto localOldSolution(oldSolution.localFunction(entity));
+    const auto localOldVelocity(oldVelocity.localFunction(entity));
     const auto& baseSet(space.basisFunctionSet(entity));
     const auto rho(problem.rho(entity));
 
@@ -35,25 +35,22 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& o
       baseSet.evaluateAll(qp,phi);
       const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
-      const auto numLocalBlocks(localRHS.numDofs()/DiscreteSpaceType::dimRange);
-      const auto localSize(numLocalBlocks*localBlockSize);
-      std::size_t row(0);
-      for(auto localIdx=decltype(numLocalBlocks){0};localIdx!=numLocalBlocks;++localIdx)
-        for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
+      const auto localSize(localRHS.size());
+      for(auto row=decltype(localSize){0};row!=localSize;++row)
+      {
+        auto value(fValue*phi[row]);
+        if(!problem.isDensityNull())
         {
-          auto value(fValue*phi[row]);
-          if(!problem.isDensityNull())
-          {
-            typename DiscreteSpaceType::RangeFieldType temp(0.0);
-            for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
-              for(auto kk=decltype(localSize){0};kk!=localSize;++kk)
-                temp+=localOldSolution[kk]*phi[kk][k]*phi[row][k];
-             temp*=(rho/timeProvider.deltaT());
-            value+=temp;
-          }
-          value*=weight;
-          localRHS[row]+=value;
+          typename DiscreteSpaceType::RangeFieldType temp(0.0);
+          for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+            for(auto kk=decltype(localSize){0};kk!=localSize;++kk)
+              temp+=localOldVelocity[kk]*phi[kk][k]*phi[row][k];
+          temp*=(rho/timeProvider.deltaT());
+          value+=temp;
         }
+        value*=weight;
+        localRHS[row]+=value;
+      }
     }
   }
 }

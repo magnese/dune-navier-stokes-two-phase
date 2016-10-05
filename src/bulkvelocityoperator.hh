@@ -11,8 +11,6 @@
 #include <fstream>
 #include <vector>
 
-#define USE_SYMMETRIC_FORMULATION 1
-
 namespace Dune
 {
 namespace Fem
@@ -34,9 +32,8 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
   typedef DomainSpaceType DiscreteSpaceType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
-  explicit BulkVelocityOperator(const DiscreteSpaceType& space,const ProblemType& problem,const DiscreteFunctionType& oldSolution):
-    space_(space),op_("bulk velocity operator",space_,space_),problem_(problem),oldsolution_(oldSolution),
-    nulldensity_(problem.isDensityNull())
+  explicit BulkVelocityOperator(const DiscreteSpaceType& space,const ProblemType& problem,const DiscreteFunctionType& oldVelocity):
+    space_(space),op_("bulk velocity operator",space_,space_),problem_(problem),oldvelocity_(oldVelocity)
   {}
 
   BulkVelocityOperator(const ThisType& )=delete;
@@ -83,7 +80,7 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
     // perform a grid walkthrough and assemble the global matrix
     for(const auto& entity:space_)
     {
-      const auto localOldSolution(oldsolution_.localFunction(entity));
+      const auto localOldVelocity(oldvelocity_.localFunction(entity));
       auto localMatrix(op_.localMatrix(entity,entity));
       typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
@@ -104,7 +101,7 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
           {
             // laplacian part
             RangeFieldType value(0.0);
-            #if USE_SYMMETRIC_FORMULATION
+            #if USE_SYMMETRIC_LAPLACIAN_TERM
             for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
               for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
               {
@@ -118,18 +115,26 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
             #endif
             value*=mu;
             // navier-stokes only
-            if(!nulldensity_)
+            if(!problem_.isDensityNull())
             {
               // convective part
               RangeFieldType valueConvective(0.0);
+              #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
               for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
                 for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
                   for(auto l=decltype(localSize){0};l!=localSize;++l)
                   {
-                    valueConvective+=localOldSolution[l]*phi[l][kk]*gradphi[j][k][kk]*phi[i][k];
-                    valueConvective-=localOldSolution[l]*phi[l][kk]*gradphi[i][k][kk]*phi[j][k];
+                    valueConvective+=localOldVelocity[l]*phi[l][kk]*gradphi[j][k][kk]*phi[i][k];
+                    valueConvective-=localOldVelocity[l]*phi[l][kk]*gradphi[i][k][kk]*phi[j][k];
                   }
-              valueConvective*=(0.5*rho);
+              valueConvective*=0.5;
+              #else
+              for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+                for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
+                  for(auto l=decltype(localSize){0};l!=localSize;++l)
+                    valueConvective+=localOldVelocity[l]*phi[l][kk]*gradphi[j][k][kk]*phi[i][k];
+              #endif
+              valueConvective*=rho;
               value+=valueConvective;
               // time dependent part
               RangeFieldType valueTime(0.0);
@@ -150,9 +155,8 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
   const DiscreteSpaceType& space_;
   LinearOperatorType op_;
   const ProblemType& problem_;
-  // solution at the previous time step
-  const DiscreteFunctionType& oldsolution_;
-  const bool nulldensity_;
+  // velocity at the previous time step
+  const DiscreteFunctionType& oldvelocity_;
 };
 
 }
