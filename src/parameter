@@ -70,9 +70,6 @@ InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_cl01.msh
 # time step
 fem.timeprovider.fixedtimestep: 1.e-2
 
-# multiplication factor to use for each time step (default: 1.0)
-#fem.timeprovider.factor: 1.0
-
 # time used for initializing the starting time (default: 0.0)
 fem.timeprovider.starttime: 0.0
 
@@ -92,7 +89,6 @@ RhoInner: 0.0
 RhoOuter: 0.0
 
 # coupled problem (default: 1.0)
-#Gamma: 0.0
 Gamma: 1.0
 
 # smoothing coefficient (default: 1.0)
@@ -101,31 +97,29 @@ CoeffSmoothing: 1.0
 # remeshing coefficient (default: 3.0)
 CoeffRemeshing: 3.0
 
-# verbosity of the solver (default: 0)
-#SolverVerbosity: 2
+# verbosity of the iterative solver (default: 0)
 SolverVerbosity: 0
 
 # maximum number of iterations of the iterative solver (default: 1000)
-SolverMaxIter: 1000
+SolverMaxIterations: 1000
 
-# reduction epsilon of the iterative solver (default: 1.e-12)
-SolverReductionEpsilon : 1.e-12
+# tolerance of the iterative solver (default: 1.e-12)
+SolverTolerance: 1.e-12
 
 # restart gmres iterative solver (default: 5)
 SolverRestart: 1000
 
 # compute compute errors (default: 0)
 ComputeErrors: 1
-#ComputeErrors: 0
 
 # path used for all file output (default: .)
-#fem.prefix: ./solution
+fem.prefix: .
 
 # output format: 0 -> vtk-cell | 1 -> vtk-vertex | 2 -> sub-vtk-cell | 3 -> binary | 4 -> gnuplot | 5 -> none
 fem.io.outputformat: 0
 
 # time between writing file (default: 0)
-#fem.io.savestep: 1
+fem.io.savestep: 0
 
 # number of time steps between writting file (default: 0)
 fem.io.savecount: 1

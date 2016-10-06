@@ -229,4 +229,4 @@ class IdPrecond:public Dune::Preconditioner<DFT,DFT>
 }
 }
 
-#endif //DUNE_FEM_PRECONDITIONERS_HH
+#endif // DUNE_FEM_PRECONDITIONERS_HH

@@ -227,7 +227,7 @@ class CoupledMeshManager
   // define mapper
   typedef BulkInterfaceGridMapper<BulkGridType,InterfaceGridType> BulkInterfaceGridMapperType;
 
-  //define bulk bounding box
+  // define bulk bounding box
   typedef std::pair<FieldVector<double,worlddim>,FieldVector<double,worlddim>> BulkBoundingBoxType;
 
   private:

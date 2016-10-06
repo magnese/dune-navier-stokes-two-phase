@@ -1,10 +1,10 @@
 #ifndef DUEN_FEM_FEMSCHEME_HH
 #define DUEN_FEM_FEMSCHEME_HH
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <vector>
-#include <cmath>
-#include <algorithm>
 
 #include <dune/common/timer.hh>
 #include <dune/fem/io/parameter.hh>
@@ -145,7 +145,7 @@ class FemScheme
     InterfaceOperatorType interfaceOp(fluidstate_.interfaceSpace());
     interfaceOp.assemble(fluidstate_.meshManager().mapper(),timeProvider);
 
-    //assemble rhs
+    // assemble rhs
     InterfaceDiscreteFunctionType rhs("interface RHS",fluidstate_.interfaceSpace());
     rhs.clear();
     assembleInterfaceRHS(rhs,interfaceOp);
@@ -272,10 +272,10 @@ class FemScheme
     #endif
 
     // compute bulk solution
-    const int verbosity(Parameter::getValue<int>("SolverVerbosity",0));
-    const int maxIter(Parameter::getValue<int>("SolverMaxIter",1000));
-    const double redEps(Parameter::getValue<double>("SolverReductionEpsilon",1.e-12));
-    const int restart(Parameter::getValue<int>("SolverRestart",5));
+    const int solverVerbosity(Parameter::getValue<int>("SolverVerbosity",0));
+    const int solverMaxIterations(Parameter::getValue<int>("SolverMaxIterations",1000));
+    const double solverTolerance(Parameter::getValue<double>("SolverTolerance",1.e-12));
+    const int solverRestart(Parameter::getValue<int>("SolverRestart",5));
 
     timerSolveBulk.start();
     typedef CoupledOperatorWrapper<VelocityOperatorType,CurvatureVelocityOperatorType,InterfaceOperatorType,
@@ -350,7 +350,8 @@ class FemScheme
     #endif
 
     InverseOperatorResult returnInfo;
-    Dune::RestartedGMResSolver<BulkDiscreteFunctionType> bulkInvOp(bulkOp,bulkPreconditioner,redEps,restart,maxIter,verbosity);
+    Dune::RestartedGMResSolver<BulkDiscreteFunctionType> bulkInvOp(bulkOp,bulkPreconditioner,solverTolerance,solverRestart,
+                                                                   solverMaxIterations,solverVerbosity);
     bulkInvOp.apply(fluidstate_.bulkSolution(),bulkRHS,returnInfo);
     timerSolveBulk.stop();
 

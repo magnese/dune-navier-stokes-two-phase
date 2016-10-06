@@ -27,11 +27,11 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   typedef typename FemSchemeType::FluidStateType FluidStateType;
   auto& fluidState(femScheme.fluidState());
 
-  //create time provider
+  // create time provider
   FixedStepTimeProvider<> timeProvider;
 
   // get parameters
-  const double endTime(Dune::Fem::Parameter::getValue<double>("EndTime",0.1)+0.1*timeProvider.deltaT());
+  const double endTime(Parameter::getValue<double>("EndTime",0.1)+0.1*timeProvider.deltaT());
   const bool computeErrors(Parameter::getValue<bool>("ComputeErrors",0)&&femScheme.problem().hasExactSolution());
 
   // rebuild all quantities if the mesh is changed

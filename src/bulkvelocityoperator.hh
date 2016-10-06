@@ -155,7 +155,7 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
   const DiscreteSpaceType& space_;
   LinearOperatorType op_;
   const ProblemType& problem_;
-  // velocity at the previous time step
+  // velocity at the previous step
   const DiscreteFunctionType& oldvelocity_;
 };
 
