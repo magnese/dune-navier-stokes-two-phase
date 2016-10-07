@@ -18,7 +18,6 @@
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/function/common/rangegenerators.hh>
 
-#include "indicatorfunction.hh"
 #include "gnuplotwriter.hh"
 
 namespace Dune
