@@ -99,8 +99,8 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       errors[2]+=std::pow(normH1.distance(velocityExactSolution,fluidState.velocity()),2);
       // compute Linfinity interpolated velocity error
       auto exactVelocityIt(velocityExactSolution.dbegin());
-      for(auto velocityIt=fluidState.velocity().dbegin();velocityIt!=fluidState.velocity().dend();++velocityIt,++exactVelocityIt)
-        errors[3]=std::max(errors[3],std::abs(*velocityIt-*exactVelocityIt));
+      for(const auto& dof:dofs(fluidState.velocity()))
+        errors[3]=std::max(errors[3],std::abs(dof-*(exactVelocityIt++)));
       // compute L2 pressure error
       #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
       // store an inner and an outer entity, needed for indicator function
@@ -132,8 +132,8 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       #endif
       // compute Linfinity interpolated pressure error
       auto exactPressureIt(pressureExactSolution.dbegin());
-      for(auto pressureIt=fluidState.pressureDump().dbegin();pressureIt!=fluidState.pressureDump().dend();++pressureIt,++exactPressureIt)
-        errors[5]=std::max(errors[5],std::abs(*pressureIt-*exactPressureIt));
+      for(const auto& dof:dofs(fluidState.pressureDump()))
+        errors[5]=std::max(errors[5],std::abs(dof-*(exactPressureIt++)));
     }
 
     // update interface grid
