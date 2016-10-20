@@ -285,29 +285,19 @@ class FemScheme
     typedef StokesPrecond<BulkDiscreteFunctionType,VelocityOperatorType,PressureVelocityOperatorType,BulkMassMatrixOperatorType>
       BulkPreconditionerType;
     BulkPreconditionerType bulkPreconditioner(velocityOp,pressureVelocityOp,bulkMassMatrixOp);
-    #elif PRECONDITIONER_TYPE == 1
-    pressureOp.assemble();
-    typedef OperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,PressureOperatorType>
-      OperatorGluerType;
-    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureOp);
-    opGluer.assemble();
-    typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
-    BulkPreconditionerType bulkPreconditioner(opGluer);
-    #elif PRECONDITIONER_TYPE == 2
-    pressureOp.assemble();
-    typedef OperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,PressureOperatorType>
-      OperatorGluerType;
-    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureOp);
-    opGluer.assemble();
-    typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
-    BulkPreconditionerType bulkPreconditioner(opGluer);
     #else
     pressureOp.assemble();
     typedef OperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,PressureOperatorType>
       OperatorGluerType;
     OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureOp);
     opGluer.assemble();
+    #if PRECONDITIONER_TYPE == 1
+    typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
+    #elif PRECONDITIONER_TYPE == 2
+    typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
+    #else
     typedef DirectPrecond<OperatorGluerType,LDLOp> BulkPreconditionerType;
+    #endif
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
     #else
@@ -320,26 +310,18 @@ class FemScheme
                                   PressureAdditionalVelocityOperatorType,BulkMassMatrixAdditionalOperatorType> BulkPreconditionerType;
     BulkPreconditionerType bulkPreconditioner(velocityOp,pressureVelocityOp,bulkMassMatrixOp,pressureAdditionalVelocityOp,
                                               bulkMassMatrixAdditionalOp);
-    #elif PRECONDITIONER_TYPE == 1
-    typedef ExtendedOperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,
-                                  PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> OperatorGluerType;
-    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,velocityPressureAdditionalOp);
-    opGluer.assemble();
-    typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
-    BulkPreconditionerType bulkPreconditioner(opGluer);
-    #elif PRECONDITIONER_TYPE == 2
-    typedef ExtendedOperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,
-                                  PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> OperatorGluerType;
-    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,velocityPressureAdditionalOp);
-    opGluer.assemble();
-    typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
-    BulkPreconditionerType bulkPreconditioner(opGluer);
     #else
     typedef ExtendedOperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,
                                   PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> OperatorGluerType;
     OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,velocityPressureAdditionalOp);
     opGluer.assemble();
+    #if PRECONDITIONER_TYPE == 1
+    typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
+    #elif PRECONDITIONER_TYPE == 2
+    typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
+    #else
     typedef DirectPrecond<OperatorGluerType,LDLOp> BulkPreconditionerType;
+    #endif
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
     #endif
