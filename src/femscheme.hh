@@ -271,12 +271,7 @@ class FemScheme
     timerAssembleBulk.stop();
     #endif
 
-    // compute bulk solution
-    const int solverVerbosity(Parameter::getValue<int>("SolverVerbosity",0));
-    const int solverMaxIterations(Parameter::getValue<int>("SolverMaxIterations",1000));
-    const double solverTolerance(Parameter::getValue<double>("SolverTolerance",1.e-12));
-    const int solverRestart(Parameter::getValue<int>("SolverRestart",5));
-
+    // create operators wrappers and preconditioners
     timerSolveBulk.start();
     typedef CoupledOperatorWrapper<VelocityOperatorType,CurvatureVelocityOperatorType,InterfaceOperatorType,
                                    InterfaceInverseOperatorType,VelocityCurvatureOperatorType> CoupledOperatorWrapperType;
@@ -348,12 +343,75 @@ class FemScheme
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
     #endif
-
-    InverseOperatorResult returnInfo;
-    Dune::RestartedGMResSolver<BulkDiscreteFunctionType> bulkInvOp(bulkOp,bulkPreconditioner,solverTolerance,solverRestart,
-                                                                   solverMaxIterations,solverVerbosity);
-    bulkInvOp.apply(fluidstate_.bulkSolution(),bulkRHS,returnInfo);
     timerSolveBulk.stop();
+
+    // read iterative solver parameters
+    const int solverVerbosity(Parameter::getValue<int>("SolverVerbosity",0));
+    const int solverMaxIterations(Parameter::getValue<int>("SolverMaxIterations",1000));
+    const double solverTolerance(Parameter::getValue<double>("SolverTolerance",1.e-12));
+    const int solverRestart(Parameter::getValue<int>("SolverRestart",5));
+
+    // read non-linear solver parameters
+    const bool useNonLinearSolver(problem_.isDensityNull()?false:Parameter::getValue<bool>("UseNonLinearSolver",0));
+    const int nonLinearSolverVerbosity(Parameter::getValue<int>("NonLinearSolverVerbosity",0));
+    const int nonLinearSolverMaxIterations(Parameter::getValue<int>("NonLinearSolverMaxIterations",1000));
+    const double nonLinearSolverTolerance(Parameter::getValue<double>("NonLinearSolverTolerance",1.e-8));
+
+    // create a copy of the velocity and of the bulk RHS (needed for the non-linear solver to compute residual and to restore original RHS)
+    const auto bulkRHSCopy(bulkRHS);
+    auto oldVelocity(fluidstate_.velocity());
+
+    // compute bulk solution
+    if(useNonLinearSolver&&(nonLinearSolverVerbosity>1))
+      std::cout<<"Entering in the non-linear solver"<<std::endl;
+    bool doIteration(true);
+    int numIterations(0);
+    while(doIteration)
+    {
+      doIteration=false;
+      ++numIterations;
+
+      // solve bulk
+      timerSolveBulk.start();
+      InverseOperatorResult returnInfo;
+      Dune::RestartedGMResSolver<BulkDiscreteFunctionType> bulkInvOp(bulkOp,bulkPreconditioner,solverTolerance,solverRestart,
+                                                                     solverMaxIterations,solverVerbosity);
+      bulkInvOp.apply(fluidstate_.bulkSolution(),bulkRHS,returnInfo);
+      timerSolveBulk.stop();
+
+      // check if another iteration is needed
+      if(useNonLinearSolver)
+        if(numIterations<nonLinearSolverMaxIterations)
+        {
+          // compute ||U-U_old||_Loo
+          double residual(0);
+          timerSolveBulk.start();
+          auto oldVelocityIt(oldVelocity.dbegin());
+          for(const auto& dof:dofs(fluidstate_.velocity()))
+            residual=std::max(residual,std::abs(dof-*(oldVelocityIt++)));
+          timerSolveBulk.stop();
+          if(residual>nonLinearSolverTolerance)
+          {
+            oldVelocity.assign(fluidstate_.velocity());
+            if(nonLinearSolverVerbosity>1)
+              std::cout<<"Iteration "<<numIterations<<" --> residual "<<residual<<std::endl;
+            doIteration=true;
+            timerAssembleBulk.start();
+            // re-assemble velocity operator
+            velocityOp.assemble(timeProvider);
+            // re-impose bulk bc
+            bulkRHS.assign(bulkRHSCopy);
+            #if PRESSURE_SPACE_TYPE == 2
+            problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
+            #else
+            problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp);
+            #endif
+            timerAssembleBulk.stop();
+          }
+          else if(nonLinearSolverVerbosity>0)
+            std::cout<<"Scheme converged to the solution with residual "<<residual<<" in "<<numIterations<<" iterations"<<std::endl;
+        }
+    }
 
     // add interface coupling
     timerAssembleInterface.start();

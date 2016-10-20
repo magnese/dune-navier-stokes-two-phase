@@ -109,6 +109,18 @@ SolverTolerance: 1.e-12
 # restart gmres iterative solver (default: 5)
 SolverRestart: 1000
 
+# use non-linear solver (default: 0)
+UseNonLinearSolver: 0
+
+# verbosity of the non-linear solver (default: 0)
+NonLinearSolverVerbosity: 1
+
+# maximum number of iterations of the non-linear solver (default: 1000)
+NonLinearSolverMaxIterations: 1000
+
+# tolerance of the non-linear solver (default: 1.e-8)
+NonLinearSolverTolerance: 1.e-8
+
 # compute compute errors (default: 0)
 ComputeErrors: 1
 
