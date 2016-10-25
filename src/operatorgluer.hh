@@ -93,6 +93,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
     const auto offset(mat11_.rows());
     auto count1(decltype(offset){0});
     auto count2(decltype(offset){0});
+    auto& matrix(op_.matrix());
     for(auto row=decltype(mat11_.rows()){0};row!=mat11_.rows();++row)
     {
       while(count1<(mat11_.numNonZeros()*(row+1)))
@@ -100,7 +101,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
         const auto entry(mat11_.realValue(count1));
         const auto col(entry.second);
         if(col!=defaultCol)
-          op_.matrix().set(row,col,entry.first);
+          matrix.set(row,col,entry.first);
         ++count1;
       }
       while(count2<(mat12_.numNonZeros()*(row+1)))
@@ -108,7 +109,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
         const auto entry(mat12_.realValue(count2));
         const auto col(entry.second);
         if(col!=defaultCol)
-          op_.matrix().set(row,col+offset,entry.first);
+          matrix.set(row,col+offset,entry.first);
         ++count2;
       }
     }
@@ -123,7 +124,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
         const auto entry(mat21_.realValue(count1));
         const auto col(entry.second);
         if(col!=defaultCol)
-          op_.matrix().set(row+offset,col,entry.first);
+          matrix.set(row+offset,col,entry.first);
         ++count1;
       }
       while(count2<(mat22_.numNonZeros()*(row+1)))
@@ -131,7 +132,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
         const auto entry(mat22_.realValue(count2));
         const auto col(entry.second);
         if(col!=defaultCol)
-          op_.matrix().set(row+offset,col+offset,entry.first);
+          matrix.set(row+offset,col+offset,entry.first);
         ++count2;
       }
     }
@@ -140,12 +141,13 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
   void applyDoctoring()
   {
     const auto row(mat11_.cols());
-    op_.matrix().clearRow(row);
-    op_.matrix().set(row,row,1.0);
+    auto& matrix(op_.matrix());
+    matrix.clearRow(row);
     #if USE_SYMMETRIC_DIRICHLET
-    for(auto i=decltype(mat11_.rows()){0};i!=mat11_.rows();++i)
-      op_.matrix().set(i,row,0.0);
+    for(auto i=decltype(matrix.rows()){0};i!=matrix.rows();++i)
+      matrix.set(i,row,0.0);
     #endif
+    matrix.set(row,row,1.0);
   }
 
   template<typename RHSType>
@@ -249,6 +251,7 @@ class ExtendedOperatorGluer:public Operator<
     auto count1(decltype(offset2){0});
     auto count2(decltype(offset2){0});
     auto count3(decltype(offset2){0});
+    auto& matrix(op_.matrix());
     for(auto row=decltype(mat11_.rows()){0};row!=mat11_.rows();++row)
     {
       while(count1<(mat11_.numNonZeros()*(row+1)))
@@ -256,7 +259,7 @@ class ExtendedOperatorGluer:public Operator<
         const auto entry(mat11_.realValue(count1));
         const auto col(entry.second);
         if(col!=defaultCol)
-          op_.matrix().set(row,col,entry.first);
+          matrix.set(row,col,entry.first);
         ++count1;
       }
       while(count2<(mat12_.numNonZeros()*(row+1)))
@@ -264,7 +267,7 @@ class ExtendedOperatorGluer:public Operator<
         const auto entry(mat12_.realValue(count2));
         const auto col(entry.second);
         if(col!=defaultCol)
-          op_.matrix().set(row,col+offset2,entry.first);
+          matrix.set(row,col+offset2,entry.first);
         ++count2;
       }
       while(count3<(mat13_.numNonZeros()*(row+1)))
@@ -272,7 +275,7 @@ class ExtendedOperatorGluer:public Operator<
         const auto entry(mat13_.realValue(count3));
         const auto col(entry.second);
         if(col!=defaultCol)
-          op_.matrix().set(row,col+offset3,entry.first);
+          matrix.set(row,col+offset3,entry.first);
         ++count3;
       }
 
@@ -287,7 +290,7 @@ class ExtendedOperatorGluer:public Operator<
         const auto entry(mat21_.realValue(count1));
         const auto col(entry.second);
         if(col!=defaultCol)
-          op_.matrix().set(row+offset2,col,entry.first);
+          matrix.set(row+offset2,col,entry.first);
         ++count1;
       }
     }
@@ -301,7 +304,7 @@ class ExtendedOperatorGluer:public Operator<
         const auto entry(mat31_.realValue(count1));
         const auto col(entry.second);
         if(col!=defaultCol)
-          op_.matrix().set(row+offset3,col,entry.first);
+          matrix.set(row+offset3,col,entry.first);
         ++count1;
       }
     }
@@ -310,19 +313,20 @@ class ExtendedOperatorGluer:public Operator<
   void applyDoctoring()
   {
     auto row(mat11_.cols());
-    op_.matrix().clearRow(row);
-    op_.matrix().set(row,row,1.0);
+    auto& matrix(op_.matrix());
+    matrix.clearRow(row);
     #if USE_SYMMETRIC_DIRICHLET
-    for(auto i=decltype(mat11_.rows()){0};i!=mat11_.rows();++i)
-      op_.matrix().set(i,row,0.0);
+    for(auto i=decltype(matrix.rows()){0};i!=matrix.rows();++i)
+      matrix.set(i,row,0.0);
     #endif
+    matrix.set(row,row,1.0);
     row+=mat12_.cols();
-    op_.matrix().clearRow(row);
-    op_.matrix().set(row,row,1.0);
+    matrix.clearRow(row);
     #if USE_SYMMETRIC_DIRICHLET
-    for(auto i=decltype(mat11_.rows()){0};i!=mat11_.rows();++i)
-      op_.matrix().set(i,row,0.0);
+    for(auto i=decltype(matrix.rows()){0};i!=matrix.rows();++i)
+      matrix.set(i,row,0.0);
     #endif
+    matrix.set(row,row,1.0);
   }
 
   template<typename RHSType>
