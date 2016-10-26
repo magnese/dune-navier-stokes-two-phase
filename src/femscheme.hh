@@ -190,7 +190,6 @@ class FemScheme
     #endif
     #endif
     PressureOperatorType pressureOp(fluidstate_.pressureSpace(),fluidstate_.pressureSpace());
-    //pressureOp.assemble(); // not needed since it is never used
     CurvatureVelocityOperatorType curvatureVelocityOp(fluidstate_.curvatureSpace(),fluidstate_.velocitySpace(),
                                                       fluidstate_.meshManager().mapper());
     curvatureVelocityOp.assemble();
@@ -286,7 +285,6 @@ class FemScheme
       BulkPreconditionerType;
     BulkPreconditionerType bulkPreconditioner(velocityOp,pressureVelocityOp,bulkMassMatrixOp);
     #else
-    pressureOp.assemble();
     typedef OperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,PressureOperatorType>
       OperatorGluerType;
     OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureOp);
