@@ -2,11 +2,9 @@
 #define DUNE_FEM_NULLOPERATOR_HH
 
 #include <dune/fem/operator/common/operator.hh>
-#include <dune/fem/operator/common/stencil.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
 
 #include <string>
-#include <fstream>
 #include <type_traits>
 
 namespace Dune
@@ -44,11 +42,8 @@ class NullOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
     w.clear();
   }
 
-  void print(const std::string& filename="null_matrix.dat") const
-  {
-    std::ofstream ofs(filename);
-    op_.matrix().print(ofs);
-  }
+  void print(const std::string& ) const
+  {}
 
   const DomainSpaceType& domainSpace() const
   {
@@ -61,11 +56,7 @@ class NullOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
   }
 
   void assemble()
-  {
-    DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
-    op_.reserve(stencil);
-    op_.clear();
-  }
+  {}
 
   private:
   const DomainSpaceType& domainspace_;
@@ -74,7 +65,7 @@ class NullOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
 };
 
 
-template<typename>
+template<typename >
 struct isNullOperator:std::false_type
 {};
 
