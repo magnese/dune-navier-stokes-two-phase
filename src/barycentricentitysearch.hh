@@ -5,6 +5,7 @@
 
 #include <dune/common/exceptions.hh>
 #include <dune/common/fvector.hh>
+#include <dune/fem/io/parameter.hh>
 
 namespace Dune
 {
@@ -27,7 +28,7 @@ FieldVector<double,EntityType::dimension+1> barycentricCoordinates(const EntityT
 template<typename GridPartType,typename EntityType,typename GlobalCoordinateType>
 unsigned int barycentricEntitySearch(const GridPartType& gridPart,EntityType&& entity,const GlobalCoordinateType& x)
 {
-  constexpr double toll(1.e-12);
+  const double nullTolerance(Parameter::getValue<double>("NullTolerance",1.e-12));
   // starting form entity, find the entity which contains x
   unsigned int numIterations(0);
   bool found(false);
@@ -40,7 +41,7 @@ unsigned int barycentricEntitySearch(const GridPartType& gridPart,EntityType&& e
     double minCoor(std::numeric_limits<double>::max());
     std::size_t faceIdx(0);
     for(auto i=decltype(coor.size()){0};i!=coor.size();++i)
-      if(coor[i]<-toll)
+      if(coor[i]<-nullTolerance)
         if(coor[i]<minCoor)
         {
           minCoor=coor[i];

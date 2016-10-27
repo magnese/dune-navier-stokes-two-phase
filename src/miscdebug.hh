@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <limits>
 #include <string>
+#include <cmath>
 #include <cstdlib>
 #include <vector>
 #include <fstream>
@@ -262,8 +263,9 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
     file<<std::setprecision(5);
     file<<std::scientific;
     file<<meshManager.interfaceGrid().size(0)<<" & ";
+    const double nullTolerance(Parameter::getValue<double>("NullTolerance",1.e-12));
     for(const auto& err:errors)
-      file<<(err<1.e-13?0:err)<<" & ";
+      file<<(std::abs(err)<nullTolerance?0:err)<<" & ";
     file<<timer.elapsed()<<" & "<<meshManager.bulkGrid().size(0)<<"\\\\"<<std::endl;
     file<<"\\hline"<<std::endl;
     file<<"\\end{tabular}"<<std::endl;

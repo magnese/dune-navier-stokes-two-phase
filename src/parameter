@@ -121,6 +121,9 @@ NonLinearSolverMaxIterations: 1000
 # tolerance of the non-linear solver (default: 1.e-8)
 NonLinearSolverTolerance: 1.e-8
 
+# tolerance for a value to be considered exactly equal to 0 (default: 1.e-12)
+NullTolerance: 1.e-12
+
 # compute compute errors (default: 0)
 ComputeErrors: 1
 

@@ -160,9 +160,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     // check if the smoothing has modified the bulk mesh (only when velocity interpolation is needed)
     if((!femScheme.problem().isDensityNull())&&(!remeshPerformed))
     {
+      const double nullTolerance(Parameter::getValue<double>("NullTolerance",1.e-12));
       // check if the bulk displacement is not null
       for(const auto& dof:dofs(fluidState.bulkDisplacement()))
-        if(std::abs(dof)>1.e-8)
+        if(std::abs(dof)>nullTolerance)
         {
           interpolationNeeded=true;
           break;

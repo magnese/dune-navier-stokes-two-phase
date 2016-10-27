@@ -2,6 +2,7 @@
 #define DUNE_FEM_ASSEMBLEPRESSURERHS_HH
 
 #include <dune/fem/function/localfunction/localfunction.hh>
+#include <dune/fem/io/parameter.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
 #include <cmath>
@@ -52,8 +53,9 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
   }
 
   // if coeff is not 0 assemble RHS which is coeff*(1,\phi)
+  const double nullTolerance(Parameter::getValue<double>("NullTolerance",1.e-12));
   const auto coeff(-integral/vol);
-  if(std::abs(coeff)>1.e-14)
+  if(std::abs(coeff)>nullTolerance)
   {
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
     std::vector<LocalFunctionRangeType> phi(space.blockMapper().maxNumDofs()*DiscreteSpaceType::localBlockSize);
