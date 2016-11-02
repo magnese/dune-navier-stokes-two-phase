@@ -247,7 +247,7 @@ class FemScheme
       interfaceInvOp.apply(interfaceRHS,interfaceTempFunction);
       VelocityDiscreteFunctionType velocityCouplingRHS("velocity coupling RHS",fluidstate_.velocitySpace());
       curvatureVelocityOp(interfaceTempFunction.template subDiscreteFunction<0>(),velocityCouplingRHS);
-      velocityRHS.axpy(-1.0*gamma,velocityCouplingRHS);
+      velocityRHS.axpy(gamma,velocityCouplingRHS);
       timerAssembleBulk.stop();
     }
 
@@ -396,7 +396,7 @@ class FemScheme
     // add interface coupling
     timerAssembleInterface.start();
     velocityCurvatureOp(fluidstate_.velocity(),interfaceRHS.template subDiscreteFunction<0>());
-    interfaceRHS*=-1.0;
+    interfaceRHS.template subDiscreteFunction<0>()*=-1.0;
     timerAssembleInterface.stop();
 
     // solve interface

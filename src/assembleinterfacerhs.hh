@@ -16,6 +16,7 @@ void assembleInterfaceRHS(DiscreteFunctionType& rhs,const OperatorType& op)
   op(temp,rhs);
 
   rhs.template subDiscreteFunction<0>().clear();
+  rhs.template subDiscreteFunction<1>()*=-1.0;
 }
 
 }
