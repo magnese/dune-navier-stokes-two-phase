@@ -49,7 +49,7 @@ int main(int argc,char** argv)
     // init
     Dune::Fem::MPIManager::initialize(argc,argv);
     Dune::Fem::Parameter::append(argc,argv);
-    Dune::Fem::Parameter::append((argc<2)?("/home/ma/m/ma2413/dune-repo/dune-navier-stokes-two-phase/src/parameter"):(argv[1]));
+    Dune::Fem::Parameter::append(argc<2?(static_cast<std::string>(SOURCEDIR)+"/src/parameter"):argv[1]);
     #if REMESH_TYPE != 0
     GmshInitialize(argc,argv);
     #endif
