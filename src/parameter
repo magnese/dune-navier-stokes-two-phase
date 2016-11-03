@@ -1,71 +1,71 @@
 # compound mesh filename (default: compound.msh)
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_circle_small.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_circle.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_circle_big.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_ellipse.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_circle_hole_small.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_circle_hole.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_circle_hole_big.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_circle_adaptive_64.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_circle_adaptive_128.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/2D/rectangle_circle_adaptive_256.msh
+#CompoundFileName: /composite/2D/rectangle_circle_small.msh
+#CompoundFileName: /composite/2D/rectangle_circle.msh
+#CompoundFileName: /composite/2D/rectangle_circle_big.msh
+#CompoundFileName: /composite/2D/rectangle_ellipse.msh
+#CompoundFileName: /composite/2D/rectangle_circle_hole_small.msh
+#CompoundFileName: /composite/2D/rectangle_circle_hole.msh
+#CompoundFileName: /composite/2D/rectangle_circle_hole_big.msh
+#CompoundFileName: /composite/2D/rectangle_circle_adaptive_64.msh
+#CompoundFileName: /composite/2D/rectangle_circle_adaptive_128.msh
+#CompoundFileName: /composite/2D/rectangle_circle_adaptive_256.msh
 
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/3D/parallelepiped_sphere_coarse.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/3D/parallelepiped_sphere.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/3D/parallelepiped_sphere_big.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/composite/3D/parallelepiped_ellipsoid_coarse.msh
-#CompoundFileName: /home/ma/m/ma2413/mshfiles/compsoite/3D/parallelepiped_ellipsoid.msh
+#CompoundFileName: /composite/3D/parallelepiped_sphere_coarse.msh
+#CompoundFileName: /composite/3D/parallelepiped_sphere.msh
+#CompoundFileName: /composite/3D/parallelepiped_sphere_big.msh
+#CompoundFileName: /composite/3D/parallelepiped_ellipsoid_coarse.msh
+#CompoundFileName: /compsoite/3D/parallelepiped_ellipsoid.msh
 
 # domain geometry (default: domain.geo)
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl025.geo
-DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl01.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl005.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl0025.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl00123.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl05.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl04.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl02.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/square_l1_cl00985.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/rectangle_l12_cl01.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/rectangle_l12_cl005.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/rectangle_l12_cl0025.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/2D/rectangle_l12_cl00125.geo
+#DomainGeometry: /2D/square_l1_cl025.geo
+DomainGeometry: /2D/square_l1_cl01.geo
+#DomainGeometry: /2D/square_l1_cl005.geo
+#DomainGeometry: /2D/square_l1_cl0025.geo
+#DomainGeometry: /2D/square_l1_cl00123.geo
+#DomainGeometry: /2D/square_l1_cl05.geo
+#DomainGeometry: /2D/square_l1_cl04.geo
+#DomainGeometry: /2D/square_l1_cl02.geo
+#DomainGeometry: /2D/square_l1_cl00985.geo
+#DomainGeometry: /2D/rectangle_l12_cl01.geo
+#DomainGeometry: /2D/rectangle_l12_cl005.geo
+#DomainGeometry: /2D/rectangle_l12_cl0025.geo
+#DomainGeometry: /2D/rectangle_l12_cl00125.geo
 
-#DomainGeometry: /home/ma/m/ma2413/geofiles/3D/cube_l1_cl05.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/3D/cube_l1_cl025.geo
-#DomainGeometry: /home/ma/m/ma2413/geofiles/3D/cube_l1_cl0125.geo
+#DomainGeometry: /3D/cube_l1_cl05.geo
+#DomainGeometry: /3D/cube_l1_cl025.geo
+#DomainGeometry: /3D/cube_l1_cl0125.geo
 
 # interface geometry (default: interface.msh)
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_cl025.msh
-InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_cl01.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_cl005.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_cl0025.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_cl00123.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/ellipse_a08_b0325_cl01.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_usp_32.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r05_usp_64.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r025_c05_cl01.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r025_c05_cl005.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r025_c05_cl0025.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/1D/circle_r025_c05_cl00125.msh
+#InterfaceGeometry: /simple/1D/circle_r05_cl025.msh
+InterfaceGeometry: /simple/1D/circle_r05_cl01.msh
+#InterfaceGeometry: /simple/1D/circle_r05_cl005.msh
+#InterfaceGeometry: /simple/1D/circle_r05_cl0025.msh
+#InterfaceGeometry: /simple/1D/circle_r05_cl00123.msh
+#InterfaceGeometry: /simple/1D/ellipse_a08_b0325_cl01.msh
+#InterfaceGeometry: /simple/1D/circle_r05_usp_32.msh
+#InterfaceGeometry: /simple/1D/circle_r05_usp_64.msh
+#InterfaceGeometry: /simple/1D/circle_r025_c05_cl01.msh
+#InterfaceGeometry: /simple/1D/circle_r025_c05_cl005.msh
+#InterfaceGeometry: /simple/1D/circle_r025_c05_cl0025.msh
+#InterfaceGeometry: /simple/1D/circle_r025_c05_cl00125.msh
 
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/sphere_r05_cl05_stationary.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/sphere_r05_cl05.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/sphere_r05_cl025_stationary.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/sphere_r05_cl025.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/sphere_r05_cl0125_stationary.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/sphere_r05_cl0125.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/ellipsoid_a08_b0325_cl05.msh
-#InterfaceGeometry: /home/ma/m/ma2413/mshfiles/simple/2D/ellipsoid_a08_b0325_cl025.msh
+#InterfaceGeometry: /simple/2D/sphere_r05_cl05_stationary.msh
+#InterfaceGeometry: /simple/2D/sphere_r05_cl05.msh
+#InterfaceGeometry: /simple/2D/sphere_r05_cl025_stationary.msh
+#InterfaceGeometry: /simple/2D/sphere_r05_cl025.msh
+#InterfaceGeometry: /simple/2D/sphere_r05_cl0125_stationary.msh
+#InterfaceGeometry: /simple/2D/sphere_r05_cl0125.msh
+#InterfaceGeometry: /simple/2D/ellipsoid_a08_b0325_cl05.msh
+#InterfaceGeometry: /simple/2D/ellipsoid_a08_b0325_cl025.msh
 
 # hole geometry (default: )
-#HoleGeometry: /home/ma/m/ma2413/geofiles/2D/square_l03_cl025.geo
-#HoleGeometry: /home/ma/m/ma2413/geofiles/2D/square_l03_cl01.geo
-#HoleGeometry: /home/ma/m/ma2413/geofiles/2D/square_l03_cl005.geo
-#HoleGeometry: /home/ma/m/ma2413/geofiles/2D/square_l03_cl0025.geo
-#HoleGeometry: /home/ma/m/ma2413/geofiles/2D/square_l03_cl00286.geo
+#HoleGeometry: /2D/square_l03_cl025.geo
+#HoleGeometry: /2D/square_l03_cl01.geo
+#HoleGeometry: /2D/square_l03_cl005.geo
+#HoleGeometry: /2D/square_l03_cl0025.geo
+#HoleGeometry: /2D/square_l03_cl00286.geo
 
-#HoleGeometry: /home/ma/m/ma2413/geofiles/3D/cube_l03_cl05.geo
+#HoleGeometry: /3D/cube_l03_cl05.geo
 
 # time step
 fem.timeprovider.fixedtimestep: 1.e-2
@@ -113,7 +113,7 @@ SolverRestart: 1000
 ComputeErrors: 1
 
 # path used for all file output (default: .)
-fem.prefix: .
+fem.prefix: ./solution
 
 # output format: 0 -> vtk-cell | 1 -> vtk-vertex | 2 -> sub-vtk-cell | 3 -> binary | 4 -> gnuplot | 5 -> none
 fem.io.outputformat: 0

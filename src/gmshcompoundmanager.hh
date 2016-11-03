@@ -207,7 +207,7 @@ class GMSHSimpleManager
 
   template<typename... Args>
   GMSHSimpleManager(const Args&... ):
-    filename_(Fem::Parameter::getValue<std::string>("CompoundFileName","compound.msh"))
+    filename_(static_cast<std::string>(MSHFILESDIR)+Fem::Parameter::getValue<std::string>("CompoundFileName","compound.msh"))
   {}
 
   GMSHSimpleManager(const ThisType& )=default;
@@ -249,7 +249,8 @@ class GMSHCompoundManagerBase
   {
     s<<"Domain mesh filename: "<<domainfilename_<<std::endl;
     s<<"Interface mesh filename: "<<interfacefilename_<<std::endl;
-    s<<"Hole mesh filename: "<<holefilename_<<std::endl;
+    if(hashole_)
+      s<<"Hole mesh filename: "<<holefilename_<<std::endl;
     CharlengthPolicyType::printInfo(s);
   }
 
@@ -299,9 +300,10 @@ class GMSHCompoundManagerBase
   typedef GMSHCompoundManagerBase<dim,CharlengthPolicyType,Implementation> ThisType;
 
   GMSHCompoundManagerBase(int argc,char** argv,const GmshAlgorithmType& algorithm,bool verbosity):
-    domainfilename_(Fem::Parameter::getValue<std::string>("DomainGeometry","domain.geo")),
-    interfacefilename_(Fem::Parameter::getValue<std::string>("InterfaceGeometry","interface.msh")),
-    holefilename_(Fem::Parameter::getValue<std::string>("HoleGeometry","")),gmodelptrs_(),hashole_(holefilename_!="")
+    domainfilename_(static_cast<std::string>(GEOFILESDIR)+Fem::Parameter::getValue<std::string>("DomainGeometry","domain.geo")),
+    interfacefilename_(static_cast<std::string>(MSHFILESDIR)+Fem::Parameter::getValue<std::string>("InterfaceGeometry","interface.msh")),
+    holefilename_(static_cast<std::string>(GEOFILESDIR)+Fem::Parameter::getValue<std::string>("HoleGeometry","")),gmodelptrs_(),
+    hashole_(holefilename_!=static_cast<std::string>(GEOFILESDIR))
   {
     // init gmsh
     GmshSetOption("General","Terminal",1.);
