@@ -9,7 +9,7 @@ DEPENDENCIES=@REQUIRES@
 Name: @PACKAGE_NAME@
 Version: @VERSION@
 Description: dune-navier-stokes-two-phase module
-URL: https://github.com/magnese/
+URL: https://github.com/magnese/dune-repo/blob/master/dune-navier-stokes-two-phase/
 Requires: dune-fem
 Libs: -L${libdir}
 Cflags: -I${includedir}

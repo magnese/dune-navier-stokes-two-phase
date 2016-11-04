@@ -32,7 +32,7 @@ Installation
 
 For installation instructions please see the [DUNE website][4].
 
-[0]: https://github.com/magnese/
+[0]: https://github.com/magnese/dune-repo/blob/master/dune-navier-stokes-two-phase/
 [1]: https://www.dune-project.org/
 [2]: http://onlinelibrary.wiley.com/doi/10.1002/fld.4237/abstract/
 [3]: https://github.com/magnese/dune-repo/blob/master/dune-navier-stokes-two-phase/LICENSE.md
