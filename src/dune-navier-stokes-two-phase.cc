@@ -1,9 +1,3 @@
-#define GRIDDIM ALBERTA_DIM
-#define WORLDDIM ALBERTA_DIM
-
-//#define ALUGRID_SIMPLEX
-#define ALBERTAGRID
-
 #define PRESSURE_SPACE_TYPE 0 // 0 P0, 1 P1, 2 P1+P0
 
 #define PRECONDITIONER_TYPE 1 // 0 blocks UMFPACK, 1 full UMFPACK, 2 full SPQR, 3 full LDL
@@ -34,6 +28,7 @@
 #include <dune/common/timer.hh>
 #include <dune/fem/misc/mpimanager.hh>
 #include <dune/fem/io/parameter.hh>
+#include <dune/grid/albertagrid.hh>
 
 #include "coupledmeshmanager.hh"
 #include "fluidstate.hh"
@@ -58,9 +53,9 @@ int main(int argc,char** argv)
     #endif
 
     // create coupled grids and fluid state
-    typedef Dune::GridSelector::GridType BulkHostGridType;
-    constexpr unsigned int worlddim(BulkHostGridType::dimensionworld);
-    constexpr unsigned int bulkGriddim(BulkHostGridType::dimension);
+    constexpr unsigned int worlddim(WORLDDIM);
+    constexpr unsigned int bulkGriddim(GRIDDIM);
+    typedef Dune::AlbertaGrid<bulkGriddim,worlddim> BulkHostGridType;
     typedef Dune::AlbertaGrid<bulkGriddim-1,worlddim> InterfaceHostGridType;
     #if REMESH_TYPE == 0
     typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,false> CoupledMeshManagerType;
