@@ -101,7 +101,6 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       auto exactVelocityIt(velocityExactSolution.dbegin());
       for(const auto& dof:dofs(fluidState.velocity()))
         errors[3]=std::max(errors[3],std::abs(dof-*(exactVelocityIt++)));
-      // compute L2 pressure error
       #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
       // store an inner and an outer entity, needed for indicator function
       const auto innerEntity(fluidState.bulkGrid().entity(fluidState.meshManager().mapper().entitySeedInterface2Bulk(0)));
@@ -109,7 +108,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       while(static_cast<std::size_t>(intersectionIt->indexInInside())!=fluidState.meshManager().mapper().faceLocalIdxInterface2Bulk(0))
         ++intersectionIt;
       const auto outerEntity(intersectionIt->outside());
-      // compute error
+      // compute L2 pressure error
       for(const auto& entity:fluidState.pressureDumpSpace())
       {
         auto localPressureDump(fluidState.pressureDump().localFunction(entity));
@@ -129,6 +128,11 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
           errors[4]+=value.two_norm2()*weight;
         }
       }
+      // compute Linfinity radius error
+      fluidState.interfaceGrid().coordFunction()+=fluidState.displacement();
+      for(const auto& vertex:vertices(fluidState.interfaceGridPart()))
+        errors[0]=std::max(errors[0],std::abs(femScheme.problem().exactRadius(timeProvider.time())-vertex.geometry().center().two_norm()));
+      fluidState.interfaceGrid().coordFunction()-=fluidState.displacement();
       #endif
       // compute Linfinity interpolated pressure error
       auto exactPressureIt(pressureExactSolution.dbegin());
@@ -136,19 +140,8 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         errors[5]=std::max(errors[5],std::abs(dof-*(exactPressureIt++)));
     }
 
-    // update interface grid
+    // update bulk and interface grid
     fluidState.interfaceGrid().coordFunction()+=fluidState.displacement();
-
-    // compute Linfinity radius error
-    if(computeErrors)
-    {
-      #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
-      for(const auto& vertex:vertices(fluidState.interfaceGridPart()))
-        errors[0]=std::max(errors[0],std::abs(femScheme.problem().exactRadius(timeProvider.time())-vertex.geometry().center().two_norm()));
-      #endif
-    }
-
-    // update bulk grid
     meshSmoothing.computeBulkDisplacement();
     fluidState.bulkGrid().coordFunction()+=fluidState.bulkDisplacement();
 
