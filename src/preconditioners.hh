@@ -1,11 +1,12 @@
 #ifndef DUNE_FEM_PRECONDITIONERS_HH
 #define DUNE_FEM_PRECONDITIONERS_HH
 
+#include <dune/common/hybridutilities.hh>
 #include <dune/istl/preconditioner.hh>
-#include <dune/fem/common/tupleforeach.hh>
 #include <dune/fem/solver/spqrsolver.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 
+#include <tuple>
 #include <type_traits>
 #include <vector>
 
@@ -175,7 +176,7 @@ class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunction
   {
     // copy b into b_
     auto bIt(b_.begin());
-    for_each(b,[&bIt](const auto& df,auto ){bIt=std::copy(df.dbegin(),df.dend(),bIt);});
+    Hybrid::forEach(typename range_type::Sequence{},[&](auto i){bIt=std::copy(std::get<i>(b).dbegin(),std::get<i>(b).dend(),bIt);});
 
     // apply doctoring to RHS
     if(usedoctoring_)
@@ -186,7 +187,7 @@ class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunction
 
     // copy x_ into x
     auto xIt(x_.begin());
-    for_each(x,[&xIt](auto& df,auto ){for(auto& dof:dofs(df)) dof=(*(xIt++));});
+    Hybrid::forEach(typename domain_type::Sequence{},[&](auto i){for(auto& dof:dofs(std::get<i>(x))) dof=(*(xIt++));});
   }
 
   void post(domain_type& )

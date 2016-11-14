@@ -3,9 +3,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <tuple>
 #include <utility>
 
-#include <dune/fem/common/tupleforeach.hh>
+#include <dune/common/hybridutilities.hh>
 #include <dune/fem/function/tuplediscretefunction.hh>
 
 namespace Dune
@@ -33,7 +34,7 @@ class ExtendedTupleDiscreteFunction:public TupleDiscreteFunction<DiscreteFunctio
 
   const ThisType& operator=(const FieldType& value)
   {
-    for_each(*this,[&value](auto& df,auto ){std::fill(df.dbegin(),df.dend(),value);});
+    Hybrid::forEach(typename BaseType::Sequence{},[&](auto i){std::fill(std::get<i>(*this).dbegin(),std::get<i>(*this).dend(),value);});
     return *this;
   }
 

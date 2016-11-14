@@ -7,7 +7,7 @@
 #include <tuple>
 #include <utility>
 
-#include <dune/fem/common/tupleforeach.hh>
+#include <dune/common/hybridutilities.hh>
 #include <dune/fem/io/file/dataoutput.hh>
 
 #include "femtraits.hh"
@@ -413,13 +413,17 @@ class FluidState
   // print bulk spaces info
   const void printBulkInfo(std::ostream& s=std::cout) const
   {
-    for_each(*bulk_,[&s](const auto& df,auto ){s<<" P"<<df.space().order()<<" "<<df.name()<<" -> "<<df.size()<<" DOFs ";});
+    Hybrid::forEach(typename BulkDiscreteFunctionType::Sequence{},
+      [&](auto i){s<<" P"<<std::get<i>(*bulk_).space().order()<<" "<<std::get<i>(*bulk_).name()<<" -> "
+        <<std::get<i>(*bulk_).size()<<" DOFs ";});
   }
 
   // print interface spaces info
   const void printInterfaceInfo(std::ostream& s=std::cout) const
   {
-    for_each(*interface_,[&s](const auto& df,auto ){s<<" P"<<df.space().order()<<" "<<df.name()<<" -> "<<df.size()<<" DOFs ";});
+    Hybrid::forEach(typename BulkDiscreteFunctionType::Sequence{},
+      [&](auto i){s<<" P"<<std::get<i>(*interface_).space().order()<<" "<<std::get<i>(*interface_).name()<<" -> "
+        <<std::get<i>(*interface_).size()<<" DOFs ";});
   }
 
   // check pointers status

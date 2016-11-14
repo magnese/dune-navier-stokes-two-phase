@@ -6,12 +6,13 @@
 #include <map>
 #include <memory>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 #include <dune/common/dynvector.hh>
 #include <dune/common/exceptions.hh>
-#include <dune/fem/common/tupleforeach.hh>
+#include <dune/common/hybridutilities.hh>
 #include <dune/fem/function/common/scalarproducts.hh>
 #include <dune/fem/function/common/localfunctionadapter.hh>
 
@@ -284,17 +285,20 @@ class DirichletCondition:
           // impose bc on others operators
           #if USE_SYMMETRIC_DIRICHLET
           std::size_t offset(firstLocalMatrix.rows());
-          for_each(localMatrices,[&row,&localBCDOFs,&rhsLocal,&offset](auto& entry,auto )
-                                 {
-                                   for(auto j=decltype(entry.columns()){0};j!=entry.columns();++j)
-                                   {
-                                     rhsLocal[j+offset]-=entry.get(row,j)*localBCDOFs[row];
-                                     entry.set(row,j,0.0);
-                                   }
-                                   offset+=entry.columns();
-                                 });
+          Hybrid::forEach(std::make_index_sequence<std::tuple_size<LocalMatricesType>::value>{},
+            [&](auto i)
+              {
+                auto& entry(std::get<i>(localMatrices));
+                for(auto j=decltype(entry.columns()){0};j!=entry.columns();++j)
+                {
+                  rhsLocal[j+offset]-=entry.get(row,j)*localBCDOFs[row];
+                  entry.set(row,j,0.0);
+                }
+                offset+=entry.columns();
+              });
           #else
-          for_each(localMatrices,[&row](auto& entry,auto ){entry.clearRow(row);});
+          Hybrid::forEach(std::make_index_sequence<std::tuple_size<LocalMatricesType>::value>{},
+            [&](auto i){std::get<i>(localMatrices).clearRow(row);});
           #endif
           // impose bc on RHS term
           rhsLocal[row]=localBCDOFs[row];
@@ -358,7 +362,8 @@ class FreeSlipCondition:
           {
             if(f[l]==0.0)
             {
-              for_each(localMatrices,[&row](auto& entry,auto ){entry.clearRow(row);});
+              Hybrid::forEach(std::make_index_sequence<std::tuple_size<LocalMatricesType>::value>{},
+                [&](auto i){std::get<i>(localMatrices).clearRow(row);});
               std::get<0>(localMatrices).set(row,row,1.0);
             }
             rhsLocal[row]*=localBCDOFs[row];

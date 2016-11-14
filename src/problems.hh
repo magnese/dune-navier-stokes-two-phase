@@ -2,13 +2,14 @@
 #define DUNE_FEM_PROBLEMS_HH
 
 #include <cmath>
-#include <tuple>
-#include <ostream>
-#include <iostream>
-#include <string>
 #include <functional>
+#include <iostream>
+#include <ostream>
+#include <string>
+#include <tuple>
+#include <type_traits>
 
-#include <dune/fem/common/tupleforeach.hh>
+#include <dune/common/hybridutilities.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/interpolate.hh>
 #include <dune/fem/function/common/localfunctionadapter.hh>
@@ -189,7 +190,8 @@ class BaseProblem
   template<typename... Args>
   void applyBC(Args&... args)
   {
-    for_each(velocitybcs_,[&args...](auto& entry,auto ){entry.apply(args...);});
+    Hybrid::forEach(std::make_index_sequence<std::tuple_size<VelocityBCsType>::value>{},
+      [&](auto i){std::get<i>(velocitybcs_).apply(args...);});
   }
 
   void printInfo(std::ostream& s=std::cout) const
