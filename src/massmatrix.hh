@@ -2,13 +2,12 @@
 #define DUNE_FEM_MASSMATRIX_HH
 
 #include <dune/fem/operator/common/operator.hh>
-#include <dune/fem/operator/common/stencil.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
-#include <dune/fem/function/common/scalarproducts.hh>
+#include <dune/fem/operator/common/stencil.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
-#include <string>
 #include <fstream>
+#include <string>
 #include <vector>
 
 namespace Dune

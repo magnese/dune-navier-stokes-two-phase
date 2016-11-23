@@ -13,7 +13,6 @@
 #include <dune/common/dynvector.hh>
 #include <dune/common/exceptions.hh>
 #include <dune/common/hybridutilities.hh>
-#include <dune/fem/function/common/scalarproducts.hh>
 #include <dune/fem/function/common/localfunctionadapter.hh>
 
 namespace Dune
