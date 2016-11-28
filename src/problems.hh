@@ -57,28 +57,23 @@ class BaseProblem
     // init all the functions with the null function
     velocityRHS()=[](const VelocityDomainType& ,double ,const EntityType& )
     {
-      VelocityRangeType value(0.0);
-      return value;
+      return VelocityRangeType(0.0);
     };
     velocityIC()=[](const VelocityDomainType& ,double ,const EntityType& )
     {
-      VelocityRangeType value(0.0);
-      return value;
+      return VelocityRangeType(0.0);
     };
     velocitySolution()=[](const VelocityDomainType& ,double ,const EntityType& )
     {
-      VelocityRangeType value(0.0);
-      return value;
+      return VelocityRangeType(0.0);
     };
     pressureIC()=[](const PressureDomainType& ,double ,const EntityType& )
     {
-      PressureRangeType value(0.0);
-      return value;
+      return PressureRangeType(0.0);
     };
     pressureSolution()=[](const PressureDomainType& ,double ,const EntityType& )
     {
-      PressureRangeType value(0.0);
-      return value;
+      return PressureRangeType(0.0);
     };
   }
 
