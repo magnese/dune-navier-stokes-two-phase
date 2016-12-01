@@ -3,9 +3,7 @@
 
 #include <dune/fem/space/common/functionspace.hh>
 #include <dune/fem/space/lagrange.hh>
-#if PRESSURE_SPACE_TYPE != 1
 #include <dune/fem/space/discontinuousgalerkin/lagrange.hh>
-#endif
 #include <dune/fem/space/combinedspace.hh>
 #include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/function/tuplediscretefunction.hh>
@@ -32,6 +30,7 @@ struct FemTraits
   typedef FunctionSpace<double,double,BulkGridType::dimensionworld,BulkGridType::dimensionworld> VelocityContinuosSpaceType;
   typedef FunctionSpace<double,double,BulkGridType::dimensionworld,1> PressureContinuosSpaceType;
   typedef FunctionSpace<double,double,BulkGridType::dimensionworld,BulkGridType::dimensionworld> BulkDisplacementContinuosSpaceType;
+  typedef FunctionSpace<double,double,BulkGridType::dimensionworld,1> PhysicalCoefficientContinuosSpaceType;
   typedef FunctionSpace<double,double,InterfaceGridType::dimensionworld,InterfaceGridType::dimensionworld> DisplacementContinuosSpaceType;
   typedef FunctionSpace<double,double,InterfaceGridType::dimensionworld,1> CurvatureContinuosSpaceType;
   // define discrete spaces
@@ -48,6 +47,7 @@ struct FemTraits
   typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDumpDiscreteSpaceType;
   #endif
   typedef LagrangeDiscreteFunctionSpace<BulkDisplacementContinuosSpaceType,BulkGridPartType,1> BulkDisplacementDiscreteSpaceType;
+  typedef LagrangeDiscontinuousGalerkinSpace<PhysicalCoefficientContinuosSpaceType,BulkGridPartType,0> PhysicalCoefficientDiscreteSpaceType;
   typedef LagrangeDiscreteFunctionSpace<DisplacementContinuosSpaceType,InterfaceGridPartType,1> DisplacementDiscreteSpaceType;
   typedef LagrangeDiscreteFunctionSpace<CurvatureContinuosSpaceType,InterfaceGridPartType,1> CurvatureDiscreteSpaceType;
   // define discrete functions
@@ -62,6 +62,7 @@ struct FemTraits
   #endif
   typedef AdaptiveDiscreteFunction<PressureDumpDiscreteSpaceType> PressureDumpDiscreteFunctionType;
   typedef AdaptiveDiscreteFunction<BulkDisplacementDiscreteSpaceType> BulkDisplacementDiscreteFunctionType;
+  typedef AdaptiveDiscreteFunction<PhysicalCoefficientDiscreteSpaceType> PhysicalCoefficientDiscreteFunctionType;
   typedef AdaptiveDiscreteFunction<CurvatureDiscreteSpaceType> CurvatureDiscreteFunctionType;
   typedef AdaptiveDiscreteFunction<DisplacementDiscreteSpaceType> DisplacementDiscreteFunctionType;
   typedef TupleDiscreteFunction<CurvatureDiscreteFunctionType,DisplacementDiscreteFunctionType> InterfaceDiscreteFunctionType;

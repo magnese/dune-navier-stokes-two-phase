@@ -97,7 +97,8 @@ class BoundaryCondition
   RangeType evaluateBoundaryFunction(const DomainType& x,double t,const EntityType& entity,int boundaryID) const
   {
     auto& g(g_.find(boundaryID)->second);
-    g.init(entity,t);
+    g.init(entity);
+    g.initialize(t,t);
     RangeType ret;
     g.evaluate(x,ret);
     return ret;
@@ -115,7 +116,7 @@ class BoundaryCondition
     if(gIt==gadapted_.end())
       DUNE_THROW(RangeError,"boundary ID not found in BC");
     auto& gAdapted(gIt->second);
-    gAdapted.localFunctionImpl().initialize(t);
+    gAdapted.initialize(t,t);
     const auto interpolation(space().interpolation(entity));
     LocalBoundaryDOFsType localDOFs(space().basisFunctionSet(entity).size());
     interpolation(gAdapted.localFunction(entity),localDOFs);

@@ -77,6 +77,7 @@ class FluidState
   #endif
   typedef typename Traits::PressureDumpDiscreteSpaceType PressureDumpDiscreteSpaceType;
   typedef typename Traits::BulkDisplacementDiscreteSpaceType BulkDisplacementDiscreteSpaceType;
+  typedef typename Traits::PhysicalCoefficientDiscreteSpaceType PhysicalCoefficientDiscreteSpaceType;
   typedef typename Traits::CurvatureDiscreteSpaceType CurvatureDiscreteSpaceType;
   typedef typename Traits::DisplacementDiscreteSpaceType DisplacementDiscreteSpaceType;
   // define discrete functions
@@ -87,6 +88,7 @@ class FluidState
   #endif
   typedef typename Traits::PressureDumpDiscreteFunctionType PressureDumpDiscreteFunctionType;
   typedef typename Traits::BulkDiscreteFunctionType BulkDiscreteFunctionType;
+  typedef typename Traits::PhysicalCoefficientDiscreteFunctionType PhysicalCoefficientDiscreteFunctionType;
   typedef typename Traits::BulkDisplacementDiscreteFunctionType BulkDisplacementDiscreteFunctionType;
   typedef typename Traits::CurvatureDiscreteFunctionType CurvatureDiscreteFunctionType;
   typedef typename Traits::DisplacementDiscreteFunctionType DisplacementDiscreteFunctionType;

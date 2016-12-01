@@ -12,8 +12,8 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/solver/timeprovider.hh>
 
-#include "sortedview.hh"
 #include "differentmeshlocalevaluator.hh"
+#include "sortedview.hh"
 
 namespace Dune
 {

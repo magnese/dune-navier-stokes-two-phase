@@ -10,11 +10,12 @@
 #include <type_traits>
 
 #include <dune/common/hybridutilities.hh>
+#include <dune/fem/function/common/localfunctionadapter.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/interpolate.hh>
-#include <dune/fem/function/common/localfunctionadapter.hh>
 
 #include "boundarycondition.hh"
+#include "physicalcoefficient.hh"
 
 namespace Dune
 {
@@ -40,19 +41,13 @@ class BaseProblem
   typedef typename BulkDiscreteSpaceType::template SubDiscreteFunctionSpace<1>::Type::RangeType PressureRangeType;
   typedef std::function<PressureRangeType(const PressureDomainType&,double,const EntityType&)> PressureFunctionType;
   typedef std::tuple<VelocityBCImp<VelocityDiscreteSpaceType,CoupledMeshManagerType>...> VelocityBCsType;
+  typedef PhysicalCoefficient<typename FluidStateType::PhysicalCoefficientDiscreteSpaceType,FluidStateType> PhysicalCoefficientType;
+  typedef LocalFunctionAdapter<PhysicalCoefficientType> AdaptedPhysicalCoefficientType;
 
   BaseProblem(FluidStateType& fluidState,bool isTimeDependent,bool hasExactSolution,const std::string& name):
-    fluidstate_(fluidState),
-    velocitybcs_(VelocityBCImp<VelocityDiscreteSpaceType,CoupledMeshManagerType>(fluidstate_.meshManager())...),
-    istimedependent_(isTimeDependent),
-    hasexactsolution_(hasExactSolution),
-    name_(name),
-    muinner_(Parameter::getValidValue<double>("MuInner",1.0,[](double val){return val>0.0;})),
-    muouter_(Parameter::getValidValue<double>("MuOuter",1.0,[](double val){return val>0.0;})),
-    gamma_(Parameter::getValue<double>("Gamma",1.0)),
-    rhoinner_(Parameter::getValidValue<double>("RhoInner",1.0,[](double val){return val>=0.0;})),
-    rhoouter_(Parameter::getValidValue<double>("RhoOuter",1.0,[](double val){return val>=0.0;})),
-    nulldensity_((rhoinner_==0.0&&rhoouter_==0.0)?true:false)
+    fluidstate_(fluidState),velocitybcs_(VelocityBCImp<VelocityDiscreteSpaceType,CoupledMeshManagerType>(fluidstate_.meshManager())...),
+    istimedependent_(isTimeDependent),hasexactsolution_(hasExactSolution),name_(name),mu_(fluidstate_,"Mu",[](auto val){return val>0.0;}),
+    gamma_(Parameter::getValue<double>("Gamma",1.0)),rho_(fluidstate_,"Rho",[](auto val){return val>=0.0;})
   {
     // init all the functions with the null function
     velocityRHS()=[](const VelocityDomainType& ,double ,const EntityType& )
@@ -154,11 +149,17 @@ class BaseProblem
 
   double mu(const EntityType& entity) const
   {
-    return fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?muinner_:muouter_;
+    return mu_(entity);
   }
-  double deltaMu() const
+  AdaptedPhysicalCoefficientType mu() const
   {
-    return muouter_-muinner_;
+    return AdaptedPhysicalCoefficientType(mu_.name(),mu_,fluidstate_.bulkGridPart(),1);
+  }
+  template<typename DF>
+  void mu(DF& df) const
+  {
+    const auto& muAdapted(mu());
+    interpolate(muAdapted,df);
   }
   double gamma() const
   {
@@ -166,15 +167,21 @@ class BaseProblem
   }
   double rho(const EntityType& entity) const
   {
-    return  fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?rhoinner_:rhoouter_;
+    return rho_(entity);
   }
-  double deltaRho() const
+  AdaptedPhysicalCoefficientType rho() const
   {
-    return rhoouter_-rhoinner_;
+    return AdaptedPhysicalCoefficientType(rho_.name(),rho_,fluidstate_.bulkGridPart(),1);
+  }
+  template<typename DF>
+  void rho(DF& df) const
+  {
+    const auto& rhoAdapted(rho());
+    interpolate(rhoAdapted,df);
   }
   bool isDensityNull() const
   {
-    return nulldensity_;
+    return rho_.isNull();
   }
 
   auto& velocityBC()
@@ -192,11 +199,9 @@ class BaseProblem
   void printInfo(std::ostream& s=std::cout) const
   {
     s<<"Problem : "<<name_<<std::endl;
-    s<<"mu_inner = "<<muinner_<<std::endl;
-    s<<"mu_outer = "<<muouter_<<std::endl;
+    mu_.printInfo(s);
     s<<"gamma = "<<gamma_<<std::endl;
-    s<<"rho_inner = "<<rhoinner_<<std::endl;
-    s<<"rho_outer = "<<rhoouter_<<std::endl;
+    rho_.printInfo(s);
   }
 
   protected:
@@ -205,16 +210,13 @@ class BaseProblem
   const bool istimedependent_;
   const bool hasexactsolution_;
   const std::string name_;
-  const double muinner_;
-  const double muouter_;
+  const PhysicalCoefficientType mu_;
   const double gamma_;
-  const double rhoinner_;
-  const double rhoouter_;
+  const PhysicalCoefficientType rho_;
   std::tuple<VelocityFunctionType,VelocityFunctionType,VelocityFunctionType> velocity_;
   std::tuple<PressureFunctionType,PressureFunctionType> pressure_;
   static constexpr unsigned int worlddim=CoupledMeshManagerType::BulkGridType::dimensionworld;
   static constexpr auto numbcs_=std::tuple_size<VelocityBCsType>::value;
-  const bool nulldensity_;
 
   template<typename AF,typename DF>
   void interpolateAnalyticalFunction(const AF& f,DF& df,double t) const
@@ -223,10 +225,10 @@ class BaseProblem
     typedef typename DF::DiscreteFunctionSpaceType DiscreteSpaceType;
     typedef LocalAnalyticalFunctionBinder<DiscreteSpaceType> LocalAnalyticalFunctionType;
     LocalAnalyticalFunctionType localAnalyticalFunction(f);
-    localAnalyticalFunction.initialize(t);
     // create local function adapter
     typedef LocalFunctionAdapter<LocalAnalyticalFunctionType> AdaptedFunctionType;
     AdaptedFunctionType fAdapted("adapted function",localAnalyticalFunction,df.gridPart(),1);
+    fAdapted.initialize(t,t);
     // interpolate adpated function over df
     interpolate(fAdapted,df);
   }
@@ -401,7 +403,7 @@ class ExpandingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition
   using BaseType::velocityIC;
   using BaseType::pressureSolution;
   using BaseType::pressureIC;
-  using BaseType::deltaMu;
+  using BaseType::mu_;
   using BaseType::gamma;
   using BaseType::worlddim;
   using BaseType::fluidstate_;
@@ -420,7 +422,7 @@ class ExpandingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition
     pressureSolution()=[&](const PressureDomainType& x,double t,const EntityType& )
     {
       const auto rt(exactRadius(t));
-      const auto coeff(static_cast<double>(worlddim-1)*(gamma()/rt+2.0*alpha_*deltaMu()/std::pow(rt,worlddim)));
+      const auto coeff(static_cast<double>(worlddim-1)*(gamma()/rt+2.0*alpha_*mu_.delta()/std::pow(rt,worlddim)));
       const auto indicatorValue(x.two_norm()<=rt?1.0:0.0);
       auto value(coeff*(indicatorValue-(std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)-std::pow(2.0/3.0,worlddim))/
                                        (std::pow(2.0,worlddim)-std::pow(2.0/3.0,worlddim))));
@@ -688,7 +690,7 @@ class NavierStokesTest1Problem:public BaseProblem<FluidStateImp,DirichletConditi
   using BaseType::velocityRHS;
   using BaseType::pressureSolution;
   using BaseType::pressureIC;
-  using BaseType::deltaMu;
+  using BaseType::mu_;
   using BaseType::gamma;
   using BaseType::rho;
   using BaseType::worlddim;
@@ -714,7 +716,7 @@ class NavierStokesTest1Problem:public BaseProblem<FluidStateImp,DirichletConditi
     pressureSolution()=[&](const PressureDomainType& x,double t,const EntityType& )
     {
       const auto rt(exactRadius(t));
-      const auto coeff((static_cast<double>(worlddim-1)/rt)*gamma()+2.0*alpha_*deltaMu());
+      const auto coeff((static_cast<double>(worlddim-1)/rt)*gamma()+2.0*alpha_*mu_.delta());
       const auto indicatorValue(x.two_norm()<=rt?1.0:0.0);
       auto value(coeff*(indicatorValue-(std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim))/(std::pow(2.0,worlddim))));
       return value;
