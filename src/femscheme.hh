@@ -222,7 +222,7 @@ class FemScheme
     BulkDiscreteFunctionType bulkRHS("bulk RHS",fluidstate_.bulkSpace());
     bulkRHS.clear();
     auto& velocityRHS(bulkRHS.template subDiscreteFunction<0>());
-    assembleVelocityRHS(velocityRHS,fluidstate_.velocity(),problem_,timeProvider);
+    assembleVelocityRHS(velocityRHS,fluidstate_,problem_,timeProvider);
     #if PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 4 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
     assemblePressureRHS(bulkRHS.template subDiscreteFunction<1>(),problem_.velocityBC(),timeProvider);
     #if PRESSURE_SPACE_TYPE == 2

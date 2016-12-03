@@ -67,7 +67,6 @@ class BoundaryCondition
   typedef typename DiscreteSpaceType::EntityType EntityType;
   typedef typename DiscreteSpaceType::GridPartType::IntersectionIteratorType::Intersection IntersectionType;
 
-  typedef std::function<RangeType(const DomainType&,double,const EntityType&)> FunctionType;
   typedef LocalAnalyticalFunctionBinder<DiscreteSpaceType> LocalAnalyticalFunctionType;
   typedef std::map<int,LocalAnalyticalFunctionType> FunctionMapType;
   typedef LocalFunctionAdapter<LocalAnalyticalFunctionType> AdaptedDiscreteFunctionType;
@@ -75,9 +74,10 @@ class BoundaryCondition
 
   typedef DynamicVector<typename AdaptedDiscreteFunctionType::RangeFieldType> LocalBoundaryDOFsType;
 
-  void addBC(int boundaryID,const FunctionType& g)
+  template<typename... Args>
+  void addBC(Args&&... args)
   {
-    g_.emplace(boundaryID,g);
+    g_.emplace(std::forward<Args>(args)...);
   }
 
   const DiscreteSpaceType& space() const
@@ -140,7 +140,8 @@ class BoundaryCondition
       // create adapted discrete boundary function
       gadapted_.clear();
       for(auto& g:g_)
-        gadapted_.emplace(g.first,AdaptedDiscreteFunctionType("adapted function",g.second,meshmanager_.bulkGridPart()));
+        gadapted_.emplace(g.first,AdaptedDiscreteFunctionType("adapted function",g.second,meshmanager_.bulkGridPart(),
+          space_->order()));
       // update sequence number
       sequence_=meshmanager_.sequence();
     }

@@ -13,7 +13,7 @@ namespace Fem
 {
 
 template<typename DiscreteFunctionSpaceImpl,typename FluidStateImp>
-class PhysicalCoefficient:public LocalFunctionAdapterHasInitialize
+class PhysicalCoefficient
 {
   public:
   typedef DiscreteFunctionSpaceImpl DiscreteFunctionSpaceType;

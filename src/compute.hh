@@ -121,9 +121,9 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
           localPressureDump.evaluate(localPoint,value);
           const auto globalPoint(entity.geometry().global(localPoint));
           if(globalPoint.two_norm()>femScheme.problem().exactRadius(timeProvider.time()))
-            value-=femScheme.problem().pressureSolution()(globalPoint,timeProvider.time(),outerEntity);
+            value-=femScheme.problem().pressureSolution().function()(globalPoint,timeProvider.time(),outerEntity);
           else
-            value-=femScheme.problem().pressureSolution()(globalPoint,timeProvider.time(),innerEntity);
+            value-=femScheme.problem().pressureSolution().function()(globalPoint,timeProvider.time(),innerEntity);
           const auto weight(entity.geometry().integrationElement(localPoint)*qp.weight());
           errors[4]+=value.two_norm2()*weight;
         }

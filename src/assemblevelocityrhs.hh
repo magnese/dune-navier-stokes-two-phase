@@ -10,8 +10,8 @@ namespace Dune
 namespace Fem
 {
 
-template<typename DiscreteFunctionType,typename ProblemType,typename TimeProviderType>
-void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& oldVelocity,const ProblemType& problem,
+template<typename DiscreteFunctionType,typename FluidStateType,typename ProblemType,typename TimeProviderType>
+void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidState,ProblemType& problem,
                          const TimeProviderType& timeProvider)
 {
   typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
@@ -19,19 +19,22 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const DiscreteFunctionType& o
   constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
   const auto& space(rhs.space());
   std::vector<LocalFunctionRangeType> phi(space.blockMapper().maxNumDofs()*localBlockSize);
+  problem.velocityRHS().initialize(timeProvider.time(),timeProvider.time());
 
   // perform a grid walkthrough and assemble the RHS
   for(const auto& entity:space)
   {
+    problem.velocityRHS().init(entity);
     auto localRHS(rhs.localFunction(entity));
-    const auto localOldVelocity(oldVelocity.localFunction(entity));
+    const auto localOldVelocity(fluidState.velocity().localFunction(entity));
     const auto& baseSet(space.basisFunctionSet(entity));
     const auto rho(problem.rho(entity));
 
     CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
     for(const auto& qp:quadrature)
     {
-      const auto fValue(problem.velocityRHS()(entity.geometry().global(qp.position()),timeProvider.time(),entity));
+      typename FluidStateType::VelocityDiscreteFunctionType::RangeType fValue;
+      problem.velocityRHS().evaluate(qp.position(),fValue);
       baseSet.evaluateAll(qp,phi);
       const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
