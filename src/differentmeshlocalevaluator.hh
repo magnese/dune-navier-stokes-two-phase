@@ -1,8 +1,6 @@
 #ifndef DUNE_FEM_DIFFERENTMESHLOCALEVALUATOR_HH
 #define DUNE_FEM_DIFFERENTMESHLOCALEVALUATOR_HH
 
-#include <utility>
-
 #include <dune/common/exceptions.hh>
 #include <dune/fem/common/coordinate.hh>
 #include <dune/fem/gridpart/common/entitysearch.hh>
@@ -38,7 +36,7 @@ class DifferentMeshLocalEvaluator
   {
     const auto xGlobal(entity().geometry().global(coordinate(x)));
     if(useBarycentricEntitySearch)
-      searchiterations_+=barycentricEntitySearch(df_.gridPart(),std::move(oldentity_),xGlobal);
+      searchiterations_+=barycentricEntitySearch(df_.gridPart(),oldentity_,xGlobal);
     else
     {
       EntitySearch<GridPartType> entitySearch(df_.gridPart());

@@ -26,7 +26,7 @@ FieldVector<double,EntityType::dimension+1> barycentricCoordinates(const EntityT
 }
 
 template<typename GridPartType,typename EntityType,typename GlobalCoordinateType>
-unsigned int barycentricEntitySearch(const GridPartType& gridPart,EntityType&& entity,const GlobalCoordinateType& x)
+unsigned int barycentricEntitySearch(const GridPartType& gridPart,EntityType& entity,const GlobalCoordinateType& x)
 {
   const double nullTolerance(Parameter::getValue<double>("NullTolerance",1.e-12));
   // starting form entity, find the entity which contains x
