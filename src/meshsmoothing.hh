@@ -39,7 +39,7 @@ class MeshSmoothing
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"coeff_smooth = "<<coeff_<<(isenabled_?"":" (WARNING: smooth disabled!)")<<std::endl;
+    s<<"Smoothing Coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: smooth disabled!)")<<std::endl;
   }
 
   void enable()
@@ -48,7 +48,7 @@ class MeshSmoothing
     if(coeff_<=0.0)
     {
       coeff_=1.0;
-      std::cout<<"WARNING: setting coeff_smooth = "<<coeff_<<std::endl;
+      std::cout<<"WARNING: setting smoothing coefficient = "<<coeff_<<std::endl;
     }
   }
 

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 
+#include <dune/common/exceptions.hh>
 #include <dune/common/timer.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/istl/solvers.hh>
@@ -336,6 +337,11 @@ class FemScheme
     const int nonLinearSolverVerbosity(Parameter::getValue<int>("NonLinearSolverVerbosity",0));
     const int nonLinearSolverMaxIterations(Parameter::getValue<int>("NonLinearSolverMaxIterations",1000));
     const double nonLinearSolverTolerance(Parameter::getValue<double>("NonLinearSolverTolerance",1.e-8));
+
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    if(useNonLinearSolver)
+      DUNE_THROW(InvalidStateException,"ERROR: cannot use antisymmetric convective term with fixed point iteration!");
+    #endif
 
     // create a copy of the velocity and of the bulk RHS (needed for the non-linear solver to compute residual and to restore original RHS)
     const auto bulkRHSCopy(bulkRHS);

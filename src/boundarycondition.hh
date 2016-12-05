@@ -114,7 +114,7 @@ class BoundaryCondition
   {
     auto gIt(gadapted_.find(boundaryID));
     if(gIt==gadapted_.end())
-      DUNE_THROW(RangeError,"boundary ID not found in BC");
+      DUNE_THROW(RangeError,"ERROR: boundary ID not found in BC!");
     auto& gAdapted(gIt->second);
     gAdapted.initialize(t,t);
     const auto interpolation(space().interpolation(entity));

@@ -19,22 +19,25 @@
 #define USE_SYMMETRIC_DIRICHLET 0
 #endif
 
+#define STRINGIZE_(x) #x
+#define STRINGIZE(x) STRINGIZE_(x)
+
+#include <algorithm>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include <algorithm>
 
 #include "config.h"
 #include <dune/common/timer.hh>
-#include <dune/fem/misc/mpimanager.hh>
 #include <dune/fem/io/parameter.hh>
+#include <dune/fem/misc/mpimanager.hh>
 #include <dune/grid/albertagrid.hh>
 
-#include "coupledmeshmanager.hh"
-#include "fluidstate.hh"
-#include "femscheme.hh"
-#include "meshsmoothing.hh"
 #include "compute.hh"
+#include "coupledmeshmanager.hh"
+#include "femscheme.hh"
+#include "fluidstate.hh"
+#include "meshsmoothing.hh"
 
 int main(int argc,char** argv)
 {
@@ -48,6 +51,13 @@ int main(int argc,char** argv)
     Dune::Fem::MPIManager::initialize(argc,argv);
     Dune::Fem::Parameter::append(argc,argv);
     Dune::Fem::Parameter::append(argc<2?(static_cast<std::string>(SOURCEDIR)+"/src/parameter"):argv[1]);
+
+    // add preprocessor variables to the parameters in order to have them dumped in the output
+    Dune::Fem::Parameter::append("PreconditionerType",STRINGIZE(PRECONDITIONER_TYPE));
+    Dune::Fem::Parameter::append("InterpolationType",STRINGIZE(INTERPOLATION_TYPE));
+    Dune::Fem::Parameter::append("UseSymmetricLaplacianTerm",STRINGIZE(USE_SYMMETRIC_LAPLACIAN_TERM));
+    Dune::Fem::Parameter::append("UseAntisymmetricConvectiveTerm",STRINGIZE(USE_ANTISYMMETRIC_CONVECTIVE_TERM));
+
     #if REMESH_TYPE != 0
     GmshInitialize(argc,argv);
     #endif

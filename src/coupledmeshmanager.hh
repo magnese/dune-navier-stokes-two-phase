@@ -148,7 +148,7 @@ class RemeshingVolumeCriteria
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"coeff_remesh = "<<coeff_<<(coeff_<1.0?" (WARNING: remesh disabled!)":"")<<std::endl;
+    s<<"Remeshing Coefficient = "<<coeff_<<(coeff_<1.0?" (WARNING: remesh disabled!)":"")<<std::endl;
   }
 
   template<typename BulkGridPartType>

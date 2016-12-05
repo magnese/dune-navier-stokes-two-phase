@@ -209,7 +209,7 @@ class BaseProblem
   {
     s<<"Problem : "<<name_<<std::endl;
     mu_.printInfo(s);
-    s<<"gamma = "<<gamma_<<std::endl;
+    s<<"Gamma = "<<gamma_<<std::endl;
     rho_.printInfo(s);
   }
 
