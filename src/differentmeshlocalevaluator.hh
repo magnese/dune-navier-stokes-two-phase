@@ -48,14 +48,30 @@ class DifferentMeshLocalEvaluator
     localDF.evaluate(oldentity_.geometry().local(xGlobal),ret);
   }
 
+  unsigned int order() const
+  {
+    return df_.space().order();
+  }
+
   void init(const EntityType& entity)
   {
     entity_=&entity;
   }
 
+  void init(const EntityType& entiy,const EntityType& oldEntity)
+  {
+    init(entiy);
+    oldentity_=oldEntity;
+  }
+
   const EntityType& entity() const
   {
     return *entity_;
+  }
+
+  const EntityType& oldEntity() const
+  {
+    return oldentity_;
   }
 
   unsigned int searchIterations() const

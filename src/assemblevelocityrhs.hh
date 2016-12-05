@@ -28,7 +28,14 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidSt
     auto localRHS(rhs.localFunction(entity));
     const auto localOldVelocity(fluidState.velocity().localFunction(entity));
     const auto& baseSet(space.basisFunctionSet(entity));
-    const auto rho(problem.rho(entity));
+    auto rho(problem.rho(entity));
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    const auto localOldRho(fluidState.rho().localFunction(entity));
+    typename FluidStateType::PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
+    localOldRho.evaluate(entity.geometry().center(),oldRho);
+    rho+=oldRho[0];
+    rho*=0.5;
+    #endif
 
     CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
     for(const auto& qp:quadrature)

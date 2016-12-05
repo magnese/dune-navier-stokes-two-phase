@@ -129,12 +129,18 @@ class FluidState
       pressuredumpspace_=other.pressuredumpspace_;
       #endif
       bulkdisplacementspace_=other.bulkdisplacementspace_;
+      #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+      rhospace_=other.rhospace_;
+      #endif
       interfacespace_=other.interfacespace_;
       bulk_=other.bulk_;
       #if PRESSURE_SPACE_TYPE == 2
       pressuredump_=other.pressuredump_;
       #endif
       bulkdisplacement_=other.bulkdisplacement_;
+      #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+      rho_=other.rho_;
+      #endif
       interface_=other.interface_;
       bulktuple_=other.bulktuple_;
       interfacetuple_=other.interfacetuple_;
@@ -241,6 +247,12 @@ class FluidState
   {
     return *bulkdisplacementspace_;
   }
+  #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+  const PhysicalCoefficientDiscreteSpaceType& rhoSpace() const
+  {
+    return *rhospace_;
+  }
+  #endif
   const CurvatureDiscreteSpaceType& curvatureSpace() const
   {
     return interfacespace_->template subDiscreteFunctionSpace<0>();
@@ -314,6 +326,16 @@ class FluidState
   {
     return *bulkdisplacement_;
   }
+  #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+  PhysicalCoefficientDiscreteFunctionType& rho()
+  {
+    return *rho_;
+  }
+  const PhysicalCoefficientDiscreteFunctionType& rho() const
+  {
+    return *rho_;
+  }
+  #endif
   CurvatureDiscreteFunctionType& curvature()
   {
     return interface_->template subDiscreteFunction<0>();
@@ -350,6 +372,9 @@ class FluidState
     pressuredumpspace_=std::make_shared<PressureDumpDiscreteSpaceType>(bulkGridPart());
     #endif
     bulkdisplacementspace_=std::make_shared<BulkDisplacementDiscreteSpaceType>(bulkGridPart());
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    rhospace_=std::make_shared<PhysicalCoefficientDiscreteSpaceType>(bulkGridPart());
+    #endif
     interfacespace_=std::make_shared<InterfaceDiscreteSpaceType>(interfaceGridPart());
     // create discrete functions
     bulk_=std::make_shared<BulkDiscreteFunctionType>("bulk solution",bulkSpace());
@@ -360,6 +385,9 @@ class FluidState
     pressuredump_=std::make_shared<PressureDumpDiscreteFunctionType>("pressure",pressureDumpSpace());
     #endif
     bulkdisplacement_=std::make_shared<BulkDisplacementDiscreteFunctionType>("bulk displacement",bulkDisplacementSpace());
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    rho_=std::make_shared<PhysicalCoefficientDiscreteFunctionType>("rho",rhoSpace());
+    #endif
     interface_=std::make_shared<InterfaceDiscreteFunctionType>("interface solution",interfaceSpace());
     curvature().name()="curvature";
     displacement().name()="displacement";
@@ -383,6 +411,9 @@ class FluidState
       meshIsChanged=true;
       bulkSolution().clear();
       bulkDisplacement().clear();
+      #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+      rho().clear();
+      #endif
       interfaceSolution().clear();
     }
     return meshIsChanged;
@@ -438,12 +469,18 @@ class FluidState
     s<<"PressureDumpDiscreteSpace = "<<pressuredumpspace_.use_count()<<std::endl;
     #endif
     s<<"BulkDisplacementDiscreteSpace = "<<bulkdisplacementspace_.use_count()<<std::endl;
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    s<<"RhoDiscreteSpace = "<<rhospace_.use_count()<<std::endl;
+    #endif
     s<<"InterfaceDiscreteSpace = "<<interfacespace_.use_count()<<std::endl;
     s<<"BulkDiscreteFunction = "<<bulk_.use_count()<<std::endl;
     #if PRESSURE_SPACE_TYPE == 2
     s<<"PressureDumpDiscreteFunction = "<<pressuredump_.use_count()<<std::endl;
     #endif
     s<<"BulkDisplacementDiscreteFunction = "<<bulkdisplacement_.use_count()<<std::endl;
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    s<<"RhoDiscreteFunction = "<<rho_.use_count()<<std::endl;
+    #endif
     s<<"InterfaceDiscreteFunction = "<<interface_.use_count()<<std::endl;
     s<<"BulkDataOutput = "<<bulkoutput_.use_count()<<std::endl;
     s<<"InterfaceDataOutput = "<<interfaceoutput_.use_count()<<std::endl;
@@ -457,12 +494,18 @@ class FluidState
   std::shared_ptr<PressureDumpDiscreteSpaceType> pressuredumpspace_;
   #endif
   std::shared_ptr<BulkDisplacementDiscreteSpaceType> bulkdisplacementspace_;
+  #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+  std::shared_ptr<PhysicalCoefficientDiscreteSpaceType> rhospace_;
+  #endif
   std::shared_ptr<InterfaceDiscreteSpaceType> interfacespace_;
   std::shared_ptr<BulkDiscreteFunctionType> bulk_;
   #if PRESSURE_SPACE_TYPE == 2
   std::shared_ptr<PressureDumpDiscreteFunctionType> pressuredump_;
   #endif
   std::shared_ptr<BulkDisplacementDiscreteFunctionType> bulkdisplacement_;
+  #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+  std::shared_ptr<PhysicalCoefficientDiscreteFunctionType> rho_;
+  #endif
   std::shared_ptr<InterfaceDiscreteFunctionType> interface_;
   InterfaceTupleType interfacetuple_;
   BulkTupleType bulktuple_;
@@ -478,12 +521,18 @@ class FluidState
     interfaceoutput_.reset();
     bulkoutput_.reset();
     interface_.reset();
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    rho_.reset();
+    #endif
     bulkdisplacement_.reset();
     #if PRESSURE_SPACE_TYPE == 2
     pressuredump_.reset();
     #endif
     bulk_.reset();
     interfacespace_.reset();
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    rhospace_.reset();
+    #endif
     bulkdisplacementspace_.reset();
     #if PRESSURE_SPACE_TYPE == 2
     pressuredumpspace_.reset();

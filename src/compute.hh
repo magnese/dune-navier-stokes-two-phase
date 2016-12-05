@@ -40,6 +40,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   // get initial conditions of the problem
   femScheme.problem().velocityIC(fluidState.velocity());
   femScheme.problem().pressureIC(fluidState.pressureDump());
+  #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+  if(!femScheme.problem().isDensityNull())
+    femScheme.problem().rho(fluidState.rho());
+  #endif
 
   // dump bulk solution at t0 and advance time provider
   if(femScheme.problem().isTimeDependent())
@@ -163,7 +167,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         }
     }
 
-    // interpolate velocity onto the new grid
+    // interpolate velocity and rho onto the new grid
     if(interpolationNeeded)
     {
       Timer timerInterpolation(false);
@@ -178,9 +182,12 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         // deep copy of the old mesh manager from the new mesh manager to have independent fluid states
         oldFluidState.meshManager().deepCopy(fluidState.meshManager());
         oldFluidState.init();
-        // set old bulk grid and old velocity to the correct values
+        // set old bulk grid, old velocity and old rho to the correct values
         oldFluidState.bulkGrid().coordFunction()-=fluidState.bulkDisplacement();
         oldFluidState.velocity().assign(fluidState.velocity());
+        #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+        oldFluidState.rho().assign(fluidState.rho());
+        #endif
       }
       #if INTERPOLATION_TYPE == 0
       constexpr bool useBarycentricEntitySearch(false);
@@ -193,16 +200,29 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       SortedView<typename FluidStateType::BulkGridType> newBulkGridPart(fluidState.bulkGrid(),bulkBoundingBox);
       #endif
       constexpr std::size_t velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
-      std::vector<typename FluidStateType::VelocityDiscreteFunctionType::RangeFieldType> interpolatedDOFs;
-      interpolatedDOFs.reserve(fluidState.velocitySpace().blockMapper().maxNumDofs()*velocityLocalBlockSize);
+      std::vector<typename FluidStateType::VelocityDiscreteFunctionType::RangeFieldType> velocityInterpolatedDOFs;
+      velocityInterpolatedDOFs.reserve(fluidState.velocitySpace().blockMapper().maxNumDofs()*velocityLocalBlockSize);
       DifferentMeshLocalEvaluator<typename FluidStateType::VelocityDiscreteFunctionType,useBarycentricEntitySearch>
         localOldVelocity(oldFluidState.velocity());
+      #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+      constexpr std::size_t rhoLocalBlockSize(FluidStateType::PhysicalCoefficientDiscreteSpaceType::localBlockSize);
+      std::vector<typename FluidStateType::PhysicalCoefficientDiscreteFunctionType::RangeFieldType> rhoInterpolatedDOFs;
+      rhoInterpolatedDOFs.reserve(fluidState.rhoSpace().blockMapper().maxNumDofs()*rhoLocalBlockSize);
+      DifferentMeshLocalEvaluator<typename FluidStateType::PhysicalCoefficientDiscreteFunctionType,useBarycentricEntitySearch>
+        localOldRho(oldFluidState.rho());
+      #endif
       for(const auto& entity:elements(newBulkGridPart))
       {
         localOldVelocity.init(entity);
-        interpolatedDOFs.resize(fluidState.velocitySpace().basisFunctionSet(entity).size());
-        fluidState.velocitySpace().interpolation(entity)(localOldVelocity,interpolatedDOFs);
-        fluidState.velocity().setLocalDofs(entity,interpolatedDOFs);
+        velocityInterpolatedDOFs.resize(fluidState.velocitySpace().basisFunctionSet(entity).size());
+        fluidState.velocitySpace().interpolation(entity)(localOldVelocity,velocityInterpolatedDOFs);
+        fluidState.velocity().setLocalDofs(entity,velocityInterpolatedDOFs);
+        #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+        localOldRho.init(entity,localOldVelocity.oldEntity());
+        rhoInterpolatedDOFs.resize(fluidState.rhoSpace().basisFunctionSet(entity).size());
+        fluidState.rhoSpace().interpolation(entity)(localOldRho,rhoInterpolatedDOFs);
+        fluidState.rho().setLocalDofs(entity,rhoInterpolatedDOFs);
+        #endif
       }
       timerInterpolation.stop();
       if(useBarycentricEntitySearch)
