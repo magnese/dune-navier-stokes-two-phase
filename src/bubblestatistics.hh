@@ -35,7 +35,7 @@ static class BubbleStatistics
     constexpr auto worlddim(FluidStateType::BulkGridType::dimensionworld);
     circularitywriter_.add(timeProvider.time(),circularity<worlddim>(bulkInnerVolume,interfaceLength));
     // compute height barycenter
-    barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegration(
+    barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegrationHostEntity(
                                                 fluidState.bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
                                                 fluidState.bulkInnerGridPart()));
     // compute average rising velocity
@@ -83,7 +83,6 @@ static class BubbleStatistics
                                            const BulkInnerGridPartType& bulkInnerGridPart) const
   {
     // compute \int_{\Omega_-}(\vec f * \vec e_d) / \int_{\Omega_-}( 1 )
-    const auto& space(f.space());
     typedef typename DiscreteFunctionType::RangeType RangeType;
     RangeType e_d(0.0);
     e_d[DiscreteFunctionType::GridType::dimensionworld-1]=1.0;
@@ -91,7 +90,7 @@ static class BubbleStatistics
     for(const auto& entity:elements(bulkInnerGridPart))
     {
       const auto fLocal(f.localFunction(entity));
-      CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(entity,2*space.order()+1);
+      CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(entity,2*f.space().order()+1);
       for(const auto& qp:quadrature)
       {
         RangeType fValue;
@@ -102,6 +101,32 @@ static class BubbleStatistics
     }
     return integral/bulkInnerVolume;
   }
+
+  template<typename DiscreteFunctionType,typename BulkInnerGridPartType>
+  double verticalComponentInnerIntegrationHostEntity(const DiscreteFunctionType& f,double bulkInnerVolume,
+                                                     const BulkInnerGridPartType& bulkInnerGridPart) const
+  {
+    // compute \int_{\Omega_-}(\vec f * \vec e_d) / \int_{\Omega_-}( 1 )
+    typedef typename DiscreteFunctionType::RangeType RangeType;
+    RangeType e_d(0.0);
+    e_d[DiscreteFunctionType::GridType::dimensionworld-1]=1.0;
+    double integral(0.0);
+    for(const auto& entity:elements(bulkInnerGridPart))
+    {
+      const auto& hostEntity(entity.impl().hostEntity());
+      const auto fLocal(f.localFunction(hostEntity));
+      CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(hostEntity,2*f.space().order()+1);
+      for(const auto& qp:quadrature)
+      {
+        RangeType fValue;
+        fLocal.evaluate(qp.position(),fValue);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
+        integral+=((fValue*e_d)*weight);
+      }
+    }
+    return integral/bulkInnerVolume;
+  }
+
 
 } bubbleStatistics;
 
