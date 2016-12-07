@@ -136,7 +136,7 @@ class SortedView
         position-=((idx[1]%2==0)?(idx[1]*size[0]+idx[0]):((idx[1]+1)*size[0]-idx[0]-1));
       }
       // add entity seed into entities
-      entities_[position].emplace_back(std::move(entity.seed()));
+      entities_[position].emplace_back(entity.seed());
     }
   }
 
