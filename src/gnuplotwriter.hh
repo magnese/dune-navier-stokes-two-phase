@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <list>
 #include <string>
+#include <tuple>
 #include <utility>
 
 #include <dune/fem/io/parameter.hh>
@@ -17,40 +18,54 @@ namespace Fem
 // generic gnuplot writer
 struct GnuplotWriter
 {
+  typedef std::list<std::tuple<double,double,bool>> ListType;
+
   GnuplotWriter(const std::string& fileName,unsigned int precision=6):
-    filename_("/"+fileName+".dat"),filenameset_(false),precision_(precision)
+    filename_(Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName+".dat"),precision_(precision)
   {}
-
-  void setPrecision(unsigned int precision)
-  {
-    precision_=precision;
-  }
-
-  void setFileName(const std::string& fileName)
-  {
-    filename_=Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName+".dat";
-    filenameset_=true;
-  }
-
-  std::list<std::pair<double,double>>& get()
-  {
-    return values_;
-  }
-
-  const std::list<std::pair<double,double>>& get() const
-  {
-    return values_;
-  }
 
   void add(double first,double second,bool leaveEmptyRow=false)
   {
-    if(!filenameset_)
-    {
-      filename_=Parameter::getValue<std::string>("fem.prefix",".")+filename_;
-      filenameset_=true;
-    }
-    values_.emplace_back(first,second);
-    returns_.emplace_back(leaveEmptyRow);
+    values_.emplace_back(first,second,leaveEmptyRow);
+  }
+
+  bool isEmpty() const
+  {
+    return values_.size()==0;
+  }
+
+  void normalize(double coeff)
+  {
+    for(auto& value:values_)
+      std::get<1>(value)/=coeff;
+  }
+
+  std::pair<double,double> firstValue() const
+  {
+    return {std::get<0>(values_.front()),std::get<1>(values_.front())};
+  }
+
+  std::pair<double,double> lastValue() const
+  {
+    return {std::get<0>(values_.back()),std::get<1>(values_.back())};
+  }
+
+  std::pair<double,double> minValue() const
+  {
+    auto minVal(firstValue());
+    for(const auto& value:values_)
+      if(std::get<1>(value)<minVal.second)
+        minVal={std::get<0>(value),std::get<1>(value)};
+    return minVal;
+  }
+
+  std::pair<double,double> maxValue() const
+  {
+    auto maxVal(firstValue());
+    for(const auto& value:values_)
+      if(std::get<1>(value)>maxVal.second)
+        maxVal={std::get<0>(value),std::get<1>(value)};
+    return maxVal;
   }
 
   ~GnuplotWriter()
@@ -58,28 +73,24 @@ struct GnuplotWriter
     finalize();
   }
 
-  void finalize()
+  void finalize() const
   {
-    if(values_.size()!=0)
+    if(!isEmpty())
     {
       std::ofstream file(filename_);
       file<<std::setprecision(precision_);
-      auto returnsIt(returns_.begin());
       for(const auto& value:values_)
       {
-        file<<value.first<<" "<<value.second<<std::endl;
-        if(*returnsIt)
+        file<<std::get<0>(value)<<" "<<std::get<1>(value)<<std::endl;
+        if(std::get<2>(value))
           file<<std::endl;
-        ++returnsIt;
       }
     }
   }
 
   std::string filename_;
-  bool filenameset_;
   unsigned int precision_;
-  std::list<std::pair<double,double>> values_;
-  std::list<bool> returns_;
+  ListType values_;
 };
 
 }

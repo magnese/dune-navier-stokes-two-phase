@@ -76,6 +76,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   #endif
 
   #if PROBLEM_NUMBER == 7
+  BubbleStatistics bubbleStatistics;
   bubbleStatistics.add(fluidState,timeProvider);
   #endif
 

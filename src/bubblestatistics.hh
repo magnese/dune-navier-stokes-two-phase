@@ -13,17 +13,16 @@ namespace Fem
 {
 
 // compute various bubble statistics
-static class BubbleStatistics
+class BubbleStatistics
 {
   public:
-  BubbleStatistics():
-    circularitywriter_("circularity"),barycenterwriter_("barycenter"),velocitywriter_("velocity")
+  BubbleStatistics(unsigned int precision=6):
+    circularitywriter_("circularity",precision),barycenterwriter_("barycenter",precision),velocitywriter_("velocity",precision)
   {}
 
   ~BubbleStatistics()
   {
-    if(circularitywriter_.get().size()!=0)
-      printInfo();
+    printInfo();
   }
 
   template<typename FluidStateType,typename TimeProviderType>
@@ -35,9 +34,11 @@ static class BubbleStatistics
     constexpr auto worlddim(FluidStateType::BulkGridType::dimensionworld);
     circularitywriter_.add(timeProvider.time(),circularity<worlddim>(bulkInnerVolume,interfaceLength));
     // compute height barycenter
+    #if DUNE_GRID_EXPERIMENTAL_GRID_EXTENSIONS
     barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegrationHostEntity(
                                                 fluidState.bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
                                                 fluidState.bulkInnerGridPart()));
+    #endif
     // compute average rising velocity
     velocitywriter_.add(timeProvider.time(),verticalComponentInnerIntegration(fluidState.velocity(),bulkInnerVolume,
                                                                               fluidState.bulkInnerGridPart()));
@@ -45,23 +46,17 @@ static class BubbleStatistics
 
   void printInfo() const
   {
-    // print min circularity
-    const auto& circularities(circularitywriter_.get());
-    auto minCircularity(circularities.front());
-    for(const auto& entry:circularities)
-      if(entry.second<minCircularity.second)
-        minCircularity=entry;
-    std::cout<<"Minimum circularity = "<<minCircularity.second<<" (time = "<<minCircularity.first<<" s)."<<std::endl;
-    // print max average rising velocity
-    const auto& velocities(velocitywriter_.get());
-    auto maxRisingVelocity(velocities.front());
-    for(const auto& entry:velocities)
-      if(entry.second>maxRisingVelocity.second)
-        maxRisingVelocity=entry;
-    std::cout<<"Maximum average rising velocity  = "<<maxRisingVelocity.second<<" (time = "<<maxRisingVelocity.first<<" s)."<<std::endl;
-    // print final height barycenter
-    const auto& finalBarycenter(barycenterwriter_.get().back());
-    std::cout<<"Final height barycenter  = "<<finalBarycenter.second<<" (time = "<<finalBarycenter.first<<" s)."<<std::endl;
+    if(!circularitywriter_.isEmpty())
+    {
+      const auto minCircularity(circularitywriter_.minValue());
+      std::cout<<"Minimum circularity = "<<minCircularity.second<<" (time = "<<minCircularity.first<<" s)."<<std::endl;
+      const auto maxRisingVelocity(velocitywriter_.maxValue());
+      std::cout<<"Maximum average rising velocity  = "<<maxRisingVelocity.second<<" (time = "<<maxRisingVelocity.first<<" s)."<<std::endl;
+      #if DUNE_GRID_EXPERIMENTAL_GRID_EXTENSIONS
+      const auto finalBarycenter(barycenterwriter_.lastValue());
+      std::cout<<"Final height barycenter  = "<<finalBarycenter.second<<" (time = "<<finalBarycenter.first<<" s)."<<std::endl;
+      #endif
+    }
   }
 
   private:
@@ -102,6 +97,7 @@ static class BubbleStatistics
     return integral/bulkInnerVolume;
   }
 
+  #if DUNE_GRID_EXPERIMENTAL_GRID_EXTENSIONS
   template<typename DiscreteFunctionType,typename BulkInnerGridPartType>
   double verticalComponentInnerIntegrationHostEntity(const DiscreteFunctionType& f,double bulkInnerVolume,
                                                      const BulkInnerGridPartType& bulkInnerGridPart) const
@@ -126,9 +122,8 @@ static class BubbleStatistics
     }
     return integral/bulkInnerVolume;
   }
-
-
-} bubbleStatistics;
+  #endif
+};
 
 }
 }

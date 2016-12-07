@@ -47,12 +47,12 @@ std::array<double,3> meshVolumesInfo(const GridPartType& gridPart,const std::str
 }
 
 // dump interface volume
-static struct InterfaceVolumeInfo:public GnuplotWriter
+struct InterfaceVolumeInfo:public GnuplotWriter
 {
   typedef GnuplotWriter BaseType;
 
-  InterfaceVolumeInfo():
-    BaseType("interface_volume")
+  InterfaceVolumeInfo(unsigned int precision=6):
+    BaseType("interface_volume",precision)
   {}
 
   using BaseType::add;
@@ -62,15 +62,15 @@ static struct InterfaceVolumeInfo:public GnuplotWriter
   {
     add(timeProvider.time(),meshManager.interfaceLength());
   }
-} interfaceVolumeInfo;
+};
 
 // dump bulk inner volume
-static struct BulkInnerVolumeInfo:public GnuplotWriter
+struct BulkInnerVolumeInfo:public GnuplotWriter
 {
   typedef GnuplotWriter BaseType;
 
-  BulkInnerVolumeInfo():
-    BaseType("bulk_inner_volume")
+  BulkInnerVolumeInfo(unsigned int precision=6):
+    BaseType("bulk_inner_volume",precision)
   {}
 
   using BaseType::add;
@@ -80,19 +80,21 @@ static struct BulkInnerVolumeInfo:public GnuplotWriter
   {
     add(timeProvider.time(),meshManager.bulkInnerVolume());
   }
-} bulkInnerVolumeInfo;
+};
 
 // dump normalized bulk inner volume
-static struct BulkNormalizedInnerVolumeInfo:public GnuplotWriter
+struct BulkNormalizedInnerVolumeInfo:public GnuplotWriter
 {
   typedef GnuplotWriter BaseType;
 
-  BulkNormalizedInnerVolumeInfo():
-    BaseType("bulk_normalized_inner_volume")
+  BulkNormalizedInnerVolumeInfo(unsigned int precision=6):
+    BaseType("bulk_normalized_inner_volume",precision)
   {}
 
   using BaseType::add;
-  using BaseType::get;
+  using BaseType::isEmpty;
+  using BaseType::firstValue;
+  using BaseType::normalize;
 
   template<typename CoupledMeshManagerType,typename TimeProviderType>
   void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
@@ -103,15 +105,10 @@ static struct BulkNormalizedInnerVolumeInfo:public GnuplotWriter
   ~BulkNormalizedInnerVolumeInfo()
   {
     // normalize by intial volume
-    auto& values=get();
-    if(values.size()!=0)
-    {
-      const auto initialVolume(values.front().second);
-      for(auto& value:values)
-        value.second/=initialVolume;
-    }
+    if(!isEmpty())
+      normalize(firstValue().second);
   }
-} bulkNormalizedInnerVolumeInfo;
+};
 
 // check if bulk and interface are consistent
 template<typename InterfaceGridPartType,typename BulkGridPartType,typename BulkInterfaceGridMapperType>
@@ -188,12 +185,12 @@ std::array<typename DF::RangeFieldType,3> checkFunctionRange(const DF& df)
 }
 
 // dump function range
-static struct FunctionRangeInfo:public GnuplotWriter
+struct FunctionRangeInfo:public GnuplotWriter
 {
   typedef GnuplotWriter BaseType;
 
-  FunctionRangeInfo():
-    BaseType("function_range")
+  FunctionRangeInfo(unsigned int precision=6):
+    BaseType("function_range",precision)
   {}
 
   using BaseType::add;
@@ -209,15 +206,15 @@ static struct FunctionRangeInfo:public GnuplotWriter
     }
     add(timeProvider.time(),values[1]-values[0]);
   }
-} functionRangeInfo;
+};
 
 // dump function max
-static struct FunctionMaxInfo:public GnuplotWriter
+struct FunctionMaxInfo:public GnuplotWriter
 {
   typedef GnuplotWriter BaseType;
 
-  FunctionMaxInfo():
-    BaseType("function_max")
+  FunctionMaxInfo(unsigned int precision=6):
+    BaseType("function_max",precision)
   {}
 
   using BaseType::add;
@@ -228,9 +225,9 @@ static struct FunctionMaxInfo:public GnuplotWriter
     double value(std::numeric_limits<double>::min());
     for(const auto& dof:dofs(df))
       value=std::max(std::abs(dof),value);
-    add(timeProvider.time(),std::move(value));
+    add(timeProvider.time(),value);
   }
-} functionMaxInfo;
+};
 
 // dump Tex log
 template<typename TimerType,typename MeshManagerType>
@@ -307,12 +304,12 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
 }
 
 // dump triangles in gnuplot format
-static struct TrianglesDump:public GnuplotWriter
+struct TrianglesDump:public GnuplotWriter
 {
   typedef GnuplotWriter BaseType;
 
-  TrianglesDump():
-    BaseType("triangles")
+  TrianglesDump(unsigned int precision=6):
+    BaseType("triangles",precision)
   {}
 
   using BaseType::add;
@@ -322,10 +319,10 @@ static struct TrianglesDump:public GnuplotWriter
   {
     const auto& geo(entity.geometry());
     for(auto i=decltype(geo.corners()){0};i!=geo.corners();++i)
-      add(std::move(geo.corner(i)[0]),std::move(geo.corner(i)[1]));
-    add(std::move(geo.corner(0)[0]),std::move(geo.corner(0)[1]),true);
+      add(geo.corner(i)[0],geo.corner(i)[1]);
+    add(geo.corner(0)[0],geo.corner(0)[1],true);
   }
-} trianglesDump;
+};
 
 
 }
