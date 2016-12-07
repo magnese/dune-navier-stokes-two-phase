@@ -15,6 +15,10 @@
 #include "differentmeshlocalevaluator.hh"
 #include "sortedview.hh"
 
+#if PROBLEM_NUMBER == 7
+#include "bubblestatistics.hh"
+#endif
+
 namespace Dune
 {
 namespace Fem
@@ -71,6 +75,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   }
   #endif
 
+  #if PROBLEM_NUMBER == 7
+  bubbleStatistics.add(fluidState,timeProvider);
+  #endif
+
   // solve
   for(;timeProvider.time()<=endTime;timeProvider.next())
   {
@@ -85,6 +93,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     // dump solution
     fluidState.dumpBulkSolutions(timeProvider);
     fluidState.dumpInterfaceSolutions(timeProvider);
+
+    #if PROBLEM_NUMBER == 7
+    bubbleStatistics.add(fluidState,timeProvider);
+    #endif
 
     // compute bulk errors
     if(computeErrors)
