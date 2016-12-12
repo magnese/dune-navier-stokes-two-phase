@@ -30,23 +30,29 @@ class BubbleStatistics
   }
 
   template<typename FluidStateType,typename TimeProviderType>
-  void add(const FluidStateType& fluidState,const TimeProviderType& timeProvider)
+  void add(FluidStateType& fluidState,const TimeProviderType& timeProvider)
   {
+    // update mesh according interface displacement
+    fluidState.interfaceGrid().coordFunction()+=fluidState.displacement();
+    fluidState.meshManager().mapper().setInterfaceDFInBulkDF(fluidState.displacement(),fluidState.bulkDisplacement());
+    fluidState.bulkGrid().coordFunction()+=fluidState.bulkDisplacement();
     // compute circularity
-    const auto bulkInnerVolume(fluidState.meshManager().bulkInnerVolume());
+    auto bulkInnerVolume(fluidState.meshManager().bulkInnerVolume());
     innervolumewriter_.add(timeProvider.time(),bulkInnerVolume);
     const auto interfaceLength(fluidState.meshManager().interfaceLength());
     constexpr auto worlddim(FluidStateType::BulkGridType::dimensionworld);
     circularitywriter_.add(timeProvider.time(),circularity<worlddim>(bulkInnerVolume,interfaceLength));
     // compute height barycenter
-    #if DUNE_GRID_EXPERIMENTAL_GRID_EXTENSIONS
-    barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegrationHostEntity(
-                                                fluidState.bulkGrid().coordFunction().discreteFunction(),bulkInnerVolume,
-                                                fluidState.bulkInnerGridPart()));
-    #endif
+    typename FluidStateType::BulkDisplacementDiscreteFunctionType bulkCoor("bulkCoor",fluidState.bulkDisplacementSpace());
+    bulkCoor.assign(fluidState.bulkGrid().coordFunction().discreteFunction());
+    barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegration(bulkCoor,bulkInnerVolume,fluidState.bulkInnerGridPart()));
+    // restore mesh
+    fluidState.interfaceGrid().coordFunction()-=fluidState.displacement();
+    fluidState.bulkGrid().coordFunction()-=fluidState.bulkDisplacement();
     // compute average rising velocity
+    bulkInnerVolume=fluidState.meshManager().bulkInnerVolume();
     velocitywriter_.add(timeProvider.time(),verticalComponentInnerIntegration(fluidState.velocity(),bulkInnerVolume,
-                                                                              fluidState.bulkInnerGridPart()));
+      fluidState.bulkInnerGridPart()));
   }
 
   void printInfo() const
@@ -57,10 +63,8 @@ class BubbleStatistics
       std::cout<<"Minimum circularity = "<<minCircularity.second<<" (time = "<<minCircularity.first<<" s)."<<std::endl;
       const auto maxRisingVelocity(velocitywriter_.maxValue());
       std::cout<<"Maximum average rising velocity  = "<<maxRisingVelocity.second<<" (time = "<<maxRisingVelocity.first<<" s)."<<std::endl;
-      #if DUNE_GRID_EXPERIMENTAL_GRID_EXTENSIONS
       const auto finalBarycenter(barycenterwriter_.lastValue());
       std::cout<<"Final height barycenter  = "<<finalBarycenter.second<<" (time = "<<finalBarycenter.first<<" s)."<<std::endl;
-      #endif
     }
   }
 
@@ -102,33 +106,6 @@ class BubbleStatistics
     }
     return integral/bulkInnerVolume;
   }
-
-  #if DUNE_GRID_EXPERIMENTAL_GRID_EXTENSIONS
-  template<typename DiscreteFunctionType,typename BulkInnerGridPartType>
-  double verticalComponentInnerIntegrationHostEntity(const DiscreteFunctionType& f,double bulkInnerVolume,
-                                                     const BulkInnerGridPartType& bulkInnerGridPart) const
-  {
-    // compute \int_{\Omega_-}(\vec f * \vec e_d) / \int_{\Omega_-}( 1 )
-    typedef typename DiscreteFunctionType::RangeType RangeType;
-    RangeType e_d(0.0);
-    e_d[DiscreteFunctionType::GridType::dimensionworld-1]=1.0;
-    double integral(0.0);
-    for(const auto& entity:elements(bulkInnerGridPart))
-    {
-      const auto& hostEntity(entity.impl().hostEntity());
-      const auto fLocal(f.localFunction(hostEntity));
-      CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(hostEntity,2*f.space().order()+1);
-      for(const auto& qp:quadrature)
-      {
-        RangeType fValue;
-        fLocal.evaluate(qp.position(),fValue);
-        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
-        integral+=((fValue*e_d)*weight);
-      }
-    }
-    return integral/bulkInnerVolume;
-  }
-  #endif
 };
 
 }
