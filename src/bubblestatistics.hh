@@ -17,11 +17,15 @@ class BubbleStatistics
 {
   public:
   BubbleStatistics(unsigned int precision=6):
-    circularitywriter_("circularity",precision),barycenterwriter_("barycenter",precision),velocitywriter_("velocity",precision)
+    circularitywriter_("circularity",precision),barycenterwriter_("barycenter",precision),velocitywriter_("velocity",precision),
+    innervolumewriter_("innervolume",precision)
   {}
 
   ~BubbleStatistics()
   {
+    // normalize by initial volume
+    if(!innervolumewriter_.isEmpty())
+      innervolumewriter_.normalize(innervolumewriter_.firstValue().second);
     printInfo();
   }
 
@@ -30,6 +34,7 @@ class BubbleStatistics
   {
     // compute circularity
     const auto bulkInnerVolume(fluidState.meshManager().bulkInnerVolume());
+    innervolumewriter_.add(timeProvider.time(),bulkInnerVolume);
     const auto interfaceLength(fluidState.meshManager().interfaceLength());
     constexpr auto worlddim(FluidStateType::BulkGridType::dimensionworld);
     circularitywriter_.add(timeProvider.time(),circularity<worlddim>(bulkInnerVolume,interfaceLength));
@@ -63,6 +68,7 @@ class BubbleStatistics
   GnuplotWriter circularitywriter_;
   GnuplotWriter barycenterwriter_;
   GnuplotWriter velocitywriter_;
+  GnuplotWriter innervolumewriter_;
 
   template<int worlddim>
   double circularity(double bulkInnerVolume,double interfaceLength) const
