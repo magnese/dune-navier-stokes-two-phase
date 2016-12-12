@@ -137,7 +137,7 @@ class RemeshingVolumeCriteria
 
   // constructor
   explicit RemeshingVolumeCriteria():
-    coeff_(Parameter::getValue<double>("CoeffRemeshing",3.0))
+    coeff_(Parameter::getValidValue<double>("CoeffRemeshing",3.0,[](auto val){return val>=0.0;})),isenabled_(coeff_>0.0?true:false)
   {}
 
   RemeshingVolumeCriteria(const ThisType& )=default;
@@ -149,40 +149,44 @@ class RemeshingVolumeCriteria
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"Remeshing Coefficient = "<<coeff_<<(coeff_<1.0?" (WARNING: remesh disabled!)":"")<<std::endl;
+    s<<"Remeshing Coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: remesh disabled!)")<<std::endl;
   }
 
   template<typename BulkGridPartType>
   bool remeshingIsNeeded(const BulkGridPartType& bulkGridPart) const
   {
     bool needed(false);
-    if(coeff_>1.0)
+    if(isenabled_)
     {
-      double maxVolume(std::numeric_limits<double>::min());
-      double minVolume(std::numeric_limits<double>::max());
-      for(const auto& entity:elements(bulkGridPart))
+      if(coeff_>1.0)
       {
-        const auto volume(std::abs(entity.geometry().volume()));
-        minVolume=std::min(volume,minVolume);
-        maxVolume=std::max(volume,maxVolume);
+        double maxVolume(std::numeric_limits<double>::min());
+        double minVolume(std::numeric_limits<double>::max());
+        for(const auto& entity:elements(bulkGridPart))
+        {
+          const auto volume(std::abs(entity.geometry().volume()));
+          minVolume=std::min(volume,minVolume);
+          maxVolume=std::max(volume,maxVolume);
+        }
+        if(maxVolume/minVolume>coeff_)
+        {
+          std::cout<<std::endl<<"Remeshing needed (min bulk volume = "<<minVolume<<"; max bulk volume = "<<maxVolume<<")."
+            <<std::endl<<std::endl;
+          needed=true;
+        }
       }
-      if(maxVolume/minVolume>coeff_)
+      else
       {
-        std::cout<<std::endl<<"Remeshing needed (min bulk volume = "<<minVolume<<"; max bulk volume = "<<maxVolume<<")."
-          <<std::endl<<std::endl;
+        std::cout<<std::endl<<"Remeshing performed at each time step."<<std::endl<<std::endl;
         needed=true;
       }
-    }
-    if(coeff_==1.0)
-    {
-      std::cout<<std::endl<<"Remeshing performed at each time step."<<std::endl<<std::endl;
-      needed=true;
     }
     return needed;
   }
 
   private:
   const double coeff_;
+  const bool isenabled_;
 };
 
 // coupled mesh manager

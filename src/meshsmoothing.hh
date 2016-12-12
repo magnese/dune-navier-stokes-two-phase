@@ -31,8 +31,8 @@ class MeshSmoothing
 
   // constructor
   explicit MeshSmoothing(FluidStateType& fluidState):
-    fluidstate_(fluidState),problem_(fluidState),coeff_(Parameter::getValue<double>("CoeffSmoothing",1.0)),
-    isenabled_(coeff_>0.0?true:false)
+    fluidstate_(fluidState),problem_(fluidState),
+    coeff_(Parameter::getValidValue<double>("CoeffSmoothing",1.0,[](auto val){return val>=0.0;})),isenabled_(coeff_>0.0?true:false)
   {}
 
   MeshSmoothing(const ThisType& )=delete;
