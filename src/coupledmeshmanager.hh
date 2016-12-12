@@ -111,6 +111,7 @@ class BulkInterfaceGridMapper
   template<typename InterfaceFunction,typename BulkFunction>
   void setInterfaceDFInBulkDF(const InterfaceFunction& interfaceFunction,BulkFunction& bulkFunction) const
   {
+    bulkFunction.clear();
     constexpr std::size_t interfaceLocalBlockSize(InterfaceFunction::DiscreteFunctionSpaceType::localBlockSize);
     const auto interfaceNumBlocks(interfaceFunction.blocks());
     auto interfaceIt(interfaceFunction.dbegin());

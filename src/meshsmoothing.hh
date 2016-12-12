@@ -90,7 +90,6 @@ class MeshSmoothing
     // assemble RHS
     timerAssemble.start();
     DiscreteFunctionType rhs("smoothing RHS",fluidstate_.bulkDisplacementSpace());
-    rhs.clear();
     fluidstate_.meshManager().mapper().setInterfaceDFInBulkDF(fluidstate_.displacement(),rhs);
     timerAssemble.stop();
     // impose BC
