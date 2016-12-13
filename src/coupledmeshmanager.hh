@@ -167,12 +167,12 @@ class RemeshingVolumeCriterion
           const auto volume(std::abs(entity.geometry().volume()));
           minVolume=std::min(volume,minVolume);
           maxVolume=std::max(volume,maxVolume);
-        }
-        if(maxVolume/minVolume>coeff_)
-        {
-          std::cout<<std::endl<<"Remeshing needed (min bulk volume = "<<minVolume<<"; max bulk volume = "<<maxVolume<<")."
-            <<std::endl<<std::endl;
-          needed=true;
+          if(maxVolume/minVolume>coeff_)
+          {
+            std::cout<<std::endl<<"Remeshing needed."<<std::endl<<std::endl;
+            needed=true;
+            break;
+          }
         }
       }
       else
