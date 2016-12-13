@@ -129,18 +129,18 @@ class BulkInterfaceGridMapper
   std::vector<std::pair<BulkEntitySeedType,unsigned int>> entityinterface2bulk_;
 };
 
-// volume criteria to trigger remeshing
-class RemeshingVolumeCriteria
+// volume criterion to trigger remeshing
+class RemeshingVolumeCriterion
 {
   public:
-  typedef RemeshingVolumeCriteria ThisType;
+  typedef RemeshingVolumeCriterion ThisType;
 
   // constructor
-  explicit RemeshingVolumeCriteria():
+  explicit RemeshingVolumeCriterion():
     coeff_(Parameter::getValidValue<double>("CoeffRemeshing",3.0,[](auto val){return val>=0.0;})),isenabled_(coeff_>0.0?true:false)
   {}
 
-  RemeshingVolumeCriteria(const ThisType& )=default;
+  RemeshingVolumeCriterion(const ThisType& )=default;
 
   ThisType& operator=(const ThisType& )
   {
@@ -149,7 +149,7 @@ class RemeshingVolumeCriteria
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"Remeshing Coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: remesh disabled!)")<<std::endl;
+    s<<"Remeshing with volume criterion coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: remesh disabled!)")<<std::endl;
   }
 
   template<typename BulkGridPartType>
@@ -191,7 +191,7 @@ class RemeshingVolumeCriteria
 
 // coupled mesh manager
 template<typename BulkHostGridImp,typename InterfaceHostGridImp,bool useCompoundManager,typename CharlengthPolicyImp=UniformCharlength,
-         typename RemeshingCriteriaImp=RemeshingVolumeCriteria>
+         typename RemeshingCriterionImp=RemeshingVolumeCriterion>
 class CoupledMeshManager
 {
   public:
@@ -199,11 +199,12 @@ class CoupledMeshManager
   typedef BulkHostGridImp BulkHostGridType;
   typedef InterfaceHostGridImp InterfaceHostGridType;
 
-  // define charlength policy and remeshing criteria
+  // define charlength policy and remeshing criterion
   typedef CharlengthPolicyImp CharlengthPolicyType;
-  typedef RemeshingCriteriaImp RemeshingCriteriaType;
+  typedef RemeshingCriterionImp RemeshingCriterionType;
 
-  typedef CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,useCompoundManager,CharlengthPolicyType,RemeshingCriteriaType> ThisType;
+  typedef CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,useCompoundManager,CharlengthPolicyType,RemeshingCriterionType>
+    ThisType;
 
   // extract dimensions
   static constexpr unsigned int bulkGriddim=BulkHostGridType::dimension;
@@ -284,7 +285,7 @@ class CoupledMeshManager
       interfacegrid_=other.interfacegrid_;
       interfacegridpart_=other.interfacegridpart_;
       mapper_=other.mapper_;
-      remeshingcriteria_=other.remeshingcriteria_;
+      remeshingcriterion_=other.remeshingcriterion_;
       sequence_=other.sequence_;
     }
     return *this;
@@ -345,10 +346,10 @@ class CoupledMeshManager
       printGridInfo(interfaceGrid());
       // create interface grid part
       interfacegridpart_=std::make_shared<InterfaceGridPartType>(interfaceGrid());
-      // copy sequence, manager, remeshing criteria and mapper
+      // copy sequence, manager, remeshing criterion and mapper
       sequence_=other.sequence_;
       manager_=other.manager_;
-      remeshingcriteria_=other.remeshingcriteria_;
+      remeshingcriterion_=other.remeshingcriterion_;
       mapper_=std::make_shared<BulkInterfaceGridMapperType>(other.mapper());
     }
   }
@@ -356,7 +357,7 @@ class CoupledMeshManager
   void printInfo(std::ostream& s=std::cout) const
   {
     manager_.printInfo(s);
-    remeshingcriteria_.printInfo(s);
+    remeshingcriterion_.printInfo(s);
   }
 
   BulkGridType& bulkGrid()
@@ -461,7 +462,7 @@ class CoupledMeshManager
     if(GmshManagerType::remeshingSupported)
     {
       // check if the remeshing is necessary
-      if(remeshingcriteria_.remeshingIsNeeded(bulkGridPart()))
+      if(remeshingcriterion_.remeshingIsNeeded(bulkGridPart()))
       {
         // create timer
         Timer timer(false);
@@ -585,7 +586,7 @@ class CoupledMeshManager
   std::shared_ptr<InterfaceGridType> interfacegrid_;
   std::shared_ptr<InterfaceGridPartType> interfacegridpart_;
   std::shared_ptr<BulkInterfaceGridMapperType> mapper_;
-  RemeshingCriteriaType remeshingcriteria_;
+  RemeshingCriterionType remeshingcriterion_;
   unsigned int sequence_;
   const bool performentityverticescheck_;
 
