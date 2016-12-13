@@ -454,7 +454,7 @@ class FluidState
   // print interface spaces info
   const void printInterfaceInfo(std::ostream& s=std::cout) const
   {
-    Hybrid::forEach(typename BulkDiscreteFunctionType::Sequence{},
+    Hybrid::forEach(typename InterfaceDiscreteFunctionType::Sequence{},
       [&](auto i){s<<" P"<<std::get<i>(*interface_).space().order()<<" "<<std::get<i>(*interface_).name()<<" -> "
         <<std::get<i>(*interface_).size()<<" DOFs ";});
   }
