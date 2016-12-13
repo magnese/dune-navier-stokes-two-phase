@@ -4,6 +4,8 @@
 
 #define REMESH_TYPE 1 // 0 none, 1 uniform, 2 fixed, 3 adaptive
 
+#define REMESH_CRITERION 0 // 0 volume, 1 angle
+
 #define INTERPOLATION_TYPE 2 // 0 linear search, 1 barycentric coordinate search, 2 sorted entities + barycentric search
 
 #define PROBLEM_NUMBER 2 // 0 StokesTest1, 1 StokesTest2, 2 StationaryBubble, 3 ExpandingBubble, 4 ShearFlow
@@ -68,14 +70,25 @@ int main(int argc,char** argv)
     typedef Dune::AlbertaGrid<bulkGriddim,worlddim> BulkHostGridType;
     typedef Dune::AlbertaGrid<bulkGriddim-1,worlddim> InterfaceHostGridType;
     #if REMESH_TYPE == 0
-    typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,false> CoupledMeshManagerType;
+    constexpr bool UseCompoundManager(false);
+    typedef Dune::UniformCharlength CharlengthPolicyType;
     #elif REMESH_TYPE == 1
-    typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,true, Dune::UniformCharlength> CoupledMeshManagerType;
+    constexpr bool UseCompoundManager(true);
+    typedef Dune::UniformCharlength CharlengthPolicyType;
     #elif REMESH_TYPE == 2
-    typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,true, Dune::FixedCharlength> CoupledMeshManagerType;
+    constexpr bool UseCompoundManager(true);
+    typedef Dune::FixedCharlength CharlengthPolicyType;
     #else
-    typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,true, Dune::AdaptiveCharlength> CoupledMeshManagerType;
+    constexpr bool UseCompoundManager(true);
+    typedef Dune::AdaptiveCharlength CharlengthPolicyType;
     #endif
+    #if REMESH_CRITERION == 0
+    typedef Dune::Fem::RemeshingVolumeCriterion RemeshingCriterionType;
+    #else
+    typedef Dune::Fem::RemeshingAngleCriterion RemeshingCriterionType;
+    #endif
+    typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,UseCompoundManager,CharlengthPolicyType,
+      RemeshingCriterionType> CoupledMeshManagerType;
     #if PRESSURE_SPACE_TYPE == 0
     constexpr bool checkEntityWithNoVerticesInDomain(false);
     #else

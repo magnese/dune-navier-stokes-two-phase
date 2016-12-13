@@ -2,6 +2,8 @@
 #define DUNE_FEM_COUPLEDMESHMANAGER_HH
 
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -182,6 +184,64 @@ class RemeshingVolumeCriterion
       }
     }
     return needed;
+  }
+
+  private:
+  const double coeff_;
+  const bool isenabled_;
+};
+
+// angle criterion to trigger remeshing
+class RemeshingAngleCriterion
+{
+  public:
+  typedef RemeshingAngleCriterion ThisType;
+
+  // constructor
+  explicit RemeshingAngleCriterion():
+    coeff_(Parameter::getValidValue<double>("CoeffRemeshing",20.0,[](auto val){return val>=0.0;})),isenabled_(coeff_>0.0?true:false)
+  {}
+
+  RemeshingAngleCriterion(const ThisType& )=default;
+
+  ThisType& operator=(const ThisType& )
+  {
+    return *this;
+  }
+
+  void printInfo(std::ostream& s=std::cout) const
+  {
+    s<<"Remeshing with angle criterion coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: remesh disabled!)")<<std::endl;
+  }
+
+  template<typename BulkGridPartType>
+  bool remeshingIsNeeded(const BulkGridPartType& bulkGridPart) const
+  {
+    if(isenabled_)
+    {
+      constexpr auto rad2degCoeff(180.0/M_PI);
+      typedef typename BulkGridPartType::GridType::template Codim<0>::Entity::Geometry::GlobalCoordinate GlobalCoordinateType;
+      std::array<GlobalCoordinateType,BulkGridPartType::dimension+1> normals;
+      for(const auto& entity:elements(bulkGridPart))
+      {
+        // store all the face normals
+        unsigned int count(0);
+        for(const auto& intersection:intersections(bulkGridPart,entity))
+          normals[count++]=intersection.centerUnitOuterNormal();
+        // compute all the possible angles between faces
+        for(unsigned int i=0;i!=(normals.size()-1);++i)
+          for(unsigned int j=(i+1);j!=normals.size();++j)
+          {
+            const auto angle(std::acos(-(normals[i]*normals[j]))*rad2degCoeff);
+            if(angle<coeff_)
+            {
+              std::cout<<std::endl<<"Remeshing needed (found angle = "<<angle<<" )."<<std::endl<<std::endl;
+              return true;
+            }
+          }
+      }
+    }
+    return false;
   }
 
   private:

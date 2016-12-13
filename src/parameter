@@ -94,7 +94,7 @@ Gamma: 1.0
 # smoothing coefficient (default: 1.0)
 CoeffSmoothing: 1.0
 
-# remeshing coefficient (default: 3.0)
+# remeshing coefficient (default: 3.0 for volume criterion and 20.0 for angle criterion)
 CoeffRemeshing: 3.0
 
 # verbosity of the iterative solver (default: 0)
