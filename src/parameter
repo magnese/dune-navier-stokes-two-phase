@@ -18,7 +18,7 @@
 
 # domain geometry (default: domain.geo)
 #DomainGeometry: /2D/square_l1_cl025.geo
-DomainGeometry: /2D/square_l1_cl01.geo
+#DomainGeometry: /2D/square_l1_cl01.geo
 #DomainGeometry: /2D/square_l1_cl005.geo
 #DomainGeometry: /2D/square_l1_cl0025.geo
 #DomainGeometry: /2D/square_l1_cl00123.geo
@@ -27,7 +27,7 @@ DomainGeometry: /2D/square_l1_cl01.geo
 #DomainGeometry: /2D/square_l1_cl02.geo
 #DomainGeometry: /2D/square_l1_cl00985.geo
 #DomainGeometry: /2D/rectangle_l12_cl01.geo
-#DomainGeometry: /2D/rectangle_l12_cl005.geo
+DomainGeometry: /2D/rectangle_l12_cl005.geo
 #DomainGeometry: /2D/rectangle_l12_cl0025.geo
 #DomainGeometry: /2D/rectangle_l12_cl00125.geo
 #DomainGeometry: /2D/rectangle_l12_cl00492.geo
@@ -39,7 +39,7 @@ DomainGeometry: /2D/square_l1_cl01.geo
 
 # interface geometry (default: interface.msh)
 #InterfaceGeometry: /simple/1D/circle_r05_cl025.msh
-InterfaceGeometry: /simple/1D/circle_r05_cl01.msh
+#InterfaceGeometry: /simple/1D/circle_r05_cl01.msh
 #InterfaceGeometry: /simple/1D/circle_r05_cl005.msh
 #InterfaceGeometry: /simple/1D/circle_r05_cl0025.msh
 #InterfaceGeometry: /simple/1D/circle_r05_cl00123.msh
@@ -47,7 +47,7 @@ InterfaceGeometry: /simple/1D/circle_r05_cl01.msh
 #InterfaceGeometry: /simple/1D/circle_r05_usp_32.msh
 #InterfaceGeometry: /simple/1D/circle_r05_usp_64.msh
 #InterfaceGeometry: /simple/1D/circle_r025_c05_cl01.msh
-#InterfaceGeometry: /simple/1D/circle_r025_c05_cl005.msh
+InterfaceGeometry: /simple/1D/circle_r025_c05_cl005.msh
 #InterfaceGeometry: /simple/1D/circle_r025_c05_cl0025.msh
 #InterfaceGeometry: /simple/1D/circle_r025_c05_cl00125.msh
 #InterfaceGeometry: /simple/1D/circle_r025_c05_cl000615.msh
@@ -72,34 +72,34 @@ InterfaceGeometry: /simple/1D/circle_r05_cl01.msh
 #HoleGeometry: /3D/cube_l03_cl05.geo
 
 # time step
-fem.timeprovider.fixedtimestep: 1.e-2
+fem.timeprovider.fixedtimestep: 1.e-3
 
-# time used for initializing the starting time (default: 0.0)
-fem.timeprovider.starttime: 0.0
+# time used for initializing the starting time (default: 0)
+fem.timeprovider.starttime: 0
 
 # end time (default: 0.1, affects only evolution problems)
-EndTime: 1.0
+EndTime: 3
 
-# viscosity coefficient for the interior part (default: 1.0)
-MuInner: 1.0
+# viscosity coefficient for the interior part (default: 1)
+MuInner: 1
 
-# viscosity coefficient for the exterior part (default: 1.0)
-MuOuter: 1.0
+# viscosity coefficient for the exterior part (default: 1)
+MuOuter: 10
 
-# density coefficient for the interior part (default: 1.0)
-RhoInner: 0.0
+# density coefficient for the interior part (default: 1)
+RhoInner: 100
 
-# density coefficient for the exterior part (default: 1.0)
-RhoOuter: 0.0
+# density coefficient for the exterior part (default: 1)
+RhoOuter: 1000
 
-# coupled problem (default: 1.0)
-Gamma: 1.0
+# coupled problem (default: 1)
+Gamma: 24.5
 
-# smoothing coefficient (default: 1.0)
-CoeffSmoothing: 1.0
+# smoothing coefficient (default: 1)
+CoeffSmoothing: 1
 
-# remeshing coefficient (default: 3.0 for volume criterion and 20.0 for angle criterion)
-CoeffRemeshing: 3.0
+# remeshing coefficient (default: 3 for volume criterion and 20 for angle criterion)
+CoeffRemeshing: 3
 
 # verbosity of the iterative solver (default: 0)
 SolverVerbosity: 0
@@ -129,7 +129,7 @@ NonLinearSolverTolerance: 1.e-8
 NullTolerance: 1.e-12
 
 # compute compute errors (default: 0)
-ComputeErrors: 1
+ComputeErrors: 0
 
 # path used for all file output (default: .)
 fem.prefix: ./solution
@@ -141,4 +141,4 @@ fem.io.outputformat: 0
 fem.io.savestep: 0
 
 # number of time steps between writting file (default: 0)
-fem.io.savecount: 1
+fem.io.savecount: 100
