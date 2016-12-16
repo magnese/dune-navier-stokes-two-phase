@@ -128,6 +128,18 @@ NonLinearSolverTolerance: 1.e-8
 # tolerance for a value to be considered exactly equal to 0 (default: 1.e-12)
 NullTolerance: 1.e-12
 
+# use ALE scheme (default: 0)
+UseALE: 0
+
+# verbosity of the ALE scheme (default: 0)
+ALEVerbosity: 1
+
+# maximum number of iterations of the ALE scheme (default: 1000)
+ALEMaxIterations: 1000
+
+# tolerance of the ALE scheme (default: 1.e-8)
+ALETolerance: 1.e-8
+
 # compute compute errors (default: 0)
 ComputeErrors: 0
 

@@ -89,7 +89,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     timerStep.start();
 
     // do one step
-    femScheme(timeProvider);
+    femScheme(timeProvider,meshSmoothing);
 
     // dump solution
     fluidState.dumpBulkSolutions(timeProvider);
@@ -158,8 +158,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     }
 
     // update bulk and interface grid
+    const bool useALE(Parameter::getValue<bool>("UseALE",0));
     fluidState.interfaceGrid().coordFunction()+=fluidState.displacement();
-    meshSmoothing.computeBulkDisplacement();
+    if(!useALE)
+      meshSmoothing.computeBulkDisplacement();
     fluidState.bulkGrid().coordFunction()+=fluidState.bulkDisplacement();
 
     // perform remesh and keep also the original fluid state to interpolate the velocity onto the new grid
@@ -168,7 +170,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     auto interpolationNeeded((!femScheme.problem().isDensityNull())&&remeshPerformed);
 
     // check if the smoothing has modified the bulk mesh (only when velocity interpolation is needed)
-    if((!femScheme.problem().isDensityNull())&&(!remeshPerformed))
+    if((!femScheme.problem().isDensityNull())&&(!remeshPerformed)&&(!useALE))
     {
       const double nullTolerance(Parameter::getValue<double>("NullTolerance",1.e-12));
       // check if the bulk displacement is not null

@@ -150,6 +150,125 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
     }
   }
 
+  template<typename TimeProviderType>
+  void allocateAndAssembleTimeDerivative(const TimeProviderType& timeProvider)
+  {
+    DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
+    op_.reserve(stencil);
+    op_.clear();
+
+    // navier-stokes only
+    if(!problem_.isDensityNull())
+    {
+      constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
+      typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
+      std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
+
+      // perform a grid walkthrough and assemble the time derivative
+      for(const auto& entity:space_)
+      {
+        auto localMatrix(op_.localMatrix(entity,entity));
+        typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
+        const auto& baseSet(localMatrix.domainBasisFunctionSet());
+        const auto rho(problem_.rho(entity));
+
+        CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+        for(const auto& qp:quadrature)
+        {
+          baseSet.evaluateAll(qp,phi);
+          const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
+
+          const auto localSize(localMatrix.rows());
+          for(auto i=decltype(localSize){0};i!=localSize;++i)
+            for(auto j=decltype(localSize){0};j!=localSize;++j)
+            {
+              RangeFieldType value(0.0);
+              for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+                value+=phi[j][k]*phi[i][k];
+              value*=(rho*weight/timeProvider.deltaT());
+              localMatrix.add(i,j,value);
+            }
+        }
+      }
+    }
+  }
+
+  template<typename TimeProviderType>
+  void assembleRemainingTerms(const TimeProviderType& timeProvider)
+  {
+    constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
+    typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
+    std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
+    typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
+    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.blockMapper().maxNumDofs()*localBlockSize);
+
+    // perform a grid walkthrough and assemble the remaining terms
+    for(const auto& entity:space_)
+    {
+      const auto localOldVelocity(oldvelocity_.localFunction(entity));
+      auto localMatrix(op_.localMatrix(entity,entity));
+      typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
+      const auto& baseSet(localMatrix.domainBasisFunctionSet());
+      const auto mu(problem_.mu(entity));
+      const auto rho(problem_.rho(entity));
+
+      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      for(const auto& qp:quadrature)
+      {
+        baseSet.evaluateAll(qp,phi);
+        baseSet.jacobianAll(qp,gradphi);
+        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
+
+        const auto localSize(localMatrix.rows());
+        for(auto i=decltype(localSize){0};i!=localSize;++i)
+          for(auto j=decltype(localSize){0};j!=localSize;++j)
+          {
+            // laplacian part
+            RangeFieldType value(0.0);
+            #if USE_SYMMETRIC_LAPLACIAN_TERM
+            for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+              for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
+              {
+                value+=gradphi[i][k][kk]*gradphi[j][k][kk]+gradphi[i][kk][k]*gradphi[j][kk][k];
+                value+=gradphi[i][k][kk]*gradphi[j][kk][k]+gradphi[i][kk][k]*gradphi[j][k][kk];
+              }
+            value*=0.5;
+            #else
+            for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+              value+=gradphi[i][k]*gradphi[j][k];
+            #endif
+            value*=mu;
+            // navier-stokes only
+            if(!problem_.isDensityNull())
+            {
+              // convective part
+              RangeFieldType valueConvective(0.0);
+              #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+              for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+                for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
+                  for(auto l=decltype(localSize){0};l!=localSize;++l)
+                  {
+                    valueConvective+=localOldVelocity[l]*phi[l][kk]*gradphi[j][k][kk]*phi[i][k];
+                    valueConvective-=localOldVelocity[l]*phi[l][kk]*gradphi[i][k][kk]*phi[j][k];
+                  }
+              valueConvective*=0.5;
+              #else
+              for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+                for(auto kk=decltype(localBlockSize){0};kk!=localBlockSize;++kk)
+                  for(auto l=decltype(localSize){0};l!=localSize;++l)
+                    valueConvective+=localOldVelocity[l]*phi[l][kk]*gradphi[j][k][kk]*phi[i][k];
+              #endif
+              valueConvective*=rho;
+              value+=valueConvective;
+            }
+            // add to the local matrix
+            value*=weight;
+            localMatrix.add(i,j,value);
+          }
+      }
+    }
+  }
+
   private:
   const DiscreteSpaceType& space_;
   LinearOperatorType op_;
