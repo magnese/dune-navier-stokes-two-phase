@@ -69,8 +69,6 @@ class SmoothingOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
     op_.clear();
 
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
-    typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
     std::vector<LocalFunctionJacobianRangeType> gradphi(space_.blockMapper().maxNumDofs()*localBlockSize);
 
@@ -84,8 +82,6 @@ class SmoothingOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
       CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
       for(const auto& qp:quadrature)
       {
-        // evaluate the jacobians of all basis functions
-        baseSet.evaluateAll(qp,phi);
         baseSet.jacobianAll(qp,gradphi);
         const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
