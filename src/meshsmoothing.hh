@@ -96,7 +96,7 @@ class MeshSmoothing
     timerAssemble.start();
     problem_.bc().apply(std::ignore,rhs,op);
     timerAssemble.stop();
-    // impose zero displacement for the interface
+    // impose given displacement for the interface
     constexpr std::size_t localBlockSize(FluidStateType::DisplacementDiscreteSpaceType::localBlockSize);
     const auto numBlocks(fluidstate_.displacement().blocks());
     for(auto i=decltype(numBlocks){0};i!=numBlocks;++i)

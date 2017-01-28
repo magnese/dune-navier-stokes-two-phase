@@ -89,7 +89,6 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
       CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
       for(const auto& qp:quadrature)
       {
-        // evaluate the jacobians of all basis functions
         baseSet.evaluateAll(qp,phi);
         baseSet.jacobianAll(qp,gradphi);
         const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
