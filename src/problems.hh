@@ -752,7 +752,7 @@ class NavierStokesTest2Problem:public BaseProblem<FluidStateImp,DirichletConditi
   using BaseType::velocityRHS;
   using BaseType::pressureSolution;
   using BaseType::pressureIC;
-  using BaseType::muouter_;
+  using BaseType::mu_;
   using BaseType::gamma;
   using BaseType::rho;
   using BaseType::worlddim;
@@ -768,7 +768,7 @@ class NavierStokesTest2Problem:public BaseProblem<FluidStateImp,DirichletConditi
       const auto x2(std::pow(x.two_norm(),2));
       const auto indicatorValue(fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?0.0:1.0);
       value*=((std::pow(alpha1_,2)+indicatorValue*(-2.0*alpha1_*alpha2_*rt2+2.0*alpha1_*alpha2_*(2.0*x2-rt2)+
-               std::pow(alpha2_,2)*(x2-rt2)*(3.0*x2-rt2)))*rho(entity)-4.0*(worlddim+1)*alpha2_*muouter_*indicatorValue);
+               std::pow(alpha2_,2)*(x2-rt2)*(3.0*x2-rt2)))*rho(entity)-4.0*(worlddim+1)*alpha2_*mu_.outerValue()*indicatorValue);
       return value;
     };
 
@@ -785,7 +785,7 @@ class NavierStokesTest2Problem:public BaseProblem<FluidStateImp,DirichletConditi
     pressureSolution().function()=[&](const PressureDomainType& x,double t,const EntityType& )
     {
       const auto rt(exactRadius(t));
-      const auto coeff((static_cast<double>(worlddim-1)/rt)*gamma()+4.0*alpha2_*muouter_*std::pow(rt,2));
+      const auto coeff((static_cast<double>(worlddim-1)/rt)*gamma()+4.0*alpha2_*mu_.outerValue()*std::pow(rt,2));
       const auto indicatorValue(x.two_norm()<=rt?1.0:0.0);
       auto value(coeff*(indicatorValue-(std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim))/(std::pow(2.0,worlddim))));
       return value;

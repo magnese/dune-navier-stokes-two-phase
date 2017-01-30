@@ -84,6 +84,16 @@ class PhysicalCoefficient
     return isnull_;
   }
 
+  double innerValue() const
+  {
+    return innercoeff_;
+  }
+
+  double outerValue() const
+  {
+    return outercoeff_;
+  }
+
   double delta() const
   {
     return delta_;
