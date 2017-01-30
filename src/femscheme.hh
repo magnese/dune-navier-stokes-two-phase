@@ -457,7 +457,7 @@ class FemScheme
           }
           else if(nonLinearSolverVerbosity>0)
           {
-            std::cout<<"Scheme converged to the solution with noni-linear solver residual "<<nonLinearSolverResidual;
+            std::cout<<"Scheme converged to the solution with non-linear solver residual "<<nonLinearSolverResidual;
             if(useALE)
               std::cout<<" and ALE residual "<<ALEResidual;
             std::cout<<" in "<<numIterations<<" iterations"<<std::endl;
