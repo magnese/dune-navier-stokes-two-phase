@@ -2,7 +2,7 @@ dune-navier-stokes-two-phase
 ============================
 
 [dune-navier-stokes-two-phase][0] is a
-[Distributed and Unified Numerics Environment][1] module implements a front
+[Distributed and Unified Numerics Environment][1] module which implements a front
 tracking finite element scheme to solve a single/two-phase incompressible
 (Navier--)Stokes flow in 2D and 3D domains. It supports various finite
 element spaces and boundary condition, several solvers and different
