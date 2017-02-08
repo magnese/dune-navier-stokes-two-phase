@@ -34,6 +34,7 @@ class BubbleStatistics
   {
     // update mesh according interface displacement
     fluidState.interfaceGrid().coordFunction()+=fluidState.displacement();
+    fluidState.bulkDisplacement().clear();
     fluidState.meshManager().mapper().setInterfaceDFInBulkDF(fluidState.displacement(),fluidState.bulkDisplacement());
     fluidState.bulkGrid().coordFunction()+=fluidState.bulkDisplacement();
     // compute circularity
