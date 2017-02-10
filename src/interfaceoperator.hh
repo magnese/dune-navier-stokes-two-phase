@@ -104,7 +104,6 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());
         for(auto i=decltype(rowLocalSize){worlddim};i!=rowLocalSize;++i)
-        {
           for(auto j=decltype(columnLocalSize){worlddim};j!=columnLocalSize;++j)
           {
             RangeFieldType value(0.0);
@@ -113,7 +112,6 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
             value*=weight;
             localMatrix.add(i,j,value);
           }
-        }
       }
       // assemble local \vec{N_m} (curvature_j-position_i)
       CachingLumpingQuadrature<typename DiscreteSpaceType::GridPartType,0> lumpingQuadrature(entity);
@@ -126,7 +124,6 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
         const auto columnLocalSize(localMatrix.columns());
         const auto rowLocalSize(localMatrix.rows());
         for(auto i=decltype(rowLocalSize){worlddim};i!=rowLocalSize;++i)
-        {
           for(auto j=decltype(columnLocalSize){0};j!=columnLocalSize;++j)
           {
             RangeFieldType value(0.0);
@@ -136,7 +133,6 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
             localMatrix.add(i,j,value);
             localMatrix.add(j,i,-1.0*value/(timeProvider.deltaT()));
           }
-        }
       }
     }
   }
