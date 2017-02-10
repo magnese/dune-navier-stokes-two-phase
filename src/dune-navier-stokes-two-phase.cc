@@ -56,6 +56,7 @@ int main(int argc,char** argv)
 
     // add preprocessor variables to the parameters in order to have them dumped in the output
     Dune::Fem::Parameter::append("PreconditionerType",STRINGIZE(PRECONDITIONER_TYPE));
+    Dune::Fem::Parameter::append("RemeshCriterion",STRINGIZE(REMESH_CRITERION));
     Dune::Fem::Parameter::append("InterpolationType",STRINGIZE(INTERPOLATION_TYPE));
     Dune::Fem::Parameter::append("UseSymmetricLaplacianTerm",STRINGIZE(USE_SYMMETRIC_LAPLACIAN_TERM));
     Dune::Fem::Parameter::append("UseAntisymmetricConvectiveTerm",STRINGIZE(USE_ANTISYMMETRIC_CONVECTIVE_TERM));
