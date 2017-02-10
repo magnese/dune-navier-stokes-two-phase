@@ -30,7 +30,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
   typedef LeafGridPart<GridType> GridPartType;
 
   typedef FunctionSpace<ctype,ctype,worlddim,worlddim> ContinuousSpaceType;
-  typedef LagrangeDiscreteFunctionSpace<ContinuousSpaceType,GridPartType,1,CachingStorage> DiscreteSpaceType;
+  typedef LagrangeDiscreteFunctionSpace<ContinuousSpaceType,GridPartType,1> DiscreteSpaceType;
   typedef AdaptiveDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
 
   typedef typename GridType::template Codim<0>::Entity HostEntityType;
