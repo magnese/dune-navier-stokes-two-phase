@@ -9,7 +9,6 @@
 #include <dune/common/exceptions.hh>
 #include <dune/common/timer.hh>
 #include <dune/fem/io/parameter.hh>
-#include <dune/istl/solvers.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 #include <dune/fem/solver/spqrsolver.hh>
 #include <dune/fem/solver/ldlsolver.hh>
@@ -22,6 +21,7 @@
 #include "operatorgluer.hh"
 #include "coupledoperatorwrapper.hh"
 #include "preconditioners.hh"
+#include "restartedgmrescaller.hh"
 
 #include "bulkvelocityoperator.hh"
 #include "bulkvelocitypressureoperator.hh"
@@ -327,164 +327,148 @@ class FemScheme
     #endif
     timerSolveBulk.stop();
 
-    // read iterative solver parameters
-    const int solverVerbosity(Parameter::getValue<int>("SolverVerbosity",0));
-    const int solverMaxIterations(Parameter::getValue<int>("SolverMaxIterations",1000));
-    const double solverTolerance(Parameter::getValue<double>("SolverTolerance",1.e-12));
-    const int solverRestart(Parameter::getValue<int>("SolverRestart",5));
+    //solve bulk
+    timerSolveBulk.start();
+    RestartedGMResCaller<BulkDiscreteFunctionType> bulkInvOp(bulkOp,bulkPreconditioner);
+    bulkInvOp(fluidstate_.bulkSolution(),bulkRHS);
+    timerSolveBulk.stop();
 
-    // read non-linear solver parameters
-    bool useNonLinearSolver(problem_.isDensityNull()?false:Parameter::getValue<bool>("UseNonLinearSolver",0));
-    int nonLinearSolverVerbosity(Parameter::getValue<int>("NonLinearSolverVerbosity",0));
-    int nonLinearSolverMaxIterations(Parameter::getValue<int>("NonLinearSolverMaxIterations",1000));
-    const double nonLinearSolverTolerance(Parameter::getValue<double>("NonLinearSolverTolerance",1.e-8));
-
-    // read ALE parameters
-    const bool useALE(Parameter::getValue<bool>("UseALE",0));
-    nonLinearSolverVerbosity=std::max(nonLinearSolverVerbosity,Parameter::getValue<int>("ALEVerbosity",0));
-    nonLinearSolverMaxIterations=std::min(nonLinearSolverMaxIterations,Parameter::getValue<int>("ALEMaxIterations",0));
-    const double ALETolerance(Parameter::getValue<double>("ALETolerance",1.e-8));
-
-    // make parameters consistent
-    if(useALE)
+    // fixed point iteration
+    const int nonLinearSolverType(Parameter::getValue<int>("NonLinearSolverType",0));
+    const bool useALE(nonLinearSolverType>1);
+    if((!problem_.isDensityNull())&&(nonLinearSolverType>0))
     {
-      useNonLinearSolver=true;
-      meshSmoothing.enable();
-    }
-    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
-    if(useNonLinearSolver)
+      #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
       DUNE_THROW(InvalidStateException,"ERROR: cannot use antisymmetric convective term with fixed point iteration!");
-    #endif
-
-    // create a copy of the velocity, bulk displacement and bulk RHS
-    // (needed for the non-linear solver to compute residual and to restore original RHS)
-    const auto bulkRHSCopy(bulkRHS);
-    auto oldVelocity(fluidstate_.velocity());
-    auto oldBulkDisplacement(fluidstate_.bulkDisplacement());
-
-    // compute bulk solution
-    if(useNonLinearSolver&&(nonLinearSolverVerbosity>1))
-      std::cout<<"Entering in the non-linear solver"<<(useALE?" (with ALE)":"")<<std::endl;
-    bool doIteration(true);
-    int numIterations(0);
-    while(doIteration)
-    {
-      doIteration=false;
-      ++numIterations;
-
-      // solve bulk
-      timerSolveBulk.start();
-      InverseOperatorResult returnInfo;
-      Dune::RestartedGMResSolver<BulkDiscreteFunctionType> bulkInvOp(bulkOp,bulkPreconditioner,solverTolerance,solverRestart,
-                                                                     solverMaxIterations,solverVerbosity);
-      bulkInvOp.apply(fluidstate_.bulkSolution(),bulkRHS,returnInfo);
-      timerSolveBulk.stop();
-
-      // check if another iteration is needed
-      if(useNonLinearSolver)
-        if(numIterations<nonLinearSolverMaxIterations)
+      #endif
+      // read non-linear solver parameters
+      const int nonLinearSolverVerbosity(Parameter::getValue<int>("NonLinearSolverVerbosity",0));
+      const int nonLinearSolverMaxIterations(Parameter::getValue<int>("NonLinearSolverMaxIterations",1000));
+      const double nonLinearSolverTolerance(Parameter::getValue<double>("NonLinearSolverTolerance",1.e-8));
+      if(nonLinearSolverVerbosity>1)
+        std::cout<<"Entering in the non-linear solver"<<(useALE?" (with ALE)":"")<<std::endl;
+      // force smoothing in ALE
+      if(useALE)
+        meshSmoothing.enable();
+      // create a copy of the velocity and of the bulk displacement
+      auto oldVelocity(fluidstate_.velocity());
+      auto oldBulkDisplacement(fluidstate_.bulkDisplacement());
+      oldBulkDisplacement.clear();
+      // compute bulk solution
+      bool doIteration(true);
+      int iterationNumber(0);
+      while(doIteration&&(iterationNumber<nonLinearSolverMaxIterations))
+      {
+        doIteration=false;
+        ++iterationNumber;
+        if(useALE)
         {
-          // compute ||U-U_old||_Loo
-          double nonLinearSolverResidual(0);
-          double ALEResidual(0);
-          timerSolveBulk.start();
-          auto oldVelocityIt(oldVelocity.dbegin());
-          for(const auto& dof:dofs(fluidstate_.velocity()))
-            nonLinearSolverResidual=std::max(nonLinearSolverResidual,std::abs(dof-*(oldVelocityIt++)));
-          // set old velocity to new velocity
-          oldVelocity.assign(fluidstate_.velocity());
-          if(nonLinearSolverResidual>nonLinearSolverTolerance)
-            doIteration=true;
-          timerSolveBulk.stop();
-          // compute ALE bulk velocity and check if the ALE is converged
-          if(useALE)
-          {
-            // add interface coupling
-            timerAssembleInterface.start();
-            velocityCurvatureOp(fluidstate_.velocity(),interfaceRHS.template subDiscreteFunction<0>());
-            interfaceRHS.template subDiscreteFunction<0>()*=-1.0;
-            timerAssembleInterface.stop();
-            // solve interface
-            timerSolveInterface.start();
-            interfaceInvOp.apply(interfaceRHS,fluidstate_.interfaceSolution());
-            timerSolveInterface.stop();
-            // compute smoothing, assemble time derivative on the moved grid and restore the grid
-            fluidstate_.interfaceGrid().coordFunction()+=fluidstate_.displacement();
-            meshSmoothing.computeBulkDisplacement();
-            fluidstate_.bulkGrid().coordFunction()+=fluidstate_.bulkDisplacement();
-            velocityOp.allocateAndAssembleTimeDerivative(timeProvider);
-            fluidstate_.interfaceGrid().coordFunction()-=fluidstate_.displacement();
-            fluidstate_.bulkGrid().coordFunction()-=fluidstate_.bulkDisplacement();
-            // add ALE contribution
-            auto bulkDisplacementVelocity(fluidstate_.velocity());
-            interpolate(fluidstate_.bulkDisplacement(),bulkDisplacementVelocity);
-            bulkDisplacementVelocity/=timeProvider.deltaT();
-            fluidstate_.velocity()-=bulkDisplacementVelocity;
-            // compute ||X_bulk - X_bulk_old||_Loo
-            timerSolveBulk.start();
-            auto oldBulkDisplacementIt(oldBulkDisplacement.dbegin());
-            for(const auto& dof:dofs(fluidstate_.bulkDisplacement()))
-              ALEResidual=std::max(ALEResidual,std::abs(dof-*(oldBulkDisplacementIt++)));
-            oldBulkDisplacement.assign(fluidstate_.bulkDisplacement());
-            if(ALEResidual>ALETolerance)
-              doIteration=true;
-            timerSolveBulk.stop();
-          }
-          // re-asseble needed quantities
-          if(doIteration)
-          {
-            if(nonLinearSolverVerbosity>1)
-            {
-              std::cout<<"Iteration "<<numIterations<<" --> nonLinearSolverResidual "<<nonLinearSolverResidual;
-              if(useALE)
-                std::cout<<"; ALEResidual "<<ALEResidual;
-              std::cout<<std::endl;
-            }
-            timerAssembleBulk.start();
-            // re-assemble velocity operator
-            if(useALE)
-              velocityOp.assembleRemainingTerms(timeProvider);
-            else
-              velocityOp.assemble(timeProvider);
-            // re-impose bulk bc
-            bulkRHS.assign(bulkRHSCopy);
-            #if PRESSURE_SPACE_TYPE == 2
-            problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
-            #else
-            problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp);
-            #endif
-            timerAssembleBulk.stop();
-          }
-          else if(nonLinearSolverVerbosity>0)
-          {
-            std::cout<<"Scheme converged to the solution with non-linear solver residual "<<nonLinearSolverResidual;
-            if(useALE)
-              std::cout<<" and ALE residual "<<ALEResidual;
-            std::cout<<" in "<<numIterations<<" iterations"<<std::endl;
-          }
+          // add interface coupling
+          timerAssembleInterface.start();
+          velocityCurvatureOp(fluidstate_.velocity(),interfaceRHS.template subDiscreteFunction<0>());
+          interfaceRHS.template subDiscreteFunction<0>()*=-1.0;
+          timerAssembleInterface.stop();
+          // solve interface
+          timerSolveInterface.start();
+          interfaceInvOp.apply(interfaceRHS,fluidstate_.interfaceSolution());
+          timerSolveInterface.stop();
+          // compute smoothing, assemble time derivative on the moved grid and restore the grid
+          fluidstate_.interfaceGrid().coordFunction()+=fluidstate_.displacement();
+          meshSmoothing.computeBulkDisplacement();
+          fluidstate_.bulkGrid().coordFunction()+=fluidstate_.bulkDisplacement();
+          timerAssembleBulk.start();
+          velocityOp.allocateAndAssembleTimeDerivative(timeProvider);
+          timerAssembleBulk.stop();
+          fluidstate_.interfaceGrid().coordFunction()-=fluidstate_.displacement();
+          fluidstate_.bulkGrid().coordFunction()-=fluidstate_.bulkDisplacement();
+          // add ALE contribution
+          timerAssembleBulk.start();
+          auto bulkDisplacementVelocity(fluidstate_.velocity());
+          interpolate(fluidstate_.bulkDisplacement(),bulkDisplacementVelocity);
+          bulkDisplacementVelocity/=timeProvider.deltaT();
+          fluidstate_.velocity()-=bulkDisplacementVelocity;
+          // re-assemble velocity operator
+          velocityOp.assembleRemainingTerms(timeProvider);
+          timerAssembleBulk.stop();
         }
+        else
+        {
+          // re-assemble velocity operator
+          timerAssembleBulk.start();
+          velocityOp.assemble(timeProvider);
+          timerAssembleBulk.stop();
+        }
+        // re-impose bulk bc
+        timerAssembleBulk.start();
+        #if PRESSURE_SPACE_TYPE == 2
+        problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
+        #else
+        problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp);
+        #endif
+        timerAssembleBulk.stop();
+        // solve bulk
+        timerSolveBulk.start();
+        bulkInvOp(fluidstate_.bulkSolution(),bulkRHS);
+        timerSolveBulk.stop();
+        // check if another iteration is needed
+        double nonLinearSolverResidual(0);
+        double ALEResidual(0);
+        timerSolveBulk.start();
+        // compute ||U-U_old||_Loo
+        auto oldVelocityIt(oldVelocity.dbegin());
+        for(const auto& dof:dofs(fluidstate_.velocity()))
+          nonLinearSolverResidual=std::max(nonLinearSolverResidual,std::abs(dof-*(oldVelocityIt++)));
+        // set old velocity to new velocity
+        oldVelocity.assign(fluidstate_.velocity());
+        if(nonLinearSolverResidual>nonLinearSolverTolerance)
+          doIteration=true;
+        // compute ||X_bulk-X_bulk_old||_Loo
+        if(useALE)
+        {
+          auto oldBulkDisplacementIt(oldBulkDisplacement.dbegin());
+          for(const auto& dof:dofs(fluidstate_.bulkDisplacement()))
+            ALEResidual=std::max(ALEResidual,std::abs(dof-*(oldBulkDisplacementIt++)));
+          // set old bulk displacement to new bulk displacement
+          oldBulkDisplacement.assign(fluidstate_.bulkDisplacement());
+          if(ALEResidual>nonLinearSolverTolerance)
+            doIteration=true;
+        }
+        timerSolveBulk.stop();
+        // output residuals
+        if(doIteration&&(nonLinearSolverVerbosity>1))
+        {
+          std::cout<<"Iteration "<<iterationNumber<<" --> fixed-point residual = "<<nonLinearSolverResidual;
+          if(useALE)
+            std::cout<<"; ALE residual = "<<ALEResidual;
+          std::cout<<std::endl;
+        }
+        if((!doIteration)&&(nonLinearSolverVerbosity>0))
+        {
+          std::cout<<"Scheme converged to the solution with fixed-point residual "<<nonLinearSolverResidual;
+          if(useALE)
+            std::cout<<" and ALE residual "<<ALEResidual;
+          std::cout<<" in "<<iterationNumber<<" iterations"<<std::endl;
+        }
+      }
     }
 
-    if(useALE)
-    {
-      timerSolveInterface.start();
-      interfaceInvOp.finalize();
-      timerSolveInterface.stop();
-    }
-    else
+    if(!useALE)
     {
       // add interface coupling
       timerAssembleInterface.start();
       velocityCurvatureOp(fluidstate_.velocity(),interfaceRHS.template subDiscreteFunction<0>());
       interfaceRHS.template subDiscreteFunction<0>()*=-1.0;
       timerAssembleInterface.stop();
-
       // solve interface
       timerSolveInterface.start();
       interfaceInvOp.apply(interfaceRHS,fluidstate_.interfaceSolution());
-      interfaceInvOp.finalize();
       timerSolveInterface.stop();
     }
+
+    // finalize interface inverse operator
+    timerSolveInterface.start();
+    interfaceInvOp.finalize();
+    timerSolveInterface.stop();
 
     // project pressure solution to the space of mean zero function
     timerSolveBulk.start();

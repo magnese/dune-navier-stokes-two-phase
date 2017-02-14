@@ -158,9 +158,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     }
 
     // update bulk and interface grid
-    const bool useALE(Parameter::getValue<bool>("UseALE",0));
+    const double nonLinearSolverType(Parameter::getValue<int>("NonLinearSolverType",0));
+    const bool useALE(nonLinearSolverType>1);
     fluidState.interfaceGrid().coordFunction()+=fluidState.displacement();
-    if(!useALE)
+    if(femScheme.problem().isDensityNull()||(!useALE))
       meshSmoothing.computeBulkDisplacement();
     fluidState.bulkGrid().coordFunction()+=fluidState.bulkDisplacement();
 
