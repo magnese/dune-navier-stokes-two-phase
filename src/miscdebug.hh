@@ -273,12 +273,11 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
   }
 }
 
-// print discrete function boundary values with a certain ID
+// print discrete function boundary values with a certain boundaryID
 template<typename DF,typename MeshManagerType>
-void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& meshManager,int ID)
+void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& meshManager,int boundaryID)
 {
-  std::cout<<std::endl<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<ID<<std::endl;
-  const auto& boundaryIDs(meshManager.boundaryIDs());
+  std::cout<<std::endl<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<boundaryID<<std::endl;
   const auto& gridPart(df.gridPart());
   for(const auto& entity:entities(df))
   {
@@ -290,7 +289,7 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
       std::vector<bool> globalBlockDofsFilter(blockMapper.numDofs(entity));
       for(const auto& intersection:intersections(gridPart,entity))
         if(intersection.boundary())
-          if(boundaryIDs[intersection.boundarySegmentIndex()]==ID)
+          if(meshManager.intersectionID(intersection)==boundaryID)
           {
             blockMapper.onSubEntity(entity,intersection.indexInInside(),1,globalBlockDofsFilter);
             for(auto i=decltype(globalIdxs.size()){0};i!=globalIdxs.size();++i)
@@ -300,7 +299,7 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
           }
     }
   }
-  std::cout<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<ID<<std::endl<<std::endl;
+  std::cout<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<boundaryID<<std::endl<<std::endl;
 }
 
 // dump triangles in gnuplot format

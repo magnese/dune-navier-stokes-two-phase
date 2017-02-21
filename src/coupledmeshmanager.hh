@@ -491,27 +491,17 @@ class CoupledMeshManager
   {
     return manager_;
   }
-  std::vector<int>& boundaryIDs()
-  {
-    return *boundaryids_;
-  }
-  const std::vector<int>& boundaryIDs() const
-  {
-    return *boundaryids_;
-  }
-  std::vector<int>& elementsIDs()
-  {
-    return *elementsids_;
-  }
-  const std::vector<int>& elementsIDs() const
-  {
-    return *elementsids_;
-  }
 
   // the sequence numebr increase each time the mesh changes
   unsigned int sequence() const
   {
     return sequence_;
+  }
+
+  template<typename BulkIntersectionType>
+  int intersectionID(const BulkIntersectionType& intersection) const
+  {
+    return boundaryIDs()[intersection.boundarySegmentIndex()];
   }
 
   bool remesh()
@@ -648,6 +638,23 @@ class CoupledMeshManager
   RemeshingCriterionType remeshingcriterion_;
   unsigned int sequence_;
   const bool performentityverticescheck_;
+
+  std::vector<int>& boundaryIDs()
+  {
+    return *boundaryids_;
+  }
+  const std::vector<int>& boundaryIDs() const
+  {
+    return *boundaryids_;
+  }
+  std::vector<int>& elementsIDs()
+  {
+    return *elementsids_;
+  }
+  const std::vector<int>& elementsIDs() const
+  {
+    return *elementsids_;
+  }
 
   // reset pointers to avoid dangling references
   void resetPointers(bool freeInterface=true)

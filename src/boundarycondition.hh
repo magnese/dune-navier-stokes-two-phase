@@ -106,8 +106,7 @@ class BoundaryCondition
 
   RangeType evaluateBoundaryFunction(const DomainType& x,double t,const IntersectionType& intersection) const
   {
-    const auto& boundaryID(meshmanager_.boundaryIDs()[intersection.boundarySegmentIndex()]);
-    return evaluateBoundaryFunction(x,t,intersection.inside(),boundaryID);
+    return evaluateBoundaryFunction(x,t,intersection.inside(),meshmanager_.intersectionID(intersection));
   }
 
   LocalBoundaryDOFsType localBoundaryDOFs(double t,const EntityType& entity,int boundaryID) const
@@ -125,8 +124,7 @@ class BoundaryCondition
 
   LocalBoundaryDOFsType localBoundaryDOFs(double t,const IntersectionType& intersection) const
   {
-    const auto& boundaryID(meshmanager_.boundaryIDs()[intersection.boundarySegmentIndex()]);
-    return localBoundaryDOFs(t,intersection.inside(),boundaryID);
+    return localBoundaryDOFs(t,intersection.inside(),meshmanager_.intersectionID(intersection));
   }
 
   // update space and gadapt
@@ -208,7 +206,7 @@ class BoundaryCondition
     {
       if(intersection.boundary())
       {
-        const auto& boundaryID(meshmanager_.boundaryIDs()[intersection.boundarySegmentIndex()]);
+        const auto& boundaryID(meshmanager_.intersectionID(intersection));
         if(g_.find(boundaryID)!=g_.end())
         {
           const auto faceLocalIdx(intersection.indexInInside());
