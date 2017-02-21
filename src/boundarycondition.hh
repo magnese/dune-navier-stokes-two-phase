@@ -93,7 +93,10 @@ class BoundaryCondition
 
   RangeType evaluateBoundaryFunction(const DomainType& x,double t,const EntityType& entity,int boundaryID) const
   {
-    auto& g(g_.find(boundaryID)->second);
+    auto gIt(g_.find(boundaryID));
+    if(gIt==g_.end())
+      DUNE_THROW(RangeError,"ERROR: boundary ID not found in BC!");
+    auto& g(gIt->second);
     g.init(entity);
     g.initialize(t,t);
     RangeType ret;
@@ -108,10 +111,10 @@ class BoundaryCondition
 
   LocalBoundaryDOFsType localBoundaryDOFs(double t,const EntityType& entity,int boundaryID) const
   {
-    auto gIt(gadapted_.find(boundaryID));
-    if(gIt==gadapted_.end())
+    auto gAdaptedIt(gadapted_.find(boundaryID));
+    if(gAdaptedIt==gadapted_.end())
       DUNE_THROW(RangeError,"ERROR: boundary ID not found in BC!");
-    auto& gAdapted(gIt->second);
+    auto& gAdapted(gAdaptedIt->second);
     gAdapted.initialize(t,t);
     const auto interpolation(space().interpolation(entity));
     LocalBoundaryDOFsType localDOFs(space().basisFunctionSet(entity).size());
@@ -235,7 +238,6 @@ class DirichletCondition:
     BaseType(meshManager,dirichlet)
   {}
 
-  using BaseType::evaluateBoundaryFunction;
   using BaseType::space;
   using BaseType::localBoundaryDOFs;
 
