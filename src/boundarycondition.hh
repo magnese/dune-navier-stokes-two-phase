@@ -231,6 +231,7 @@ class DirichletCondition:
   typedef DirichletCondition<DiscreteSpaceType,CoupledMeshManagerType> ThisType;
   typedef BoundaryCondition<DiscreteSpaceType,CoupledMeshManagerType,int,ThisType> BaseType;
   typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::LocalAnalyticalFunctionType LocalAnalyticalFunctionType;
 
   friend BaseType;
 
@@ -247,9 +248,23 @@ class DirichletCondition:
     g_.emplace(std::forward<Args>(args)...);
   }
 
+  void addAllBoundaryIDs(const LocalAnalyticalFunctionType& analyticalFunction)
+  {
+    for(const auto& boundaryID:meshmanager_.listUniqueIDs())
+      addBC(boundaryID,analyticalFunction);
+  }
+
+  void printInfo(std::ostream& s=std::cout) const
+  {
+    s<<"Dirichlet condition on IDs:"<<std::endl;
+    for(auto& mapEntry:g_)
+      s<<mapEntry.first<<std::endl;
+  }
+
   private:
   using BaseType::blocksIDs_;
   using BaseType::g_;
+  using BaseType::meshmanager_;
 
   // clear as unit rows the ones which have a Dirichlet condition (first operator is the one on the diagonal)
   // set in the RHS vector the Dirichlet component to the correct value
@@ -368,18 +383,18 @@ class FreeSlipCondition:
       addBC(boundaryID);
   }
 
-  void printInfo()
+  void printInfo(std::ostream& s=std::cout) const
   {
     const auto entity(*(meshmanager_.bulkGridPart().template begin<0>()));
     const auto x(entity.geometry().center());
-    std::cout<<"Free-slip condition info:"<<std::endl;
+    s<<"Free-slip condition on IDs:"<<std::endl;
     for(auto& mapEntry:g_)
     {
       mapEntry.second.init(entity);
       mapEntry.second.initialize(0,0);
       RangeType ret;
       mapEntry.second.evaluate(x,ret);
-      std::cout<<"ID "<<mapEntry.first<<" --> multiplication mask "<<ret<<std::endl;
+      s<<mapEntry.first<<" ( multiplication mask "<<ret<<" )"<<std::endl;
     }
   }
 

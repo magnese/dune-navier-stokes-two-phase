@@ -211,6 +211,9 @@ class BaseProblem
     mu_.printInfo(s);
     s<<"Gamma = "<<gamma_<<std::endl;
     rho_.printInfo(s);
+    Hybrid::forEach(std::make_index_sequence<std::tuple_size<VelocityBCsType>::value>{},
+      [&](auto i){std::get<i>(velocitybcs_).printInfo(s);});
+
   }
 
   protected:
@@ -225,7 +228,6 @@ class BaseProblem
   std::tuple<VelocityFunctionType,VelocityFunctionType,VelocityFunctionType> velocity_;
   std::tuple<PressureFunctionType,PressureFunctionType> pressure_;
   static constexpr unsigned int worlddim=CoupledMeshManagerType::BulkGridType::dimensionworld;
-  static constexpr auto numbcs_=std::tuple_size<VelocityBCsType>::value;
 
   template<std::size_t N>
   auto& getVelocityBC()
@@ -272,10 +274,7 @@ class StokesTest1Problem:public BaseProblem<FluidStateImp,DirichletCondition>
 
     velocityIC()=velocitySolution();
 
-    velocityBC().addBC(2,velocitySolution());
-    velocityBC().addBC(3,velocitySolution());
-    velocityBC().addBC(4,velocitySolution());
-    velocityBC().addBC(5,velocitySolution());
+    velocityBC().addAllBoundaryIDs(velocitySolution());
   }
 };
 
@@ -320,10 +319,7 @@ class StokesTest2Problem:public BaseProblem<FluidStateImp,DirichletCondition>
 
     velocityIC()=velocitySolution();
 
-    velocityBC().addBC(2,velocitySolution());
-    velocityBC().addBC(3,velocitySolution());
-    velocityBC().addBC(4,velocitySolution());
-    velocityBC().addBC(5,velocitySolution());
+    velocityBC().addAllBoundaryIDs(velocitySolution());
   }
 };
 
@@ -361,12 +357,7 @@ class StationaryBubbleProblem:public BaseProblem<FluidStateImp,DirichletConditio
 
     pressureIC()=pressureSolution();
 
-    velocityBC().addBC(2,velocitySolution());
-    velocityBC().addBC(3,velocitySolution());
-    velocityBC().addBC(4,velocitySolution());
-    velocityBC().addBC(5,velocitySolution());
-    velocityBC().addBC(6,velocitySolution());
-    velocityBC().addBC(7,velocitySolution());
+    velocityBC().addAllBoundaryIDs(velocitySolution());
   }
 
   template<typename... Args>
@@ -426,14 +417,7 @@ class ExpandingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition
     velocityIC()=velocitySolution();
     pressureIC()=pressureSolution();
 
-    velocityBC().addBC(2,velocitySolution());
-    velocityBC().addBC(3,velocitySolution());
-    velocityBC().addBC(4,velocitySolution());
-    velocityBC().addBC(5,velocitySolution());
-    velocityBC().addBC(6,velocitySolution());
-    velocityBC().addBC(7,velocitySolution());
-    velocityBC().addBC(8,velocitySolution());
-    velocityBC().addBC(9,velocitySolution());
+    velocityBC().addAllBoundaryIDs(velocitySolution());
   }
 
   double exactRadius(double t) const
@@ -473,12 +457,7 @@ class ShearFlowProblem:public BaseProblem<FluidStateImp,DirichletCondition>
                              return value;
                            });
 
-    velocityBC().addBC(2,f);
-    velocityBC().addBC(3,f);
-    velocityBC().addBC(4,f);
-    velocityBC().addBC(5,f);
-    velocityBC().addBC(6,f);
-    velocityBC().addBC(7,f);
+    velocityBC().addAllBoundaryIDs(f);
   }
 };
 
@@ -535,10 +514,7 @@ class StationaryNavierStokesProblem:public BaseProblem<FluidStateImp,DirichletCo
     velocityIC()=velocitySolution();
     pressureIC()=pressureSolution();
 
-    velocityBC().addBC(2,velocitySolution());
-    velocityBC().addBC(3,velocitySolution());
-    velocityBC().addBC(4,velocitySolution());
-    velocityBC().addBC(5,velocitySolution());
+    velocityBC().addAllBoundaryIDs(velocitySolution());
   }
 };
 
@@ -586,10 +562,7 @@ class NavierStokes2DProblem:public BaseProblem<FluidStateImp,DirichletCondition>
     velocityIC()=velocitySolution();
     pressureIC()=pressureSolution();
 
-    velocityBC().addBC(2,velocitySolution());
-    velocityBC().addBC(3,velocitySolution());
-    velocityBC().addBC(4,velocitySolution());
-    velocityBC().addBC(5,velocitySolution());
+    velocityBC().addAllBoundaryIDs(velocitySolution());
   }
 };
 
@@ -695,12 +668,7 @@ class NavierStokesTest1Problem:public BaseProblem<FluidStateImp,DirichletConditi
     velocityIC()=velocitySolution();
     pressureIC()=pressureSolution();
 
-    velocityBC().addBC(2,velocitySolution());
-    velocityBC().addBC(3,velocitySolution());
-    velocityBC().addBC(4,velocitySolution());
-    velocityBC().addBC(5,velocitySolution());
-    velocityBC().addBC(6,velocitySolution());
-    velocityBC().addBC(7,velocitySolution());
+    velocityBC().addAllBoundaryIDs(velocitySolution());
   }
 
   double exactRadius(double t) const
@@ -777,12 +745,7 @@ class NavierStokesTest2Problem:public BaseProblem<FluidStateImp,DirichletConditi
     velocityIC()=velocitySolution();
     pressureIC()=pressureSolution();
 
-    velocityBC().addBC(2,velocitySolution());
-    velocityBC().addBC(3,velocitySolution());
-    velocityBC().addBC(4,velocitySolution());
-    velocityBC().addBC(5,velocitySolution());
-    velocityBC().addBC(6,velocitySolution());
-    velocityBC().addBC(7,velocitySolution());
+    velocityBC().addAllBoundaryIDs(velocitySolution());
   }
 
   double exactRadius(double t) const

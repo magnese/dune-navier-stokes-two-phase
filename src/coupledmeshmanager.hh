@@ -500,8 +500,7 @@ class CoupledMeshManager
   }
 
   // boundary ID of given intersection
-  template<typename BulkIntersectionType>
-  int intersectionID(const BulkIntersectionType& intersection) const
+  int intersectionID(const typename BulkGridType::LeafIntersection& intersection) const
   {
     return boundaryIDs()[intersection.boundarySegmentIndex()];
   }

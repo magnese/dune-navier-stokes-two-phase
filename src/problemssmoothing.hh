@@ -38,6 +38,11 @@ class ParallelepipedGeometry
     return bc_;
   }
 
+  const BoundaryConditionType& bc() const
+  {
+    return bc_;
+  }
+
   private:
   BoundaryConditionType bc_;
 };

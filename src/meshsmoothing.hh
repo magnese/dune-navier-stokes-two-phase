@@ -40,6 +40,7 @@ class MeshSmoothing
   void printInfo(std::ostream& s=std::cout) const
   {
     s<<"Smoothing Coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: smooth disabled!)")<<std::endl;
+    problem_.bc().printInfo(s);
   }
 
   void enable()
