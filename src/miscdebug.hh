@@ -273,7 +273,7 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
   }
 }
 
-// print discrete function boundary values with a certain boundaryID
+// print discrete function boundary values with a certain boundary ID
 template<typename DF,typename MeshManagerType>
 void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& meshManager,int boundaryID)
 {

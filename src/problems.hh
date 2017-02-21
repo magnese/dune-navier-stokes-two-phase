@@ -627,31 +627,14 @@ class RisingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition,Fr
     velocityBC().addBC(2,VelocityFunctionType());
     velocityBC().addBC(4,VelocityFunctionType());
     // free-slip on faces normal to x
-    this->template getVelocityBC<1>().addBC(3,VelocityFunctionType([](const VelocityDomainType& ,double ,const EntityType& )
-                                                                   {
-                                                                     VelocityRangeType value(1.0);
-                                                                     value[0]=0.0;
-                                                                     return value;
-                                                                   }));
-    this->template getVelocityBC<1>().addBC(5,VelocityFunctionType([](const VelocityDomainType& ,double ,const EntityType& )
-                                                                   {
-                                                                     VelocityRangeType value(1.0);
-                                                                     value[0]=0.0;
-                                                                     return value;
-                                                                   }));
+    this->template getVelocityBC<1>().addBC(3);
+    this->template getVelocityBC<1>().addBC(5);
     // free-slip on faces normal to y (only 3d)
-    this->template getVelocityBC<1>().addBC(6,VelocityFunctionType([](const VelocityDomainType& ,double ,const EntityType& )
-                                                                   {
-                                                                     VelocityRangeType value(1.0);
-                                                                     value[1]=0.0;
-                                                                     return value;
-                                                                   }));
-    this->template getVelocityBC<1>().addBC(7,VelocityFunctionType([](const VelocityDomainType& ,double ,const EntityType& )
-                                                                   {
-                                                                     VelocityRangeType value(1.0);
-                                                                     value[1]=0.0;
-                                                                     return value;
-                                                                   }));
+    if(worlddim==3)
+    {
+      this->template getVelocityBC<1>().addBC(6);
+      this->template getVelocityBC<1>().addBC(7);
+    }
   }
 };
 

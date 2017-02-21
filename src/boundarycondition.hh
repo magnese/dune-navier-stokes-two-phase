@@ -1,7 +1,10 @@
 #ifndef DUNE_FEM_BOUNDARYCONDITION_HH
 #define DUNE_FEM_BOUNDARYCONDITION_HH
 
+#include <cmath>
+#include <cstdlib>
 #include <functional>
+#include <iostream>
 #include <list>
 #include <map>
 #include <memory>
@@ -73,12 +76,6 @@ class BoundaryCondition
   typedef std::map<int,AdaptedDiscreteFunctionType> AdaptedFunctionMapType;
 
   typedef DynamicVector<typename AdaptedDiscreteFunctionType::RangeFieldType> LocalBoundaryDOFsType;
-
-  template<typename... Args>
-  void addBC(Args&&... args)
-  {
-    g_.emplace(std::forward<Args>(args)...);
-  }
 
   const DiscreteSpaceType& space() const
   {
@@ -242,8 +239,15 @@ class DirichletCondition:
   using BaseType::space;
   using BaseType::localBoundaryDOFs;
 
+  template<typename... Args>
+  void addBC(Args&&... args)
+  {
+    g_.emplace(std::forward<Args>(args)...);
+  }
+
   private:
   using BaseType::blocksIDs_;
+  using BaseType::g_;
 
   // clear as unit rows the ones which have a Dirichlet condition (first operator is the one on the diagonal)
   // set in the RHS vector the Dirichlet component to the correct value
@@ -320,6 +324,9 @@ class FreeSlipCondition:
   typedef FreeSlipCondition<DiscreteSpaceType,CoupledMeshManagerType> ThisType;
   typedef BoundaryCondition<DiscreteSpaceType,CoupledMeshManagerType,ListBlockID,ThisType> BaseType;
   typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::DomainType DomainType;
+  typedef typename BaseType::RangeType RangeType;
+  typedef typename BaseType::LocalAnalyticalFunctionType LocalAnalyticalFunctionType;
 
   friend BaseType;
 
@@ -331,8 +338,53 @@ class FreeSlipCondition:
   using BaseType::space;
   using BaseType::localBoundaryDOFs;
 
+  void addBC(int boundaryID)
+  {
+    for(const auto& entity:elements(meshmanager_.bulkGridPart()))
+      for(const auto& intersection:intersections(meshmanager_.bulkGridPart(),entity))
+        if(intersection.boundary())
+          if(boundaryID==meshmanager_.intersectionID(intersection))
+          {
+            RangeType value(1);
+            const auto normalVector(intersection.centerUnitOuterNormal());
+            for(auto i=decltype(value.size()){0};i!=value.size();++i)
+            {
+              RangeType e(0);
+              e[i]=1;
+              value[i]-=std::round(std::abs(e.dot(normalVector)));
+              if((value[i]!=0.0)&&(value[i]!=1.0))
+                DUNE_THROW(InvalidStateException,"ERROR: free-slip function can have only 0 or 1 value!");
+            }
+            g_.emplace(boundaryID,LocalAnalyticalFunctionType([val=value](const DomainType& ,double ,const EntityType& ){return val;}));
+            return;
+          }
+  }
+
+  void addAllBoundaryIDs()
+  {
+    for(const auto& boundaryID:meshmanager_.listUniqueIDs())
+      addBC(boundaryID);
+  }
+
+  void printInfo()
+  {
+    const auto entity(*(meshmanager_.bulkGridPart().template begin<0>()));
+    const auto x(entity.geometry().center());
+    std::cout<<"Free-slip condition info:"<<std::endl;
+    for(auto& mapEntry:g_)
+    {
+      mapEntry.second.init(entity);
+      mapEntry.second.initialize(0,0);
+      RangeType ret;
+      mapEntry.second.evaluate(x,ret);
+      std::cout<<"ID "<<mapEntry.first<<" --> multiplication mask "<<ret<<std::endl;
+    }
+  }
+
   private:
   using BaseType::blocksIDs_;
+  using BaseType::g_;
+  using BaseType::meshmanager_;
 
   // clear as unit rows the one which have a free-slip condition (first operator is the one on the diagonal)
   // set in the RHS vector the free-slip condition

@@ -8,6 +8,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -498,10 +499,24 @@ class CoupledMeshManager
     return sequence_;
   }
 
+  // boundary ID of given intersection
   template<typename BulkIntersectionType>
   int intersectionID(const BulkIntersectionType& intersection) const
   {
     return boundaryIDs()[intersection.boundarySegmentIndex()];
+  }
+
+  // list all boundary IDs
+  std::vector<int> listUniqueIDs() const
+  {
+    std::unordered_set<int> uniqueIDs(10);
+    for(const auto& boundaryID:boundaryIDs())
+      uniqueIDs.insert(boundaryID);
+    std::vector<int> vectorIDs(0);
+    vectorIDs.reserve(uniqueIDs.size());
+    for(const auto& boundaryID:uniqueIDs)
+      vectorIDs.push_back(boundaryID);
+    return vectorIDs;
   }
 
   bool remesh()
