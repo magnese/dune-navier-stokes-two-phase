@@ -37,6 +37,7 @@ DomainGeometry: /2D/rectangle_l12_cl005.geo
 #DomainGeometry: /3D/cube_l1_cl025.geo
 #DomainGeometry: /3D/cube_l1_cl0125.geo
 #DomainGeometry: /3D/parallelepiped_l112_cl02.geo
+#DomainGeometry: /3D/parallelepiped_l112_cl015.geo
 #DomainGeometry: /3D/parallelepiped_l112_cl01.geo
 
 # interface geometry (default: interface.msh)
@@ -64,6 +65,7 @@ InterfaceGeometry: /simple/1D/circle_r025_c05_cl005.msh
 #InterfaceGeometry: /simple/2D/ellipsoid_a08_b0325_cl05.msh
 #InterfaceGeometry: /simple/2D/ellipsoid_a08_b0325_cl025.msh
 #InterfaceGeometry: /simple/2D/sphere_r025_c05_cl02.msh
+#InterfaceGeometry: /simple/2D/sphere_r025_c05_cl015.msh
 #InterfaceGeometry: /simple/2D/sphere_r025_c05_cl01.msh
 
 # hole geometry (default: )
