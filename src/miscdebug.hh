@@ -20,6 +20,7 @@
 #include <dune/fem/function/common/rangegenerators.hh>
 
 #include "gnuplotwriter.hh"
+#include "normal.hh"
 
 namespace Dune
 {
@@ -111,36 +112,91 @@ struct BulkNormalizedInnerVolumeInfo:public GnuplotWriter
 };
 
 // check if bulk and interface are consistent
-template<typename InterfaceGridPartType,typename BulkGridPartType,typename BulkInterfaceGridMapperType>
-bool isBulkConsistentWithInterface(const InterfaceGridPartType& interfaceGridPart,const BulkGridPartType& bulkGridPart,
-                                   const BulkInterfaceGridMapperType& mapper)
+template<typename CoupledMeshManagerType>
+bool isBulkConsistentWithInterface(const CoupledMeshManagerType& meshManager)
 {
+  std::cout<<std::endl<<"[DEBUG]"<<std::endl;
   // perform an interface walkthrough
-  const unsigned int bulkGriddim(BulkGridPartType::dimension);
-  for(const auto& interfaceEntity:elements(interfaceGridPart))
+  const unsigned int bulkGriddim(CoupledMeshManagerType::bulkGriddim);
+  for(const auto& interfaceEntity:elements(meshManager.interfaceGridPart()))
   {
     // extract the corresponding bulk entity
-    const auto interfaceIdx(interfaceGridPart.grid().leafIndexSet().index(interfaceEntity));
-    const auto bulkEntity(bulkGridPart.grid().entity(mapper.entitySeedInterface2Bulk(interfaceIdx)));
-    const auto& faceLocalIndex(mapper.faceLocalIdxInterface2Bulk(interfaceIdx));
+    const auto interfaceIdx(meshManager.interfaceGrid().leafIndexSet().index(interfaceEntity));
+    const auto bulkEntity(meshManager.bulkGrid().entity(meshManager.mapper().entitySeedInterface2Bulk(interfaceIdx)));
+    const auto& faceLocalIndex(meshManager.mapper().faceLocalIdxInterface2Bulk(interfaceIdx));
     // create reference element
-    const auto& refElement(ReferenceElements<typename BulkGridPartType::GridType::ctype,bulkGriddim>::general(bulkEntity.type()));
+    const auto& refElement(ReferenceElements<typename CoupledMeshManagerType::BulkGridType::ctype,bulkGriddim>::general(bulkEntity.type()));
     // check inconsitency between bulk and interface
     for(auto i=decltype(bulkGriddim){0};i!=bulkGriddim;++i)
     {
       const auto bulkVtxLocalIndex(refElement.subEntity(faceLocalIndex,1,i,bulkGriddim));
       if(interfaceEntity.geometry().corner(i)!=bulkEntity.geometry().corner(bulkVtxLocalIndex))
       {
-        std::cout<<std::endl<<"[DEBUG]"<<std::endl;
-        std::cout<<"\t WARNING: Bulk and interface are NOT consistent!"<<std::endl;
-        std::cout<<"[DEBUG]"<<std::endl<<std::endl;
+        std::cout<<"\t WARNING: Bulk and interface are NOT consistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
         return false;
       }
     }
   }
+  std::cout<<"\t Bulk and interface are consistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
+  return true;
+}
+
+// check if normals are consistent
+template<typename CoupledMeshManagerType>
+bool areNormalsConsistent(const CoupledMeshManagerType& meshManager,
+  const typename CoupledMeshManagerType::BulkGridType::template Codim<0>::Entity::Geometry::GlobalCoordinate& center)
+{
   std::cout<<std::endl<<"[DEBUG]"<<std::endl;
-  std::cout<<"\t Bulk and interface are consistent!"<<std::endl;
-  std::cout<<"[DEBUG]"<<std::endl<<std::endl;
+  // check boundary normals
+  bool isInitialized(false);
+  double value(0);
+  for(const auto& bulkEntity:elements(meshManager.bulkGridPart()))
+    for(const auto& intersection:intersections(meshManager.bulkGridPart(),bulkEntity))
+      if(intersection.boundary())
+      {
+        const auto normalVector(intersection.centerUnitOuterNormal());
+        const auto positionVector(intersection.geometry().center()-center);
+        const auto scalarProduct(normalVector.dot(positionVector));
+        if(isInitialized)
+        {
+          if(value*scalarProduct<0)
+          {
+            std::cout<<"\t WARNING: Bulk boundary normals are inconsistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
+            return false;
+          }
+
+        }
+        else
+        {
+          value=scalarProduct;
+          isInitialized=true;
+        }
+      }
+  // check interface normals
+  isInitialized=false;
+  value=0;
+  for(const auto& interfaceEntity:elements(meshManager.interfaceGridPart()))
+  {
+    const auto interfaceIdx(meshManager.interfaceGrid().leafIndexSet().index(interfaceEntity));
+    const auto& faceLocalIdx(meshManager.mapper().faceLocalIdxInterface2Bulk(interfaceIdx));
+    const auto normalVector(computeNormal(interfaceEntity,faceLocalIdx));
+    const auto positionVector(interfaceEntity.geometry().center()-center);
+    const auto scalarProduct(normalVector.dot(positionVector));
+    if(isInitialized)
+    {
+      if(value*scalarProduct<0)
+      {
+        std::cout<<"\t WARNING: Interface normals are inconsistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
+        return false;
+      }
+    }
+    else
+    {
+      value=scalarProduct;
+      isInitialized=true;
+    }
+  }
+  std::cout<<"\t Bulk boundary normals and interface normals are consistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
   return true;
 }
 
