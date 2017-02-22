@@ -82,13 +82,6 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
     std::vector<DomainType> phiDomain(domainspace_.blockMapper().maxNumDofs()*domainLocalBlockSize);
     std::vector<RangeType> phiRange(rangespace_.blockMapper().maxNumDofs()*rangeLocalBlockSize);
 
-    // define normal functor and normal vector
-    typedef typename DomainSpaceType::GridType::ctype ctype;
-    constexpr unsigned int worlddim(DomainSpaceType::GridType::dimensionworld);
-    typedef Normal<ctype,worlddim> NormalType;
-    NormalType normal;
-    typename NormalType::NormalVectorType normalVector;
-
     // define selector
     constexpr unsigned int dim(DomainType::dimension);
     typedef Selector<dim,typename DomainSpaceType::RangeFieldType> SelectorType;
@@ -99,7 +92,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
     {
       // compute normal
       const auto& faceLocalIdx(mapper_.faceLocalIdxInterface2Bulk(domainspace_.grid().leafIndexSet().index(entity)));
-      normal(entity,normalVector,faceLocalIdx);
+      const auto normalVector(computeNormal(entity,faceLocalIdx));
 
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& domainBaseSet(localMatrix.domainBasisFunctionSet());

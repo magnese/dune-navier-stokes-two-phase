@@ -78,18 +78,13 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
     // extract dimensions
     constexpr unsigned int worlddim(DiscreteSpaceType::GridType::dimensionworld);
     constexpr unsigned int rangedim(DiscreteSpaceType::FunctionSpaceType::dimRange);
-    // define normal
     typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
-    typedef typename DiscreteSpaceType::GridType::ctype ctype;
-    typedef Normal<ctype,worlddim> NormalType;
-    NormalType normal;
-    typename NormalType::NormalVectorType normalVector;
     // assemble global matrix
     for(const auto& entity:space_)
     {
       // compute normal
       const auto& faceLocalIdx(mapper.faceLocalIdxInterface2Bulk(space_.grid().leafIndexSet().index(entity)));
-      normal(entity,normalVector,faceLocalIdx);
+      const auto normalVector(computeNormal(entity,faceLocalIdx));
       // extract local matrix and basis functions
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& baseSet(localMatrix.domainBasisFunctionSet());

@@ -39,13 +39,6 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
     constexpr std::size_t curvatureLocalBlockSize(CurvatureSpaceType::localBlockSize);
     std::vector<CurvatureLocalFunctionRangeType> phiCurvature(curvatureSpace.blockMapper().maxNumDofs()*curvatureLocalBlockSize);
 
-    // define normal functor and normal vector
-    constexpr unsigned int worlddim(VelocityDiscreteFunctionType::GridType::dimensionworld);
-    typedef typename CurvatureDiscreteFunctionType::GridType::ctype ctype;
-    typedef Normal<ctype,worlddim> NormalType;
-    NormalType normal;
-    typename NormalType::NormalVectorType normalVector;
-
     // loop over interface grid entities
     for(const auto& interfaceEntity:curvatureSpace)
     {
@@ -65,7 +58,7 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
       auto localCurvature(curvatureSolutiontm.localFunction(interfaceEntity));
 
       // compute normal to interface entity
-      normal(interfaceEntity,normalVector,faceLocalIdx);
+      const auto normalVector(computeNormal(interfaceEntity,faceLocalIdx));
 
       // define basis functions for velocity and curvature
       const auto& velocityBaseSet(velocitySpace.basisFunctionSet(bulkEntity));

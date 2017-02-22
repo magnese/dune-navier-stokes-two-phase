@@ -99,12 +99,6 @@ class CurvatureVelocityOperator:public Operator<DomainFunctionImp,RangeFunctionI
     typedef typename VelocityFunctionType::LocalFunctionType::RangeType VelocityRangeType;
     std::vector<VelocityRangeType> phiVelocity(velocityspace_.blockMapper().maxNumDofs()*velocityLocalBlockSize);
 
-    // define normal functor and normal vector
-    constexpr unsigned int worlddim(BulkGridType::dimensionworld);
-    typedef Normal<typename InterfaceGridType::ctype,worlddim> NormalType;
-    NormalType normal;
-    typename NormalType::NormalVectorType normalVector;
-
     // perform an interface walkthrough and assemble the global matrix
     for(const auto& interfaceEntity:curvaturespace_)
     {
@@ -120,7 +114,7 @@ class CurvatureVelocityOperator:public Operator<DomainFunctionImp,RangeFunctionI
       const auto intersection(*intersectionIt);
 
       // compute normal to interface
-      normal(interfaceEntity,normalVector,faceLocalIdx);
+      const auto normalVector(computeNormal(interfaceEntity,faceLocalIdx));
 
       // extract local matrix
       auto localMatrix(op_.localMatrix(interfaceEntity,bulkEntity));
