@@ -16,6 +16,7 @@
 #include <utility>
 #include <iomanip>
 
+#include <dune/common/exceptions.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/function/common/rangegenerators.hh>
 
@@ -113,9 +114,8 @@ struct BulkNormalizedInnerVolumeInfo:public GnuplotWriter
 
 // check if bulk and interface are consistent
 template<typename CoupledMeshManagerType>
-bool isBulkConsistentWithInterface(const CoupledMeshManagerType& meshManager)
+void checkBulkInterfaceConsistency(const CoupledMeshManagerType& meshManager)
 {
-  std::cout<<std::endl<<"[DEBUG]"<<std::endl;
   // perform an interface walkthrough
   const unsigned int bulkGriddim(CoupledMeshManagerType::bulkGriddim);
   for(const auto& interfaceEntity:elements(meshManager.interfaceGridPart()))
@@ -131,23 +131,16 @@ bool isBulkConsistentWithInterface(const CoupledMeshManagerType& meshManager)
     {
       const auto bulkVtxLocalIndex(refElement.subEntity(faceLocalIndex,1,i,bulkGriddim));
       if(interfaceEntity.geometry().corner(i)!=bulkEntity.geometry().corner(bulkVtxLocalIndex))
-      {
-        std::cout<<"\t WARNING: Bulk and interface are NOT consistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
-        return false;
-      }
+        DUNE_THROW(InvalidStateException,"ERROR: Bulk and interface are not consistent!");
     }
   }
-  std::cout<<"\t Bulk and interface are consistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
-  return true;
 }
 
-// check if normals are consistent
+// check if boundary normals are consistent
 template<typename CoupledMeshManagerType>
-bool areNormalsConsistent(const CoupledMeshManagerType& meshManager,
+void checkBoundaryNormalsConsistency(const CoupledMeshManagerType& meshManager,
   const typename CoupledMeshManagerType::BulkGridType::template Codim<0>::Entity::Geometry::GlobalCoordinate& center)
 {
-  std::cout<<std::endl<<"[DEBUG]"<<std::endl;
-  // check boundary normals
   bool isInitialized(false);
   double value(0);
   for(const auto& bulkEntity:elements(meshManager.bulkGridPart()))
@@ -160,11 +153,7 @@ bool areNormalsConsistent(const CoupledMeshManagerType& meshManager,
         if(isInitialized)
         {
           if(value*scalarProduct<0)
-          {
-            std::cout<<"\t WARNING: Bulk boundary normals are inconsistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
-            return false;
-          }
-
+            DUNE_THROW(InvalidStateException,"ERROR: Boundary normals are not consistent!");
         }
         else
         {
@@ -172,9 +161,15 @@ bool areNormalsConsistent(const CoupledMeshManagerType& meshManager,
           isInitialized=true;
         }
       }
-  // check interface normals
-  isInitialized=false;
-  value=0;
+}
+
+// check if interface normals are consistent
+template<typename CoupledMeshManagerType>
+void checkInterfaceNormalsConsistency(const CoupledMeshManagerType& meshManager,
+  const typename CoupledMeshManagerType::BulkGridType::template Codim<0>::Entity::Geometry::GlobalCoordinate& center)
+{
+  bool isInitialized(false);
+  double value(0);
   for(const auto& interfaceEntity:elements(meshManager.interfaceGridPart()))
   {
     const auto interfaceIdx(meshManager.interfaceGrid().leafIndexSet().index(interfaceEntity));
@@ -185,10 +180,7 @@ bool areNormalsConsistent(const CoupledMeshManagerType& meshManager,
     if(isInitialized)
     {
       if(value*scalarProduct<0)
-      {
-        std::cout<<"\t WARNING: Interface normals are inconsistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
-        return false;
-      }
+        DUNE_THROW(InvalidStateException,"ERROR: Interface normals are not consistent!");
     }
     else
     {
@@ -196,8 +188,6 @@ bool areNormalsConsistent(const CoupledMeshManagerType& meshManager,
       isInitialized=true;
     }
   }
-  std::cout<<"\t Bulk boundary normals and interface normals are consistent!"<<std::endl<<"[DEBUG]"<<std::endl<<std::endl;
-  return true;
 }
 
 // check abs function range
