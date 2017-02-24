@@ -8,7 +8,6 @@
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
-#include "normal.hh"
 
 #include <vector>
 #include <fstream>
@@ -19,25 +18,25 @@ namespace Dune
 namespace Fem
 {
 
-template<typename DomainFunctionImp,typename RangeFunctionImp,typename BulkInterfaceGridMapperImp,
+template<typename DomainFunctionImp,typename RangeFunctionImp,typename CoupledMeshManagerImp,
          template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
 class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
 {
   public:
   typedef DomainFunctionImp DomainFunctionType;
   typedef RangeFunctionImp RangeFunctionType;
-  typedef BulkInterfaceGridMapperImp BulkInterfaceGridMapperType;
+  typedef CoupledMeshManagerImp CoupledMeshManagerType;
   typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
   typedef typename DomainFunctionType::DiscreteFunctionSpaceType DomainSpaceType;
   typedef typename RangeFunctionType::DiscreteFunctionSpaceType RangeSpaceType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
-  typedef InterfaceCurvatureDisplacementOperator<DomainFunctionType,RangeFunctionType,BulkInterfaceGridMapperType,LinearOperatorImp>
+  typedef InterfaceCurvatureDisplacementOperator<DomainFunctionType,RangeFunctionType,CoupledMeshManagerType,LinearOperatorImp>
     ThisType;
 
   // constructor
   explicit InterfaceCurvatureDisplacementOperator(const DomainSpaceType& domainSpace,const RangeSpaceType& rangeSpace,
-                                                  const BulkInterfaceGridMapperType& mapper):
-    domainspace_(domainSpace),rangespace_(rangeSpace),mapper_(mapper),
+                                                  const CoupledMeshManagerType& meshManager):
+    domainspace_(domainSpace),rangespace_(rangeSpace),meshmanger_(meshManager),
     op_("interface curvature displacement operator",domainspace_,rangespace_)
   {}
 
@@ -91,8 +90,8 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
     for(const auto& entity:domainspace_)
     {
       // compute normal
-      const auto& faceLocalIdx(mapper_.faceLocalIdxInterface2Bulk(domainspace_.grid().leafIndexSet().index(entity)));
-      const auto normalVector(computeNormal(entity,faceLocalIdx));
+      const auto intersection(meshmanger_.correspondingInnerBulkIntersection(entity));
+      const auto normalVector(intersection.centerUnitOuterNormal());
 
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& domainBaseSet(localMatrix.domainBasisFunctionSet());
@@ -146,7 +145,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
 
   const DomainSpaceType& domainspace_;
   const RangeSpaceType& rangespace_;
-  const BulkInterfaceGridMapperType& mapper_;
+  const CoupledMeshManagerType& meshmanger_;
   LinearOperatorType op_;
 };
 

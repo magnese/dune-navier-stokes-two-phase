@@ -58,8 +58,8 @@ class FemScheme
   typedef typename FluidStateType::BulkDiscreteFunctionType BulkDiscreteFunctionType;
   typedef typename FluidStateType::InterfaceDiscreteFunctionType InterfaceDiscreteFunctionType;
 
-  // define bulk-interface mapper
-  typedef typename FluidStateType::CoupledMeshManagerType::BulkInterfaceGridMapperType BulkInterfaceGridMapperType;
+  // define coupled mesh manager
+  typedef typename FluidStateType::CoupledMeshManagerType CoupledMeshManagerType;
 
   // define problem
   #if PROBLEM_NUMBER == 0
@@ -101,12 +101,12 @@ class FemScheme
   #if PRESSURE_SPACE_TYPE == 2
   typedef MassMatrix<PressureAdditionalDiscreteFunctionType,PressureAdditionalDiscreteFunctionType> BulkMassMatrixAdditionalOperatorType;
   #endif
-  typedef CurvatureVelocityOperator<CurvatureDiscreteFunctionType,VelocityDiscreteFunctionType,BulkInterfaceGridMapperType>
+  typedef CurvatureVelocityOperator<CurvatureDiscreteFunctionType,VelocityDiscreteFunctionType,CoupledMeshManagerType>
     CurvatureVelocityOperatorType;
 
   // define operators for interface
   typedef InterfaceOperator<InterfaceDiscreteFunctionType> InterfaceOperatorType;
-  typedef VelocityCurvatureOperator<VelocityDiscreteFunctionType,CurvatureDiscreteFunctionType,BulkInterfaceGridMapperType>
+  typedef VelocityCurvatureOperator<VelocityDiscreteFunctionType,CurvatureDiscreteFunctionType,CoupledMeshManagerType>
     VelocityCurvatureOperatorType;
 
   // constructor
@@ -145,7 +145,7 @@ class FemScheme
 
     // assemble operator
     InterfaceOperatorType interfaceOp(fluidstate_.interfaceSpace());
-    interfaceOp.assemble(fluidstate_.meshManager().mapper(),timeProvider);
+    interfaceOp.assemble(fluidstate_.meshManager(),timeProvider);
 
     // assemble rhs
     InterfaceDiscreteFunctionType rhs("interface RHS",fluidstate_.interfaceSpace());
@@ -192,8 +192,7 @@ class FemScheme
     #endif
     #endif
     PressureOperatorType pressureOp(fluidstate_.pressureSpace(),fluidstate_.pressureSpace());
-    CurvatureVelocityOperatorType curvatureVelocityOp(fluidstate_.curvatureSpace(),fluidstate_.velocitySpace(),
-                                                      fluidstate_.meshManager().mapper());
+    CurvatureVelocityOperatorType curvatureVelocityOp(fluidstate_.curvatureSpace(),fluidstate_.velocitySpace(),fluidstate_.meshManager());
     curvatureVelocityOp.assemble();
     BulkMassMatrixOperatorType bulkMassMatrixOp(fluidstate_.pressureSpace());
     bulkMassMatrixOp.assemble();
@@ -206,9 +205,8 @@ class FemScheme
     // assemble interface operators
     timerAssembleInterface.start();
     InterfaceOperatorType interfaceOp(fluidstate_.interfaceSpace());
-    interfaceOp.assemble(fluidstate_.meshManager().mapper(),timeProvider);
-    VelocityCurvatureOperatorType velocityCurvatureOp(fluidstate_.velocitySpace(),fluidstate_.curvatureSpace(),
-                                                      fluidstate_.meshManager().mapper());
+    interfaceOp.assemble(fluidstate_.meshManager(),timeProvider);
+    VelocityCurvatureOperatorType velocityCurvatureOp(fluidstate_.velocitySpace(),fluidstate_.curvatureSpace(),fluidstate_.meshManager());
     velocityCurvatureOp.assemble();
     timerAssembleInterface.stop();
 

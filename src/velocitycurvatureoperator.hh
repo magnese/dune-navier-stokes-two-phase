@@ -6,8 +6,6 @@
 #include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
-#include "normal.hh"
-
 #include <string>
 #include <fstream>
 #include <vector>
@@ -17,18 +15,18 @@ namespace Dune
 namespace Fem
 {
 
-template<typename DomainFunctionImp,typename RangeFunctionImp,typename BulkInterfaceGridMapperImp,
+template<typename DomainFunctionImp,typename RangeFunctionImp,typename CoupledMeshManagerImp,
          template<typename ,typename > typename LinearOperatorImp=SparseRowLinearOperator>
 class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
 {
   public:
   typedef DomainFunctionImp DomainFunctionType;
   typedef RangeFunctionImp RangeFunctionType;
-  typedef BulkInterfaceGridMapperImp BulkInterfaceGridMapperType;
+  typedef CoupledMeshManagerImp CoupledMeshManagerType;
   typedef LinearOperatorImp<DomainFunctionType,RangeFunctionType> LinearOperatorType;
   typedef DomainFunctionType VelocityFunctionType;
   typedef RangeFunctionType CurvatureFunctionType;
-  typedef VelocityCurvatureOperator<DomainFunctionType,RangeFunctionType,BulkInterfaceGridMapperType,LinearOperatorImp> ThisType;
+  typedef VelocityCurvatureOperator<DomainFunctionType,RangeFunctionType,CoupledMeshManagerType,LinearOperatorImp> ThisType;
   typedef Operator<DomainFunctionType,RangeFunctionType> BaseType;
   typedef typename VelocityFunctionType::DiscreteFunctionSpaceType VelocitySpaceType;
   typedef VelocitySpaceType DomainSpaceType;
@@ -41,10 +39,10 @@ class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionI
   typedef typename VelocitySpaceType::GridPartType BulkGridPartType;
 
   explicit VelocityCurvatureOperator(const VelocitySpaceType& velocitySpace,const CurvatureSpaceType& curvatureSpace,
-                                     const BulkInterfaceGridMapperType& mapper):
+                                     const CoupledMeshManagerType& meshManager):
     curvaturespace_(curvatureSpace),velocityspace_(velocitySpace),op_("velocity curvature operator",velocityspace_,curvaturespace_),
-    mapper_(mapper),interfacegrid_(curvaturespace_.grid()),interfacegridpart_(curvaturespace_.gridPart()),bulkgrid_(velocityspace_.grid()),
-    bulkgridpart_(velocityspace_.gridPart())
+    meshmanager_(meshManager),interfacegrid_(curvaturespace_.grid()),interfacegridpart_(curvaturespace_.gridPart()),
+    bulkgrid_(velocityspace_.grid()),bulkgridpart_(velocityspace_.gridPart())
   {}
 
   VelocityCurvatureOperator(const ThisType& )=delete;
@@ -80,12 +78,7 @@ class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionI
     // allocate matrix
     Stencil<VelocitySpaceType,CurvatureSpaceType> stencil(velocityspace_,curvaturespace_);
     for(const auto& interfaceEntity:curvaturespace_)
-    {
-      // fill stencil
-      const auto interfaceIdx(interfacegrid_.leafIndexSet().index(interfaceEntity));
-      const auto& bulkEntity(bulkgrid_.entity(mapper_.entitySeedInterface2Bulk(interfaceIdx)));
-      stencil.fill(bulkEntity,interfaceEntity);
-    }
+      stencil.fill(meshmanager_.correspondingInnerBulkIntersection(interfaceEntity).inside(),interfaceEntity);
     op_.reserve(stencil);
 
     // clear matrix
@@ -102,19 +95,12 @@ class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionI
     // perform an interface walkthrough and assemble the global matrix
     for(const auto& interfaceEntity:curvaturespace_)
     {
-      // extract the corresponding bulk entity
-      const auto interfaceIdx(interfacegrid_.leafIndexSet().index(interfaceEntity));
-      const auto bulkEntity(bulkgrid_.entity(mapper_.entitySeedInterface2Bulk(interfaceIdx)));
-      const auto& faceLocalIdx(mapper_.faceLocalIdxInterface2Bulk(interfaceIdx));
-
-      // extract the associated bulk intersection
-      auto intersectionIt(bulkgridpart_.ibegin(bulkEntity));
-      while(static_cast<std::size_t>(intersectionIt->indexInInside())!=faceLocalIdx)
-        ++intersectionIt;
-      const auto intersection(*intersectionIt);
+      // extract the associated bulk intersection and bulk entity
+      const auto intersection(meshmanager_.correspondingInnerBulkIntersection(interfaceEntity));
+      const auto bulkEntity(intersection.inside());
 
       // compute normal to interface
-      const auto normalVector(computeNormal(interfaceEntity,faceLocalIdx));
+      const auto normalVector(intersection.centerUnitOuterNormal());
 
       // extract local matrix
       auto localMatrix(op_.localMatrix(bulkEntity,interfaceEntity));
@@ -151,7 +137,7 @@ class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionI
   const CurvatureSpaceType& curvaturespace_;
   const VelocitySpaceType& velocityspace_;
   LinearOperatorType op_;
-  const BulkInterfaceGridMapperType& mapper_;
+  const CoupledMeshManagerType& meshmanager_;
   const InterfaceGridType& interfacegrid_;
   const InterfaceGridPartType& interfacegridpart_;
   const BulkGridType& bulkgrid_;

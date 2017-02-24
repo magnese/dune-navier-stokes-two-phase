@@ -17,11 +17,11 @@
 #include <iomanip>
 
 #include <dune/common/exceptions.hh>
+#include <dune/geometry/referenceelements.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/function/common/rangegenerators.hh>
 
 #include "gnuplotwriter.hh"
-#include "normal.hh"
 
 namespace Dune
 {
@@ -121,9 +121,9 @@ void checkBulkInterfaceConsistency(const CoupledMeshManagerType& meshManager)
   for(const auto& interfaceEntity:elements(meshManager.interfaceGridPart()))
   {
     // extract the corresponding bulk entity
-    const auto interfaceIdx(meshManager.interfaceGrid().leafIndexSet().index(interfaceEntity));
-    const auto bulkEntity(meshManager.bulkGrid().entity(meshManager.mapper().entitySeedInterface2Bulk(interfaceIdx)));
-    const auto& faceLocalIndex(meshManager.mapper().faceLocalIdxInterface2Bulk(interfaceIdx));
+    const auto intersection(meshManager.correspondingInnerBulkIntersection(interfaceEntity));
+    const auto bulkEntity(intersection.inside());
+    const auto faceLocalIndex(intersection.indexInInside());
     // create reference element
     const auto& refElement(ReferenceElements<typename CoupledMeshManagerType::BulkGridType::ctype,bulkGriddim>::general(bulkEntity.type()));
     // check inconsitency between bulk and interface
@@ -172,9 +172,8 @@ void checkInterfaceNormalsConsistency(const CoupledMeshManagerType& meshManager,
   double value(0);
   for(const auto& interfaceEntity:elements(meshManager.interfaceGridPart()))
   {
-    const auto interfaceIdx(meshManager.interfaceGrid().leafIndexSet().index(interfaceEntity));
-    const auto& faceLocalIdx(meshManager.mapper().faceLocalIdxInterface2Bulk(interfaceIdx));
-    const auto normalVector(computeNormal(interfaceEntity,faceLocalIdx));
+    const auto intersection(meshManager.correspondingInnerBulkIntersection(interfaceEntity));
+    const auto normalVector(intersection.centerUnitOuterNormal());
     const auto positionVector(interfaceEntity.geometry().center()-center);
     const auto scalarProduct(normalVector.dot(positionVector));
     if(isInitialized)

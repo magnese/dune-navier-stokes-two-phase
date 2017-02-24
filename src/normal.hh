@@ -1,6 +1,9 @@
 #ifndef DUNE_NORMAL_HH
 #define DUNE_NORMAL_HH
 
+// deprecation warning
+#warning ("WARNING : normal.hh is deprecated")
+
 namespace Dune
 {
 

@@ -7,16 +7,15 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <vector>
 #include <cmath>
-#include "normal.hh"
 
 namespace Dune
 {
 namespace Fem
 {
 
-template<typename VelocityDiscreteFunctionType,typename CurvatureDiscreteFunctionType,typename BulkInterfaceGridMapperType>
+template<typename VelocityDiscreteFunctionType,typename CurvatureDiscreteFunctionType,typename CoupledMeshManagerType>
 void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const CurvatureDiscreteFunctionType& curvatureSolutiontm,
-                        const BulkInterfaceGridMapperType& mapper)
+                        const CoupledMeshManagerType& meshManager)
 {
   if(gamma!=0.0)
   {
@@ -42,23 +41,16 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
     // loop over interface grid entities
     for(const auto& interfaceEntity:curvatureSpace)
     {
-      // extract the corresponding bulk grid entity
-      const auto idxInterface(interfaceGrid.leafIndexSet().index(interfaceEntity));
-      const auto bulkEntity(bulkGrid.entity(mapper.entitySeedInterface2Bulk(idxInterface)));
-      const auto& faceLocalIdx(mapper.faceLocalIdxInterface2Bulk(idxInterface));
-
-      // extract the associated intersection
-      auto intersectionIt(bulkGridPart.ibegin(bulkEntity));
-      while(static_cast<std::size_t>(intersectionIt->indexInInside())!=faceLocalIdx)
-        ++intersectionIt;
-      const auto intersection(*intersectionIt);
+      // extract the associated bulk intersection and bulk entity
+      const auto intersection(meshManager.correspondingInnerBulkIntersection(interfaceEntity));
+      const auto bulkEntity(intersection.inside());
 
       // create local functions for velocity and curvature
       auto localRHS(rhs.localFunction(bulkEntity));
       auto localCurvature(curvatureSolutiontm.localFunction(interfaceEntity));
 
       // compute normal to interface entity
-      const auto normalVector(computeNormal(interfaceEntity,faceLocalIdx));
+      const auto normalVector(intersection.centerUnitOuterNormal());
 
       // define basis functions for velocity and curvature
       const auto& velocityBaseSet(velocitySpace.basisFunctionSet(bulkEntity));

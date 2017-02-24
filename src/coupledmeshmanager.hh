@@ -31,106 +31,6 @@ namespace Dune
 namespace Fem
 {
 
-// mapper between bulk grid and interface grid
-template<typename BulkGridImp,typename InterfaceGridImp>
-class BulkInterfaceGridMapper
-{
-  public:
-  typedef BulkGridImp BulkGridType;
-  typedef InterfaceGridImp InterfaceGridType;
-  typedef BulkInterfaceGridMapper<BulkGridType,InterfaceGridType> ThisType;
-  typedef typename BulkGridType::template Codim<0>::Entity BulkEntityType;
-  typedef typename BulkEntityType::EntitySeed BulkEntitySeedType;
-
-  BulkInterfaceGridMapper():
-    vtxbulk2interface_(0),vtxinterface2bulk_(0)
-  {}
-
-  BulkInterfaceGridMapper(const ThisType& )=default;
-  ThisType& operator=(const ThisType& )=default;
-
-  std::vector<std::size_t>& vtxBulk2Interface()
-  {
-    return vtxbulk2interface_;
-  }
-
-  const std::vector<std::size_t>& vtxBulk2Interface() const
-  {
-    return vtxbulk2interface_;
-  }
-
-  std::size_t& vtxBulk2Interface(std::size_t i)
-  {
-    return vtxbulk2interface_[i];
-  }
-
-  std::size_t vtxBulk2Interface(std::size_t i) const
-  {
-    return vtxbulk2interface_[i];
-  }
-
-  std::vector<std::size_t>& vtxInterface2Bulk()
-  {
-    return vtxinterface2bulk_;
-  }
-
-  const std::vector<std::size_t>& vtxInterface2Bulk() const
-  {
-    return vtxinterface2bulk_;
-  }
-
-  std::size_t& vtxInterface2Bulk(std::size_t i)
-  {
-    return vtxinterface2bulk_[i];
-  }
-
-  std::size_t& vtxInterface2Bulk(std::size_t i) const
-  {
-    return vtxinterface2bulk_[i];
-  }
-
-  void addBulkEntity2Mapping(const BulkEntityType& entity,unsigned int faceLocalIdx)
-  {
-     entityinterface2bulk_.push_back(std::make_pair(entity.seed(),faceLocalIdx));
-  }
-
-  const BulkEntitySeedType& entitySeedInterface2Bulk(std::size_t i) const
-  {
-    return entityinterface2bulk_[i].first;
-  }
-
-  unsigned int faceLocalIdxInterface2Bulk(std::size_t i) const
-  {
-    return entityinterface2bulk_[i].second;
-  }
-
-  void free()
-  {
-    vtxbulk2interface_.clear();
-    vtxinterface2bulk_.clear();
-    entityinterface2bulk_.clear();
-  }
-
-  template<typename InterfaceFunction,typename BulkFunction>
-  void setInterfaceDFInBulkDF(const InterfaceFunction& interfaceFunction,BulkFunction& bulkFunction) const
-  {
-    constexpr std::size_t interfaceLocalBlockSize(InterfaceFunction::DiscreteFunctionSpaceType::localBlockSize);
-    const auto interfaceNumBlocks(interfaceFunction.blocks());
-    auto interfaceIt(interfaceFunction.dbegin());
-    for(auto i=decltype(interfaceNumBlocks){0};i!=interfaceNumBlocks;++i)
-    {
-      const auto blockPos(vtxinterface2bulk_[i]);
-      for(auto l=decltype(interfaceLocalBlockSize){0};l!=interfaceLocalBlockSize;++l,++interfaceIt)
-        bulkFunction.dofVector()[blockPos][l]=*interfaceIt;
-    }
-  }
-
-  private:
-  std::vector<std::size_t> vtxbulk2interface_;
-  std::vector<std::size_t> vtxinterface2bulk_;
-  std::vector<std::pair<BulkEntitySeedType,unsigned int>> entityinterface2bulk_;
-};
-
 // volume criterion to trigger remeshing
 class RemeshingVolumeCriterion
 {
@@ -290,8 +190,11 @@ class CoupledMeshManager
   typedef FilteredGridPart<BulkGridPartType,IndicatorFunctionType,false> BulkInnerGridPartType;
   typedef FilteredGridPart<BulkGridPartType,IndicatorFunctionType,false> BulkOuterGridPartType;
 
-  // define mapper
-  typedef BulkInterfaceGridMapper<BulkGridType,InterfaceGridType> BulkInterfaceGridMapperType;
+  // define interface entity to inner bulk entity mapper
+  typedef typename BulkGridType::template Codim<0>::Entity::EntitySeed BulkEntitySeedType;
+  typedef std::vector<std::pair<BulkEntitySeedType,int>> BulkInterfaceGridMapperType;
+  typedef typename InterfaceGridType::template Codim<0>::Entity InterfaceEntityType;
+  typedef typename BulkGridType::LeafIntersection BulkIntersectionType;
 
   // define bulk bounding box
   typedef std::pair<FieldVector<double,worlddim>,FieldVector<double,worlddim>> BulkBoundingBoxType;
@@ -410,7 +313,7 @@ class CoupledMeshManager
       sequence_=other.sequence_;
       manager_=other.manager_;
       remeshingcriterion_=other.remeshingcriterion_;
-      mapper_=std::make_shared<BulkInterfaceGridMapperType>(other.mapper());
+      mapper_=std::make_shared<BulkInterfaceGridMapperType>(*(other.mapper_));
     }
   }
 
@@ -476,14 +379,6 @@ class CoupledMeshManager
   {
     return *interfacegridpart_;
   }
-  BulkInterfaceGridMapperType& mapper()
-  {
-    return *mapper_;
-  }
-  const BulkInterfaceGridMapperType& mapper() const
-  {
-    return *mapper_;
-  }
   GmshManagerType& manager()
   {
     return manager_;
@@ -500,9 +395,43 @@ class CoupledMeshManager
   }
 
   // boundary ID of given intersection
-  int intersectionID(const typename BulkGridType::LeafIntersection& intersection) const
+  int intersectionID(const BulkIntersectionType& intersection) const
   {
     return boundaryIDs()[intersection.boundarySegmentIndex()];
+  }
+
+  // bulk inner entity intersection corresponding to the interface entity
+  BulkIntersectionType correspondingInnerBulkIntersection(const InterfaceEntityType& interfaceEntity) const
+  {
+    const auto interfaceIndex(interfaceGrid().leafIndexSet().index(interfaceEntity));
+    const auto bulkEntity(bulkGrid().entity((*mapper_)[interfaceIndex].first));
+    const auto faceLocalIndex((*mapper_)[interfaceIndex].second);
+    auto intersectionIt(bulkGridPart().ibegin(bulkEntity));
+    while(intersectionIt->indexInInside()!=faceLocalIndex)
+      ++intersectionIt;
+    return *intersectionIt;
+  }
+
+  template<typename InterfaceFunctionType,typename BulkFunctionType>
+  void setInterfaceDFInBulkDF(const InterfaceFunctionType& interfaceFunction,BulkFunctionType& bulkFunction) const
+  {
+    for(const auto& interfaceEntity:elements(interfaceGridPart()))
+    {
+      const auto localInterfaceFunction(interfaceFunction.localFunction(interfaceEntity));
+      const auto intersection(correspondingInnerBulkIntersection(interfaceEntity));
+      const auto bulkEntity(intersection.inside());
+      auto localBulkFunction(bulkFunction.localFunction(bulkEntity));
+      const auto faceLocalIndex(intersection.indexInInside());
+      const auto numCorners(intersection.geometry().corners());
+      const auto& refElement(ReferenceElements<typename BulkGridType::ctype,worlddim>::general(bulkEntity.type()));
+      std::size_t interfaceRow(0);
+      for(auto interfaceLocalIndex=decltype(numCorners){0};interfaceLocalIndex!=numCorners;++interfaceLocalIndex)
+      {
+        auto bulkRow(refElement.subEntity(faceLocalIndex,1,interfaceLocalIndex,worlddim)*worlddim);
+        for(auto l=decltype(worlddim){0};l!=worlddim;++l,++interfaceRow,++bulkRow)
+          localBulkFunction[bulkRow]=localInterfaceFunction[interfaceRow];
+      }
+    }
   }
 
   // list all boundary IDs
@@ -725,11 +654,9 @@ class CoupledMeshManager
     // create new mapper
     mapper_=std::make_shared<BulkInterfaceGridMapperType>();
     std::size_t defaultValue(std::numeric_limits<std::size_t>::max());
-    mapper().vtxBulk2Interface().resize(bulkGrid().levelGridView(0).size(worlddim),defaultValue);
+    std::vector<std::size_t> vtxBulk2Interface(bulkGrid().size(worlddim),defaultValue);
     // create necessary variables
     std::size_t vtxInsertionCounter(0);
-    typename BulkGridType::template Codim<0>::Entity::Geometry::GlobalCoordinate vtx;
-    std::array<std::size_t,bulkGriddim> vtxGlobalIndex;
     GeometryType faceType(GeometryType::BasicType::simplex,interfaceGriddim);
     std::vector<unsigned int> faceConnectivity(bulkGriddim);
     // loop over bulk inner entities
@@ -743,19 +670,16 @@ class CoupledMeshManager
             for(auto i=decltype(bulkGriddim){0};i!=bulkGriddim;++i)
             {
               const auto vtxLocalIndex(refElement.subEntity(faceLocalIndex,1,i,bulkGriddim));
-              vtxGlobalIndex[i]=bulkGrid().leafIndexSet().subIndex(entity,vtxLocalIndex,bulkGriddim);
-              if(mapper().vtxBulk2Interface(vtxGlobalIndex[i])==defaultValue)
+              const auto vtxGlobalIndex(bulkGrid().leafIndexSet().subIndex(entity,vtxLocalIndex,bulkGriddim));
+              if(vtxBulk2Interface[vtxGlobalIndex]==defaultValue)
               {
-                mapper().vtxBulk2Interface(vtxGlobalIndex[i])=vtxInsertionCounter;
-                vtx=entity.geometry().corner(vtxLocalIndex);
-                interfaceHostGridFactory.insertVertex(vtx);
-                mapper().vtxInterface2Bulk().push_back(vtxGlobalIndex[i]);
-                ++vtxInsertionCounter;
+                vtxBulk2Interface[vtxGlobalIndex]=vtxInsertionCounter++;
+                interfaceHostGridFactory.insertVertex(entity.geometry().corner(vtxLocalIndex));
               }
-              faceConnectivity[i]=mapper().vtxBulk2Interface(vtxGlobalIndex[i]);
+              faceConnectivity[i]=vtxBulk2Interface[vtxGlobalIndex];
             }
             interfaceHostGridFactory.insertElement(faceType,faceConnectivity);
-            mapper().addBulkEntity2Mapping(entity,faceLocalIndex);
+            mapper_->push_back(std::make_pair(entity.seed(),faceLocalIndex));
           }
   }
 

@@ -7,7 +7,6 @@
 #include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/quadrature/lumpingquadrature.hh>
-#include "normal.hh"
 
 #include <fstream>
 #include <vector>
@@ -62,8 +61,8 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
     return op_;
   }
 
-  template<typename BulkInterfaceGridMapperType,typename TimeProviderType>
-  void assemble(const BulkInterfaceGridMapperType& mapper,const TimeProviderType& timeProvider)
+  template<typename CoupledMeshManagerType,typename TimeProviderType>
+  void assemble(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
     // allocate matrix
     DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
@@ -83,8 +82,8 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
     for(const auto& entity:space_)
     {
       // compute normal
-      const auto& faceLocalIdx(mapper.faceLocalIdxInterface2Bulk(space_.grid().leafIndexSet().index(entity)));
-      const auto normalVector(computeNormal(entity,faceLocalIdx));
+      const auto intersection(meshManager.correspondingInnerBulkIntersection(entity));
+      const auto normalVector(intersection.centerUnitOuterNormal());
       // extract local matrix and basis functions
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& baseSet(localMatrix.domainBasisFunctionSet());

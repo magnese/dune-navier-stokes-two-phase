@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <dune/common/timer.hh>
+#include <dune/geometry/referenceelements.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/functionspace.hh>
 #include <dune/fem/space/lagrange.hh>
@@ -72,7 +73,7 @@ class MeshSmoothing
     else
     {
       fluidstate_.bulkDisplacement().clear();
-      fluidstate_.meshManager().mapper().setInterfaceDFInBulkDF(fluidstate_.displacement(),fluidstate_.bulkDisplacement());
+      fluidstate_.meshManager().setInterfaceDFInBulkDF(fluidstate_.displacement(),fluidstate_.bulkDisplacement());
     }
   }
 
@@ -95,22 +96,32 @@ class MeshSmoothing
     timerAssemble.start();
     DiscreteFunctionType rhs("smoothing RHS",fluidstate_.bulkDisplacementSpace());
     rhs.clear();
-    fluidstate_.meshManager().mapper().setInterfaceDFInBulkDF(fluidstate_.displacement(),rhs);
+    fluidstate_.meshManager().setInterfaceDFInBulkDF(fluidstate_.displacement(),rhs);
     timerAssemble.stop();
     // impose BC
     timerAssemble.start();
     problem_.bc().apply(std::ignore,rhs,op);
     timerAssemble.stop();
     // impose given displacement for the interface
-    constexpr std::size_t localBlockSize(FluidStateType::DisplacementDiscreteSpaceType::localBlockSize);
-    const auto numBlocks(fluidstate_.displacement().blocks());
-    for(auto i=decltype(numBlocks){0};i!=numBlocks;++i)
-      for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l)
+    for(const auto& interfaceEntity:elements(fluidstate_.interfaceGridPart()))
+    {
+      const auto intersection(fluidstate_.meshManager().correspondingInnerBulkIntersection(interfaceEntity));
+      const auto bulkEntity(intersection.inside());
+      auto localMatrix(op.systemMatrix().localMatrix(bulkEntity,bulkEntity));
+      const auto faceLocalIndex(intersection.indexInInside());
+      const auto numCorners(intersection.geometry().corners());
+      constexpr std::size_t worlddim(FluidStateType::BulkGridType::dimensionworld);
+      const auto& refElement(ReferenceElements<typename FluidStateType::BulkGridType::ctype,worlddim>::general(bulkEntity.type()));
+      for(auto interfaceLocalIndex=decltype(numCorners){0};interfaceLocalIndex!=numCorners;++interfaceLocalIndex)
       {
-        const auto row((fluidstate_.meshManager().mapper().vtxInterface2Bulk(i))*localBlockSize+l);
-        op.systemMatrix().matrix().clearRow(row);
-        op.systemMatrix().matrix().set(row,row,1.0);
+        auto row(refElement.subEntity(faceLocalIndex,1,interfaceLocalIndex,worlddim)*worlddim);
+        for(auto l=decltype(worlddim){0};l!=worlddim;++l,++row)
+        {
+          localMatrix.clearRow(row);
+          localMatrix.set(row,row,1.0);
+        }
       }
+    }
     // solve
     Timer timerSolve(false);
     timerSolve.start();
