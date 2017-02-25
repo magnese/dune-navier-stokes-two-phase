@@ -33,16 +33,11 @@ class CurvatureVelocityOperator:public Operator<DomainFunctionImp,RangeFunctionI
   typedef typename VelocityFunctionType::DiscreteFunctionSpaceType VelocitySpaceType;
   typedef VelocitySpaceType RangeSpaceType;
   typedef typename LinearOperatorType::MatrixType MatrixType;
-  typedef typename CurvatureSpaceType::GridType InterfaceGridType;
-  typedef typename CurvatureSpaceType::GridPartType InterfaceGridPartType;
-  typedef typename VelocitySpaceType::GridType BulkGridType;
-  typedef typename VelocitySpaceType::GridPartType BulkGridPartType;
 
   explicit CurvatureVelocityOperator(const CurvatureSpaceType& curvatureSpace,const VelocitySpaceType& velocitySpace,
                                      const CoupledMeshManagerType& meshManager):
     curvaturespace_(curvatureSpace),velocityspace_(velocitySpace),op_("curvature velocity operator",curvaturespace_,velocityspace_),
-    meshmanager_(meshManager),interfacegrid_(curvaturespace_.grid()),interfacegridpart_(curvaturespace_.gridPart()),
-    bulkgrid_(velocityspace_.grid()),bulkgridpart_(velocityspace_.gridPart())
+    meshmanager_(meshManager)
   {}
 
   CurvatureVelocityOperator(const ThisType& )=delete;
@@ -110,8 +105,8 @@ class CurvatureVelocityOperator:public Operator<DomainFunctionImp,RangeFunctionI
       const auto& velocityBaseSet(localMatrix.rangeBasisFunctionSet());
 
       // loop over quadrature nodes
-      typedef CachingQuadrature<BulkGridPartType,1> QuadratureType;
-      QuadratureType quadrature(bulkgridpart_,intersection,2*curvaturespace_.order()+1,QuadratureType::INSIDE);
+      typedef CachingQuadrature<typename VelocitySpaceType::GridPartType,1> QuadratureType;
+      QuadratureType quadrature(velocityspace_.gridPart(),intersection,2*curvaturespace_.order()+1,QuadratureType::INSIDE);
       for(const auto& qp:quadrature)
       {
         curvatureBaseSet.evaluateAll(qp.localPosition(),phiCurvature);
@@ -138,10 +133,6 @@ class CurvatureVelocityOperator:public Operator<DomainFunctionImp,RangeFunctionI
   const VelocitySpaceType& velocityspace_;
   LinearOperatorType op_;
   const CoupledMeshManagerType& meshmanager_;
-  const InterfaceGridType& interfacegrid_;
-  const InterfaceGridPartType& interfacegridpart_;
-  const BulkGridType& bulkgrid_;
-  const BulkGridPartType& bulkgridpart_;
 };
 
 }
