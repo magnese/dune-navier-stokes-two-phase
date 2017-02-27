@@ -17,7 +17,6 @@
 #include <iomanip>
 
 #include <dune/common/exceptions.hh>
-#include <dune/geometry/referenceelements.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/function/common/rangegenerators.hh>
 
@@ -113,27 +112,23 @@ struct BulkNormalizedInnerVolumeInfo:public GnuplotWriter
 };
 
 // check if bulk and interface are consistent
-template<typename CoupledMeshManagerType>
-void checkBulkInterfaceConsistency(const CoupledMeshManagerType& meshManager)
+template<typename FluidStateType>
+void checkBulkInterfaceConsistency(FluidStateType& fluidState)
 {
-  // perform an interface walkthrough
-  const unsigned int bulkGriddim(CoupledMeshManagerType::bulkGriddim);
-  for(const auto& interfaceEntity:elements(meshManager.interfaceGridPart()))
-  {
-    // extract the corresponding bulk entity
-    const auto intersection(meshManager.correspondingInnerBulkIntersection(interfaceEntity));
-    const auto bulkEntity(intersection.inside());
-    const auto faceLocalIndex(intersection.indexInInside());
-    // create reference element
-    const auto& refElement(ReferenceElements<typename CoupledMeshManagerType::BulkGridType::ctype,bulkGriddim>::general(bulkEntity.type()));
-    // check inconsitency between bulk and interface
-    for(auto i=decltype(bulkGriddim){0};i!=bulkGriddim;++i)
-    {
-      const auto bulkVtxLocalIndex(refElement.subEntity(faceLocalIndex,1,i,bulkGriddim));
-      if(interfaceEntity.geometry().corner(i)!=bulkEntity.geometry().corner(bulkVtxLocalIndex))
-        DUNE_THROW(InvalidStateException,"ERROR: Bulk and interface are not consistent!");
-    }
-  }
+  // create bulk identity and interface identity
+  fluidState.update();
+  auto bulkIdentity(fluidState.bulkDisplacement());
+  bulkIdentity.assign(fluidState.bulkGrid().coordFunction().discreteFunction());
+  auto interfaceIdentity(fluidState.displacement());
+  interfaceIdentity.assign(fluidState.interfaceGrid().coordFunction().discreteFunction());
+  // create a copy of the bulk identity and set interface identity dofs in it
+  auto bulkIdentityCopy(bulkIdentity);
+  fluidState.meshManager().setInterfaceDFInBulkDF(interfaceIdentity,bulkIdentityCopy);
+  // if they are different the setInterfaceDF2BulkDF is wrong
+  bulkIdentityCopy-=bulkIdentity;
+  for(const auto& dof:dofs(bulkIdentityCopy))
+    if(dof!=0.0)
+      DUNE_THROW(InvalidStateException,"ERROR: Bulk and interface are not consistent!");
 }
 
 // check if boundary normals are consistent

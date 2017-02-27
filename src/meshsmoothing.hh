@@ -2,9 +2,9 @@
 #define DUNE_FEM_MESHSMOOTHING_HH
 
 #include <iostream>
+#include <vector>
 
 #include <dune/common/timer.hh>
-#include <dune/geometry/referenceelements.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/functionspace.hh>
 #include <dune/fem/space/lagrange.hh>
@@ -88,13 +88,14 @@ class MeshSmoothing
     // assemble operator
     Timer timerAssemble(false);
     timerAssemble.start();
+    const auto& space(fluidstate_.bulkDisplacementSpace());
     typedef SmoothingOperator<DiscreteFunctionType> SmoothingOperatorType;
-    SmoothingOperatorType op(fluidstate_.bulkDisplacementSpace(),coeff_);
+    SmoothingOperatorType op(space,coeff_);
     op.assemble();
     timerAssemble.stop();
     // assemble RHS
     timerAssemble.start();
-    DiscreteFunctionType rhs("smoothing RHS",fluidstate_.bulkDisplacementSpace());
+    DiscreteFunctionType rhs("smoothing RHS",space);
     rhs.clear();
     fluidstate_.meshManager().setInterfaceDFInBulkDF(fluidstate_.displacement(),rhs);
     timerAssemble.stop();
@@ -109,17 +110,23 @@ class MeshSmoothing
       const auto bulkEntity(intersection.inside());
       auto localMatrix(op.systemMatrix().localMatrix(bulkEntity,bulkEntity));
       const auto faceLocalIndex(intersection.indexInInside());
-      const auto numCorners(intersection.geometry().corners());
-      constexpr std::size_t worlddim(FluidStateType::BulkGridType::dimensionworld);
-      const auto& refElement(ReferenceElements<typename FluidStateType::BulkGridType::ctype,worlddim>::general(bulkEntity.type()));
-      for(auto interfaceLocalIndex=decltype(numCorners){0};interfaceLocalIndex!=numCorners;++interfaceLocalIndex)
+      std::vector<bool> globalBlockDofsFilter(space.blockMapper().numDofs(bulkEntity));
+      space.blockMapper().onSubEntity(bulkEntity,faceLocalIndex,1,globalBlockDofsFilter);
+      constexpr std::size_t localBlockSize(DiscreteFunctionType::DiscreteFunctionSpaceType::localBlockSize);
+      const auto numLocalBlocks(space.basisFunctionSet(bulkEntity).size()/localBlockSize);
+      std::size_t row(0);
+      for(auto localIdx=decltype(numLocalBlocks){0};localIdx!=numLocalBlocks;++localIdx)
       {
-        auto row(refElement.subEntity(faceLocalIndex,1,interfaceLocalIndex,worlddim)*worlddim);
-        for(auto l=decltype(worlddim){0};l!=worlddim;++l,++row)
+        if(globalBlockDofsFilter[localIdx])
         {
-          localMatrix.clearRow(row);
-          localMatrix.set(row,row,1.0);
+          for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
+          {
+            localMatrix.clearRow(row);
+            localMatrix.set(row,row,1.0);
+          }
         }
+        else
+          row+=localBlockSize;
       }
     }
     // solve

@@ -424,10 +424,14 @@ class CoupledMeshManager
       const auto faceLocalIndex(intersection.indexInInside());
       const auto numCorners(intersection.geometry().corners());
       const auto& refElement(ReferenceElements<typename BulkGridType::ctype,worlddim>::general(bulkEntity.type()));
-      std::size_t interfaceRow(0);
+      std::size_t offset(0);
+      const auto bulkFirstVertex(bulkEntity.impl().hostEntity().geometry().corner(refElement.subEntity(faceLocalIndex,1,0,worlddim)));
+      while(interfaceEntity.impl().hostEntity().geometry().corner(offset)!=bulkFirstVertex)
+        ++offset;
       for(auto interfaceLocalIndex=decltype(numCorners){0};interfaceLocalIndex!=numCorners;++interfaceLocalIndex)
       {
         auto bulkRow(refElement.subEntity(faceLocalIndex,1,interfaceLocalIndex,worlddim)*worlddim);
+        auto interfaceRow(((interfaceLocalIndex+offset)%worlddim)*worlddim);
         for(auto l=decltype(worlddim){0};l!=worlddim;++l,++interfaceRow,++bulkRow)
           localBulkFunction[bulkRow]=localInterfaceFunction[interfaceRow];
       }
