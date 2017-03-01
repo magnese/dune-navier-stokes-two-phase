@@ -110,7 +110,7 @@ struct FixedCharlength
 
   static void printInfo(std::ostream& s=std::cout)
   {
-    s<<"Remesh type = fixed charlength"<<std::endl;
+    s<<"Remesh type = fixed charlength\n";
   }
 
   template<typename... Args>
@@ -143,7 +143,7 @@ struct UniformCharlength
 
   static void printInfo(std::ostream& s=std::cout)
   {
-    s<<"Remesh type = uniform charlength"<<std::endl;
+    s<<"Remesh type = uniform charlength\n";
   }
 
   template<typename... Args>
@@ -178,7 +178,7 @@ struct AdaptiveCharlength
 
   static void printInfo(std::ostream& s=std::cout)
   {
-    s<<"Remesh type = adaptive charlength"<<std::endl;
+    s<<"Remesh type = adaptive charlength\n";
   }
 
   template<typename VertexType,typename InterfaceGridType>
@@ -219,8 +219,8 @@ class GMSHSimpleManager
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"Compound mesh filename: "<<filename_<<std::endl;
-    s<<"Remesh type = none"<<std::endl;
+    s<<"Compound mesh filename: "<<filename_<<"\n";
+    s<<"Remesh type = none\n";
   }
 
   template<typename BulkGridType,typename... Args>
@@ -247,10 +247,10 @@ class GMSHCompoundManagerBase
   public:
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"Domain mesh filename: "<<domainfilename_<<std::endl;
-    s<<"Interface mesh filename: "<<interfacefilename_<<std::endl;
+    s<<"Domain mesh filename: "<<domainfilename_<<"\n";
+    s<<"Interface mesh filename: "<<interfacefilename_<<"\n";
     if(hashole_)
-      s<<"Hole mesh filename: "<<holefilename_<<std::endl;
+      s<<"Hole mesh filename: "<<holefilename_<<"\n";
     CharlengthPolicyType::printInfo(s);
   }
 
@@ -376,13 +376,11 @@ class GMSHCompoundManagerBase
   // check pointers status
   void checkPointersStatus(const std::string& str="GMSHCompoundManager",std::ostream& s=std::cout) const
   {
-    s<<std::endl;
-    s<<str<<" number of pointers for each object :"<<std::endl;
-    s<<"Domain = "<<domain().use_count()<<std::endl;
-    s<<"Interface = "<<interface().use_count()<<std::endl;
-    s<<"Hole = "<<hole().use_count()<<std::endl;
-    s<<"Compound = "<<compound().use_count()<<std::endl;
-    s<<std::endl;
+    s<<"\n"<<str<<" number of pointers for each object :\n";
+    s<<"Domain = "<<domain().use_count()<<"\n";
+    s<<"Interface = "<<interface().use_count()<<"\n";
+    s<<"Hole = "<<hole().use_count()<<"\n";
+    s<<"Compound = "<<compound().use_count()<<"\n\n";
   }
 
   private:

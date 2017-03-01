@@ -101,8 +101,8 @@ class PhysicalCoefficient
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<name_<<"Inner = "<<innercoeff_<<std::endl;
-    s<<name_<<"Outer = "<<outercoeff_<<std::endl;
+    s<<name_<<"Inner = "<<innercoeff_<<"\n";
+    s<<name_<<"Outer = "<<outercoeff_<<"\n";
   }
 
   std::string name() const

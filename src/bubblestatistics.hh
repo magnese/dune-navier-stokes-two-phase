@@ -61,11 +61,11 @@ class BubbleStatistics
     if(!circularitywriter_.isEmpty())
     {
       const auto minCircularity(circularitywriter_.minValue());
-      std::cout<<"Minimum circularity = "<<minCircularity.second<<" (time = "<<minCircularity.first<<" s)."<<std::endl;
+      std::cout<<"Minimum circularity = "<<minCircularity.second<<" (time = "<<minCircularity.first<<" s).\n";
       const auto maxRisingVelocity(velocitywriter_.maxValue());
-      std::cout<<"Maximum average rising velocity  = "<<maxRisingVelocity.second<<" (time = "<<maxRisingVelocity.first<<" s)."<<std::endl;
+      std::cout<<"Maximum average rising velocity  = "<<maxRisingVelocity.second<<" (time = "<<maxRisingVelocity.first<<" s).\n";
       const auto finalBarycenter(barycenterwriter_.lastValue());
-      std::cout<<"Final height barycenter  = "<<finalBarycenter.second<<" (time = "<<finalBarycenter.first<<" s)."<<std::endl;
+      std::cout<<"Final height barycenter  = "<<finalBarycenter.second<<" (time = "<<finalBarycenter.first<<" s).\n";
     }
   }
 

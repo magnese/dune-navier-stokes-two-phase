@@ -113,7 +113,7 @@ int main(int argc,char** argv)
 
     // output total running time
     timer.stop();
-    std::cout<<std::endl<<"Total running time: "<<timer.elapsed()<<" seconds."<<std::endl;
+    std::cout<<"\nTotal running time: "<<timer.elapsed()<<" seconds.\n";
 
     return 0;
   }
@@ -125,7 +125,7 @@ int main(int argc,char** argv)
 
   catch(...)
   {
-    std::cerr<<"Unknown exception thrown!"<<std::endl;
+    std::cerr<<"Unknown exception thrown!\n";
     exit(1);
   }
 }

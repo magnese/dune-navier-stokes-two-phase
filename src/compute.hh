@@ -71,7 +71,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   if(!(femScheme.problem().isDensityNull()))
   {
     bulkBoundingBox=fluidState.meshManager().bulkBoundingBox();
-    std::cout<<"Bulk bounding box : ["<<bulkBoundingBox.first<<"] ; ["<<bulkBoundingBox.second<<"]"<<std::endl;
+    std::cout<<"Bulk bounding box : ["<<bulkBoundingBox.first<<"] ; ["<<bulkBoundingBox.second<<"]\n";
   }
   #endif
 
@@ -84,7 +84,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
   for(;timeProvider.time()<=endTime;timeProvider.next())
   {
     // print time
-    std::cout<<std::endl<<"Time step "<<timeProvider.timeStep()<<" (time = "<<timeProvider.time()<<" s)."<<std::endl;
+    std::cout<<"\nTime step "<<timeProvider.timeStep()<<" (time = "<<timeProvider.time()<<" s).\n";
     Timer timerStep(false);
     timerStep.start();
 
@@ -243,12 +243,12 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       if(useBarycentricEntitySearch)
         std::cout<<"Average research depth : "<<
           static_cast<double>(localOldVelocity.searchIterations())/static_cast<double>(fluidState.velocitySpace().blockMapper().size())
-          <<"."<<std::endl;
-      std::cout<<"Velocity interpolation time: "<<timerInterpolation.elapsed()<<" seconds."<<std::endl;
+          <<".\n";
+      std::cout<<"Velocity interpolation time: "<<timerInterpolation.elapsed()<<" seconds.\n";
     }
     timerStep.stop();
 
-    std::cout<<"Full timestep time: "<<timerStep.elapsed()<<" seconds."<<std::endl;
+    std::cout<<"Full timestep time: "<<timerStep.elapsed()<<" seconds.\n";
   }
 
   // print errors
@@ -257,19 +257,19 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     errors[1]=std::pow(errors[1]*timeProvider.deltaT(),0.5);
     errors[2]=std::pow(errors[2]*timeProvider.deltaT(),0.5);
     errors[4]=std::pow(errors[4]*timeProvider.deltaT(),0.5);
-    std::cout<<std::endl<<"Errors:"<<std::endl;
+    std::cout<<"\nErrors:\n";
     std::cout.precision(5);
     std::cout<<std::scientific;
     #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
-    std::cout<<"||X-x||_{L^oo} = "<<errors[0]<<std::endl;
+    std::cout<<"||X-x||_{L^oo} = "<<errors[0]<<"\n";
     #endif
-    std::cout<<"||U-Iu||_{L^2} = "<<errors[1]<<std::endl;
-    std::cout<<"||U-Iu||_{H^1} = "<<errors[2]<<std::endl;
-    std::cout<<"||U-Iu||_{L^oo} = "<<errors[3]<<std::endl;
+    std::cout<<"||U-Iu||_{L^2} = "<<errors[1]<<"\n";
+    std::cout<<"||U-Iu||_{H^1} = "<<errors[2]<<"\n";
+    std::cout<<"||U-Iu||_{L^oo} = "<<errors[3]<<"\n";
     #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
-    std::cout<<"||P-p||_{L^2} = "<<errors[4]<<std::endl;
+    std::cout<<"||P-p||_{L^2} = "<<errors[4]<<"\n";
     #endif
-    std::cout<<"||P-Ip||_{L^oo} = "<<errors[5]<<std::endl;
+    std::cout<<"||P-Ip||_{L^oo} = "<<errors[5]<<"\n";
     std::cout.unsetf(std::ios_base::floatfield);
   }
 }

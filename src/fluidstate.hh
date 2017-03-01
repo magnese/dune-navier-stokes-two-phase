@@ -462,29 +462,27 @@ class FluidState
   // check pointers status
   void checkPointersStatus(const std::string& str="FluidState",std::ostream& s=std::cout) const
   {
-    s<<std::endl;
-    s<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :"<<std::endl;
-    s<<"BulkDiscreteSpace = "<<bulkspace_.use_count()<<std::endl;
+    s<<"\n"<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :\n";
+    s<<"BulkDiscreteSpace = "<<bulkspace_.use_count()<<"\n";
     #if PRESSURE_SPACE_TYPE == 2
-    s<<"PressureDumpDiscreteSpace = "<<pressuredumpspace_.use_count()<<std::endl;
+    s<<"PressureDumpDiscreteSpace = "<<pressuredumpspace_.use_count()<<"\n";
     #endif
-    s<<"BulkDisplacementDiscreteSpace = "<<bulkdisplacementspace_.use_count()<<std::endl;
+    s<<"BulkDisplacementDiscreteSpace = "<<bulkdisplacementspace_.use_count()<<"\n";
     #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
-    s<<"RhoDiscreteSpace = "<<rhospace_.use_count()<<std::endl;
+    s<<"RhoDiscreteSpace = "<<rhospace_.use_count()<<"\n";
     #endif
-    s<<"InterfaceDiscreteSpace = "<<interfacespace_.use_count()<<std::endl;
-    s<<"BulkDiscreteFunction = "<<bulk_.use_count()<<std::endl;
+    s<<"InterfaceDiscreteSpace = "<<interfacespace_.use_count()<<"\n";
+    s<<"BulkDiscreteFunction = "<<bulk_.use_count()<<"\n";
     #if PRESSURE_SPACE_TYPE == 2
-    s<<"PressureDumpDiscreteFunction = "<<pressuredump_.use_count()<<std::endl;
+    s<<"PressureDumpDiscreteFunction = "<<pressuredump_.use_count()<<"\n";
     #endif
-    s<<"BulkDisplacementDiscreteFunction = "<<bulkdisplacement_.use_count()<<std::endl;
+    s<<"BulkDisplacementDiscreteFunction = "<<bulkdisplacement_.use_count()<<"\n";
     #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
-    s<<"RhoDiscreteFunction = "<<rho_.use_count()<<std::endl;
+    s<<"RhoDiscreteFunction = "<<rho_.use_count()<<"\n";
     #endif
-    s<<"InterfaceDiscreteFunction = "<<interface_.use_count()<<std::endl;
-    s<<"BulkDataOutput = "<<bulkoutput_.use_count()<<std::endl;
-    s<<"InterfaceDataOutput = "<<interfaceoutput_.use_count()<<std::endl;
-    s<<std::endl;
+    s<<"InterfaceDiscreteFunction = "<<interface_.use_count()<<"\n";
+    s<<"BulkDataOutput = "<<bulkoutput_.use_count()<<"\n";
+    s<<"InterfaceDataOutput = "<<interfaceoutput_.use_count()<<"\n\n";
   }
 
   private:

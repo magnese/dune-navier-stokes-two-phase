@@ -256,9 +256,9 @@ class DirichletCondition:
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"Dirichlet condition on IDs:"<<std::endl;
+    s<<"Dirichlet condition on IDs:\n";
     for(auto& mapEntry:g_)
-      s<<mapEntry.first<<std::endl;
+      s<<mapEntry.first<<"\n";
   }
 
   private:
@@ -387,14 +387,14 @@ class FreeSlipCondition:
   {
     const auto entity(*(meshmanager_.bulkGridPart().template begin<0>()));
     const auto x(entity.geometry().center());
-    s<<"Free-slip condition on IDs:"<<std::endl;
+    s<<"Free-slip condition on IDs:\n";
     for(auto& mapEntry:g_)
     {
       mapEntry.second.init(entity);
       mapEntry.second.initialize(0,0);
       RangeType ret;
       mapEntry.second.evaluate(x,ret);
-      s<<mapEntry.first<<" ( multiplication mask "<<ret<<" )"<<std::endl;
+      s<<mapEntry.first<<" ( multiplication mask "<<ret<<" )\n";
     }
   }
 

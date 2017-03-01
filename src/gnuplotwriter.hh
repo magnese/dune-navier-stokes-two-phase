@@ -81,9 +81,9 @@ struct GnuplotWriter
       file<<std::setprecision(precision_);
       for(const auto& value:values_)
       {
-        file<<std::get<0>(value)<<" "<<std::get<1>(value)<<std::endl;
+        file<<std::get<0>(value)<<" "<<std::get<1>(value)<<"\n";
         if(std::get<2>(value))
-          file<<std::endl;
+          file<<"\n";
       }
     }
   }

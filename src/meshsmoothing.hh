@@ -40,7 +40,7 @@ class MeshSmoothing
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"Smoothing Coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: smooth disabled!)")<<std::endl;
+    s<<"Smoothing Coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: smooth disabled!)")<<"\n";
     problem_.bc().printInfo(s);
   }
 
@@ -50,7 +50,7 @@ class MeshSmoothing
     if(coeff_<=0.0)
     {
       coeff_=1.0;
-      std::cout<<"WARNING: setting smoothing coefficient = "<<coeff_<<std::endl;
+      std::cout<<"WARNING: setting smoothing coefficient = "<<coeff_<<"\n";
     }
   }
 
@@ -136,8 +136,8 @@ class MeshSmoothing
     invOp(rhs,fluidstate_.bulkDisplacement());
     timerSolve.stop();
     // print timers
-    std::cout<<"Assemble mesh smoothing operator time: "<<timerAssemble.elapsed()<<" seconds."<<std::endl;
-    std::cout<<"Solve mesh smoothing time: "<<timerSolve.elapsed()<<" seconds."<<std::endl;
+    std::cout<<"Assemble mesh smoothing operator time: "<<timerAssemble.elapsed()<<" seconds.\n";
+    std::cout<<"Solve mesh smoothing time: "<<timerSolve.elapsed()<<" seconds.\n";
   }
 };
 

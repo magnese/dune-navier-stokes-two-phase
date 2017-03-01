@@ -344,7 +344,7 @@ class FemScheme
       const int nonLinearSolverMaxIterations(Parameter::getValue<int>("NonLinearSolverMaxIterations",1000));
       const double nonLinearSolverTolerance(Parameter::getValue<double>("NonLinearSolverTolerance",1.e-8));
       if(nonLinearSolverVerbosity>1)
-        std::cout<<"Entering in the non-linear solver"<<(useALE?" (with ALE)":"")<<std::endl;
+        std::cout<<"Entering in the non-linear solver"<<(useALE?" (with ALE)":"")<<"\n";
       // force smoothing in ALE
       if(useALE)
         meshSmoothing.enable();
@@ -438,14 +438,14 @@ class FemScheme
           std::cout<<"Iteration "<<iterationNumber<<" --> fixed-point residual = "<<nonLinearSolverResidual;
           if(useALE)
             std::cout<<"; ALE residual = "<<ALEResidual;
-          std::cout<<std::endl;
+          std::cout<<"\n";
         }
         if((!doIteration)&&(nonLinearSolverVerbosity>0))
         {
           std::cout<<"Scheme converged to the solution with fixed-point residual "<<nonLinearSolverResidual;
           if(useALE)
             std::cout<<" and ALE residual "<<ALEResidual;
-          std::cout<<" in "<<iterationNumber<<" iterations"<<std::endl;
+          std::cout<<" in "<<iterationNumber<<" iterations\n";
         }
       }
     }
@@ -483,12 +483,12 @@ class FemScheme
     // print timers
     std::cout<<"Assemble bulk operators (";
     fluidstate_.printBulkInfo();
-    std::cout<<") time: "<<timerAssembleBulk.elapsed()<<" seconds."<<std::endl;
+    std::cout<<") time: "<<timerAssembleBulk.elapsed()<<" seconds.\n";
     std::cout<<"Assemble interface operator (";
     fluidstate_.printInterfaceInfo();
-    std::cout<<") time: "<<timerAssembleInterface.elapsed()<<" seconds."<<std::endl;
-    std::cout<<"Solve bulk time: "<<timerSolveBulk.elapsed()<<" seconds."<<std::endl;
-    std::cout<<"Solve interface time: "<<timerSolveInterface.elapsed()<<" seconds."<<std::endl;
+    std::cout<<") time: "<<timerAssembleInterface.elapsed()<<" seconds.\n";
+    std::cout<<"Solve bulk time: "<<timerSolveBulk.elapsed()<<" seconds.\n";
+    std::cout<<"Solve interface time: "<<timerSolveInterface.elapsed()<<" seconds.\n";
   }
 
   private:

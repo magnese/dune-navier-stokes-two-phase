@@ -51,7 +51,7 @@ class RemeshingVolumeCriterion
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"Remeshing with volume criterion coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: remesh disabled!)")<<std::endl;
+    s<<"Remeshing with volume criterion coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: remesh disabled!)")<<"\n";
   }
 
   template<typename BulkGridPartType>
@@ -71,7 +71,7 @@ class RemeshingVolumeCriterion
           maxVolume=std::max(volume,maxVolume);
           if(maxVolume/minVolume>coeff_)
           {
-            std::cout<<std::endl<<"Remeshing needed."<<std::endl<<std::endl;
+            std::cout<<"\nRemeshing needed.\n\n";
             needed=true;
             break;
           }
@@ -79,7 +79,7 @@ class RemeshingVolumeCriterion
       }
       else
       {
-        std::cout<<std::endl<<"Remeshing performed at each time step."<<std::endl<<std::endl;
+        std::cout<<"\nRemeshing performed at each time step.\n\n";
         needed=true;
       }
     }
@@ -111,7 +111,7 @@ class RemeshingAngleCriterion
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"Remeshing with angle criterion coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: remesh disabled!)")<<std::endl;
+    s<<"Remeshing with angle criterion coefficient = "<<coeff_<<(isenabled_?"":" (WARNING: remesh disabled!)")<<"\n";
   }
 
   template<typename BulkGridPartType>
@@ -135,7 +135,7 @@ class RemeshingAngleCriterion
             const auto angle(std::acos(-(normals[i]*normals[j]))*rad2degCoeff);
             if(angle<coeff_)
             {
-              std::cout<<std::endl<<"Remeshing needed (found angle = "<<angle<<" )."<<std::endl<<std::endl;
+              std::cout<<"\nRemeshing needed (found angle = "<<angle<<" ).\n\n";
               return true;
             }
           }
@@ -258,7 +258,7 @@ class CoupledMeshManager
   {
     if(this!=&other)
     {
-      std::cout<<"Deep copying of coupled mesh manager"<<std::endl;
+      std::cout<<"Deep copying of coupled mesh manager\n";
       // reset pointers to avoid dangling references
       resetPointers();
       // copy IDs
@@ -494,7 +494,7 @@ class CoupledMeshManager
             DUNE_THROW(InvalidStateException,"ERROR: exists an entity with all the vertices on the boundary -> LBB not satisfied!");
         // print remesh time
         timer.stop();
-        std::cout<<"Remeshing time: "<<timer.elapsed()<<" seconds."<<std::endl;
+        std::cout<<"Remeshing time: "<<timer.elapsed()<<" seconds.\n";
         remeshPerformed=true;
       }
     }
@@ -553,20 +553,18 @@ class CoupledMeshManager
   // check pointers status
   void checkPointersStatus(const std::string& str="CoupledMeshManager",std::ostream& s=std::cout) const
   {
-    s<<std::endl;
-    s<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :"<<std::endl;
-    s<<"BoundaryIDs = "<<boundaryids_.use_count()<<std::endl;
-    s<<"ElementIDs = "<<elementsids_.use_count()<<std::endl;
-    s<<"BulkGrid = "<<bulkgrid_.use_count()<<std::endl;
-    s<<"BulkGridPart = "<<bulkgridpart_.use_count()<<std::endl;
-    s<<"BulkInnerIndicatorFunction = "<<bulkinnerindicator_.use_count()<<std::endl;
-    s<<"BulkOuterIndicatorFunction = "<<bulkouterindicator_.use_count()<<std::endl;
-    s<<"BulkInnerGridPart = "<<bulkinnergridpart_.use_count()<<std::endl;
-    s<<"BulkOuterGridPart = "<<bulkoutergridpart_.use_count()<<std::endl;
-    s<<"InterfaceGrid = "<<interfacegrid_.use_count()<<std::endl;
-    s<<"InterfaceGridPart = "<<interfacegridpart_.use_count()<<std::endl;
-    s<<"BulkInterfaceGridMapper = "<<mapper_.use_count()<<std::endl;
-    s<<std::endl;
+    s<<"\n"<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :\n";
+    s<<"BoundaryIDs = "<<boundaryids_.use_count()<<"\n";
+    s<<"ElementIDs = "<<elementsids_.use_count()<<"\n";
+    s<<"BulkGrid = "<<bulkgrid_.use_count()<<"\n";
+    s<<"BulkGridPart = "<<bulkgridpart_.use_count()<<"\n";
+    s<<"BulkInnerIndicatorFunction = "<<bulkinnerindicator_.use_count()<<"\n";
+    s<<"BulkOuterIndicatorFunction = "<<bulkouterindicator_.use_count()<<"\n";
+    s<<"BulkInnerGridPart = "<<bulkinnergridpart_.use_count()<<"\n";
+    s<<"BulkOuterGridPart = "<<bulkoutergridpart_.use_count()<<"\n";
+    s<<"InterfaceGrid = "<<interfacegrid_.use_count()<<"\n";
+    s<<"InterfaceGridPart = "<<interfacegridpart_.use_count()<<"\n";
+    s<<"BulkInterfaceGridMapper = "<<mapper_.use_count()<<"\n\n";
   }
 
   private:
@@ -701,8 +699,8 @@ class CoupledMeshManager
   template<typename GT>
   void printGridInfo(const GT& grid) const
   {
-    std::cout<<std::endl<<"Created grid (dimgrid = "<<GT::dimension<<") with "<<grid.size(0)<<" elements and "
-      <<grid.size(GT::dimension)<<" vertices."<<std::endl<<std::endl;
+    std::cout<<"\nCreated grid (dimgrid = "<<GT::dimension<<") with "<<grid.size(0)<<" elements and "
+      <<grid.size(GT::dimension)<<" vertices.\n\n";
   }
 };
 

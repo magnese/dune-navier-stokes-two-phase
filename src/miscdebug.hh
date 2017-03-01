@@ -39,11 +39,11 @@ std::array<double,3> meshVolumesInfo(const GridPartType& gridPart,const std::str
     volumes[1]=std::min(volume,volumes[1]);
     volumes[2]=std::max(volume,volumes[2]);
   }
-  std::cout<<std::endl<<"[DEBUG"<<info<<"]"<<std::endl;
-  std::cout<<"\t Total mesh volume = "<<volumes[0]<<std::endl;
-  std::cout<<"\t Entity min volume = "<<volumes[1]<<std::endl;
-  std::cout<<"\t Entity max volume = "<<volumes[2]<<std::endl;
-  std::cout<<"[DEBUG"<<info<<"]"<<std::endl<<std::endl;
+  std::cout<<"\n[DEBUG"<<info<<"]\n";
+  std::cout<<"\t Total mesh volume = "<<volumes[0]<<"\n";
+  std::cout<<"\t Entity min volume = "<<volumes[1]<<"\n";
+  std::cout<<"\t Entity max volume = "<<volumes[2]<<"\n";
+  std::cout<<"[DEBUG"<<info<<"]\n\n";
   return volumes;
 }
 
@@ -204,11 +204,11 @@ std::array<typename DF::RangeFieldType,3> checkFunctionAbsRange(const DF& df)
     values[1]=std::max(std::abs(dof),values[1]);
   }
   values[2]=values[1]-values[0];
-  std::cout<<std::endl<<"[DEBUG]"<<std::endl;
-  std::cout<<"\t |min("<<df.name()<<")| = "<<values[0]<<std::endl;
-  std::cout<<"\t |max("<<df.name()<<")| = "<<values[1]<<std::endl;
-  std::cout<<"\t |max("<<df.name()<<") - min("<<df.name()<<")| = "<<values[2]<<std::endl;
-  std::cout<<"[DEBUG]"<<std::endl<<std::endl;
+  std::cout<<"\n[DEBUG]\n";
+  std::cout<<"\t |min("<<df.name()<<")| = "<<values[0]<<"\n";
+  std::cout<<"\t |max("<<df.name()<<")| = "<<values[1]<<"\n";
+  std::cout<<"\t |max("<<df.name()<<") - min("<<df.name()<<")| = "<<values[2]<<"\n";
+  std::cout<<"[DEBUG]\n\n";
   return values;
 }
 
@@ -224,11 +224,11 @@ std::array<typename DF::RangeFieldType,3> checkFunctionRange(const DF& df)
     values[1]=std::max(dof,values[1]);
   }
   values[2]=values[1]-values[0];
-  std::cout<<std::endl<<"[DEBUG]"<<std::endl;
-  std::cout<<"\t min("<<df.name()<<") = "<<values[0]<<std::endl;
-  std::cout<<"\t max("<<df.name()<<") = "<<values[1]<<std::endl;
-  std::cout<<"\t max("<<df.name()<<") - min("<<df.name()<<") = "<<values[2]<<std::endl;
-  std::cout<<"[DEBUG]"<<std::endl<<std::endl;
+  std::cout<<"\n[DEBUG]\n";
+  std::cout<<"\t min("<<df.name()<<") = "<<values[0]<<"\n";
+  std::cout<<"\t max("<<df.name()<<") = "<<values[1]<<"\n";
+  std::cout<<"\t max("<<df.name()<<") - min("<<df.name()<<") = "<<values[2]<<"\n";
+  std::cout<<"[DEBUG]\n\n";
   return values;
 }
 
@@ -280,40 +280,40 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
   std::ofstream file(Parameter::getValue<std::string>("fem.prefix",".")+"/log.tex");
   if(file.is_open())
   {
-    file<<"\\documentclass[a4paper,11pt]{report}"<<std::endl<<std::endl;
-    file<<"\\begin{document}"<<std::endl<<std::endl;
-    file<<"$$\\mu_-="<<Parameter::getValue<double>("MuInner",1.0)<<"$$"<<std::endl;
-    file<<"$$\\mu_+="<<Parameter::getValue<double>("MuOuter",1.0)<<"$$"<<std::endl;
-    file<<"$$\\rho_-="<<Parameter::getValue<double>("RhoInner",1.0)<<"$$"<<std::endl;
-    file<<"$$\\rho_+="<<Parameter::getValue<double>("RhoOuter",1.0)<<"$$"<<std::endl;
-    file<<"$$\\gamma="<<Parameter::getValue<double>("Gamma",1.0)<<"$$"<<std::endl;
-    file<<"$$C_s="<<Parameter::getValue<double>("CoeffSmoothing",1.0)<<"$$"<<std::endl;
-    file<<"$$C_r="<<Parameter::getValue<double>("CoeffRemeshing",3.0)<<"$$"<<std::endl;
-    file<<"$$\\tau="<<Parameter::getValue<double>("fem.timeprovider.fixedtimestep")<<"$$"<<std::endl;
+    file<<"\\documentclass[a4paper,11pt]{report}\n\n";
+    file<<"\\begin{document}\n\n";
+    file<<"$$\\mu_-="<<Parameter::getValue<double>("MuInner",1.0)<<"$$\n";
+    file<<"$$\\mu_+="<<Parameter::getValue<double>("MuOuter",1.0)<<"$$\n";
+    file<<"$$\\rho_-="<<Parameter::getValue<double>("RhoInner",1.0)<<"$$\n";
+    file<<"$$\\rho_+="<<Parameter::getValue<double>("RhoOuter",1.0)<<"$$\n";
+    file<<"$$\\gamma="<<Parameter::getValue<double>("Gamma",1.0)<<"$$\n";
+    file<<"$$C_s="<<Parameter::getValue<double>("CoeffSmoothing",1.0)<<"$$\n";
+    file<<"$$C_r="<<Parameter::getValue<double>("CoeffRemeshing",3.0)<<"$$\n";
+    file<<"$$\\tau="<<Parameter::getValue<double>("fem.timeprovider.fixedtimestep")<<"$$\n";
     file<<"$$t\\in["<<Parameter::getValue<double>("fem.timeprovider.starttime",0)<<","
-      <<Parameter::getValue<double>("EndTime",0.1)<<"]$$"<<std::endl<<std::endl;
-    file<<"\\begin{table}"<<std::endl;
-    file<<"\\center"<<std::endl;
-    file<<"\\hspace*{-3.25cm}"<<std::endl;
-    file<<"\\begin{tabular}{llllllllll}"<<std::endl;
-    file<<"\\hline"<<std::endl;
+      <<Parameter::getValue<double>("EndTime",0.1)<<"]$$\n\n";
+    file<<"\\begin{table}\n";
+    file<<"\\center\n";
+    file<<"\\hspace*{-3.25cm}\n";
+    file<<"\\begin{tabular}{llllllllll}\n";
+    file<<"\\hline\n";
     file<<"$K_\\Gamma$ & $\\|\\vec{X}-\\vec{x}\\|_{L^\\infty}$ & $\\|\\vec{U}-I^h_{2}\\vec{u}\\|_{L^2(\\Omega_T)}$"
       <<" & $\\|\\vec{U}-I^h_{2}\\vec{u}\\|_{H^1(\\Omega_T)}$ & $\\|\\vec{U}-I^h_{2}\\vec{u}\\|_{L^\\infty}$"
-      <<" & $\\|P-p\\|_{L^2(\\Omega_T)}$ & $\\|P-I^h_{0}p\\|_{L^\\infty}$ & CPU[s] & $K_\\Omega^T$\\\\"<<std::endl;
-    file<<"\\hline"<<std::endl;
+      <<" & $\\|P-p\\|_{L^2(\\Omega_T)}$ & $\\|P-I^h_{0}p\\|_{L^\\infty}$ & CPU[s] & $K_\\Omega^T$\\\\\n";
+    file<<"\\hline\n";
     file<<std::setprecision(5);
     file<<std::scientific;
     file<<meshManager.interfaceGrid().size(0)<<" & ";
     const double nullTolerance(Parameter::getValue<double>("NullTolerance",1.e-12));
     for(const auto& err:errors)
       file<<(std::abs(err)<nullTolerance?0:err)<<" & ";
-    file<<timer.elapsed()<<" & "<<meshManager.bulkGrid().size(0)<<"\\\\"<<std::endl;
-    file<<"\\hline"<<std::endl;
-    file<<"\\end{tabular}"<<std::endl;
-    file<<"\\hspace*{-3.25cm}"<<std::endl;
-    file<<"\\caption{Errors table.}"<<std::endl;
-    file<<"\\end{table}"<<std::endl<<std::endl;
-    file<<"\\end{document}"<<std::endl;
+    file<<timer.elapsed()<<" & "<<meshManager.bulkGrid().size(0)<<"\\\\\n";
+    file<<"\\hline\n";
+    file<<"\\end{tabular}\n";
+    file<<"\\hspace*{-3.25cm}\n";
+    file<<"\\caption{Errors table.}\n";
+    file<<"\\end{table}\n\n";
+    file<<"\\end{document}\n";
   }
 }
 
@@ -321,7 +321,7 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
 template<typename DF,typename MeshManagerType>
 void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& meshManager,int boundaryID)
 {
-  std::cout<<std::endl<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<boundaryID<<std::endl;
+  std::cout<<"\n[DEBUG] "<<df.name()<<" boundary values with ID "<<boundaryID<<"\n";
   const auto& gridPart(df.gridPart());
   for(const auto& entity:entities(df))
   {
@@ -339,11 +339,11 @@ void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& mes
             for(auto i=decltype(globalIdxs.size()){0};i!=globalIdxs.size();++i)
               if(globalBlockDofsFilter[i])
                 std::cout<<"\t"<<*(df.block(globalIdxs[i]));
-            std::cout<<std::endl;
+            std::cout<<"\n";
           }
     }
   }
-  std::cout<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<boundaryID<<std::endl<<std::endl;
+  std::cout<<"[DEBUG] "<<df.name()<<" boundary values with ID "<<boundaryID<<"\n\n";
 }
 
 // dump triangles in gnuplot format

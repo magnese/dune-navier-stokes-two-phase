@@ -207,9 +207,9 @@ class BaseProblem
 
   void printInfo(std::ostream& s=std::cout) const
   {
-    s<<"Problem : "<<name_<<std::endl;
+    s<<"Problem : "<<name_<<"\n";
     mu_.printInfo(s);
-    s<<"Gamma = "<<gamma_<<std::endl;
+    s<<"Gamma = "<<gamma_<<"\n";
     rho_.printInfo(s);
     Hybrid::forEach(std::make_index_sequence<std::tuple_size<VelocityBCsType>::value>{},
       [&](auto i){std::get<i>(velocitybcs_).printInfo(s);});
