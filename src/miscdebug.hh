@@ -56,12 +56,10 @@ struct InterfaceVolumeInfo:public GnuplotWriter
     BaseType("interface_volume",precision)
   {}
 
-  using BaseType::add;
-
   template<typename CoupledMeshManagerType,typename TimeProviderType>
   void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    add(timeProvider.time(),meshManager.interfaceLength());
+    BaseType::add(timeProvider.time(),meshManager.interfaceLength());
   }
 };
 
@@ -74,12 +72,10 @@ struct BulkInnerVolumeInfo:public GnuplotWriter
     BaseType("bulk_inner_volume",precision)
   {}
 
-  using BaseType::add;
-
   template<typename CoupledMeshManagerType,typename TimeProviderType>
   void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    add(timeProvider.time(),meshManager.bulkInnerVolume());
+    BaseType::add(timeProvider.time(),meshManager.bulkInnerVolume());
   }
 };
 
@@ -92,22 +88,34 @@ struct BulkNormalizedInnerVolumeInfo:public GnuplotWriter
     BaseType("bulk_normalized_inner_volume",precision)
   {}
 
-  using BaseType::add;
-  using BaseType::isEmpty;
-  using BaseType::firstValue;
-  using BaseType::normalize;
-
   template<typename CoupledMeshManagerType,typename TimeProviderType>
   void add(const CoupledMeshManagerType& meshManager,const TimeProviderType& timeProvider)
   {
-    add(timeProvider.time(),meshManager.bulkInnerVolume());
+    BaseType::add(timeProvider.time(),meshManager.bulkInnerVolume());
   }
 
   ~BulkNormalizedInnerVolumeInfo()
   {
     // normalize by intial volume
-    if(!isEmpty())
-      normalize(firstValue().second);
+    if(!BaseType::isEmpty())
+      BaseType::normalize(BaseType::firstValue().second);
+  }
+};
+
+// dump if remesh is triggered or not
+struct RemeshInfo:public GnuplotWriter
+{
+  typedef GnuplotWriter BaseType;
+
+  RemeshInfo(unsigned int precision=6):
+    BaseType("remesh",precision)
+  {}
+
+  template<typename TimeProviderType>
+  void add(bool remeshPerformed,const TimeProviderType& timeProvider)
+  {
+    if(remeshPerformed)
+      BaseType::add(timeProvider.time(),1);
   }
 };
 
@@ -233,8 +241,6 @@ struct FunctionRangeInfo:public GnuplotWriter
     BaseType("function_range",precision)
   {}
 
-  using BaseType::add;
-
   template<typename DF,typename TimeProviderType>
   void add(const DF& df,const TimeProviderType& timeProvider)
   {
@@ -244,7 +250,7 @@ struct FunctionRangeInfo:public GnuplotWriter
       values[0]=std::min(dof,values[0]);
       values[1]=std::max(dof,values[1]);
     }
-    add(timeProvider.time(),values[1]-values[0]);
+    BaseType::add(timeProvider.time(),values[1]-values[0]);
   }
 };
 
@@ -257,15 +263,13 @@ struct FunctionMaxInfo:public GnuplotWriter
     BaseType("function_max",precision)
   {}
 
-  using BaseType::add;
-
   template<typename DF,typename TimeProviderType>
   void add(const DF& df,const TimeProviderType& timeProvider)
   {
     double value(std::numeric_limits<double>::min());
     for(const auto& dof:dofs(df))
       value=std::max(std::abs(dof),value);
-    add(timeProvider.time(),value);
+    BaseType::add(timeProvider.time(),value);
   }
 };
 
@@ -351,15 +355,13 @@ struct TrianglesDump:public GnuplotWriter
     BaseType("triangles",precision)
   {}
 
-  using BaseType::add;
-
   template<typename EntityType>
   void add(const EntityType& entity)
   {
     const auto& geo(entity.geometry());
     for(auto i=decltype(geo.corners()){0};i!=geo.corners();++i)
-      add(geo.corner(i)[0],geo.corner(i)[1]);
-    add(geo.corner(0)[0],geo.corner(0)[1],true);
+      BaseType::add(geo.corner(i)[0],geo.corner(i)[1]);
+    BaseType::add(geo.corner(0)[0],geo.corner(0)[1],true);
   }
 };
 
