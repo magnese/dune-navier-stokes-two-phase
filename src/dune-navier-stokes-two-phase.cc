@@ -61,7 +61,7 @@ int main(int argc,char** argv)
     Dune::Fem::Parameter::append("UseSymmetricLaplacianTerm",STRINGIZE(USE_SYMMETRIC_LAPLACIAN_TERM));
     Dune::Fem::Parameter::append("UseAntisymmetricConvectiveTerm",STRINGIZE(USE_ANTISYMMETRIC_CONVECTIVE_TERM));
 
-    #if REMESH_TYPE != 0
+    #if REMESH_TYPE == 1 || REMESH_TYPE == 2 || REMESH_TYPE == 3
     GmshInitialize(argc,argv);
     #endif
 
@@ -79,13 +79,13 @@ int main(int argc,char** argv)
     #elif REMESH_TYPE == 2
     constexpr bool UseCompoundManager(true);
     typedef Dune::FixedCharlength CharlengthPolicyType;
-    #else
+    #elif REMESH_TYPE == 3
     constexpr bool UseCompoundManager(true);
     typedef Dune::AdaptiveCharlength CharlengthPolicyType;
     #endif
     #if REMESH_CRITERION == 0
     typedef Dune::Fem::RemeshingVolumeCriterion RemeshingCriterionType;
-    #else
+    #elif REMESH_CRITERION == 1
     typedef Dune::Fem::RemeshingAngleCriterion RemeshingCriterionType;
     #endif
     typedef Dune::Fem::CoupledMeshManager<BulkHostGridType,InterfaceHostGridType,UseCompoundManager,CharlengthPolicyType,

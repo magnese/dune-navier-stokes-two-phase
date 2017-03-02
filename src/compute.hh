@@ -210,7 +210,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       #elif INTERPOLATION_TYPE == 1
       constexpr bool useBarycentricEntitySearch(true);
       auto& newBulkGridPart(fluidState.bulkGridPart());
-      #else
+      #elif INTERPOLATION_TYPE == 2
       constexpr bool useBarycentricEntitySearch(true);
       SortedView<typename FluidStateType::BulkGridType> newBulkGridPart(fluidState.bulkGrid(),bulkBoundingBox);
       #endif

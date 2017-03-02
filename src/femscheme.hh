@@ -82,7 +82,7 @@ class FemScheme
   typedef NavierStokesTest1Problem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 9
   typedef NavierStokesTest2Problem<FluidStateType> ProblemType;
-  #else
+  #elif PROBLEM_NUMBER == 10
   typedef NavierStokesExpandingBubbleProblem<FluidStateType> ProblemType;
   #endif
 
@@ -253,10 +253,10 @@ class FemScheme
 
     // impose bulk bc
     timerAssembleBulk.start();
-    #if PRESSURE_SPACE_TYPE == 2
-    problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
-    #else
+    #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
     problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp);
+    #elif PRESSURE_SPACE_TYPE == 2
+    problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
     #endif
     timerAssembleBulk.stop();
 
@@ -276,7 +276,7 @@ class FemScheme
                                    InterfaceInverseOperatorType,VelocityCurvatureOperatorType> CoupledOperatorWrapperType;
     CoupledOperatorWrapperType coupledWrapperOp(velocityOp,curvatureVelocityOp,interfaceOp,interfaceInvOp,velocityCurvatureOp,gamma);
 
-    #if PRESSURE_SPACE_TYPE != 2
+    #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
     typedef OperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,
                             VelocityPressureOperatorType,PressureOperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureOp);
@@ -293,12 +293,12 @@ class FemScheme
     typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
     #elif PRECONDITIONER_TYPE == 2
     typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
-    #else
+    #elif PRECONDITIONER_TYPE == 3
     typedef DirectPrecond<OperatorGluerType,LDLOp> BulkPreconditionerType;
     #endif
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
-    #else
+    #elif PRESSURE_SPACE_TYPE == 2
     typedef ExtendedOperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,VelocityPressureOperatorType,
       PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,
@@ -317,7 +317,7 @@ class FemScheme
     typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
     #elif PRECONDITIONER_TYPE == 2
     typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
-    #else
+    #elif PRECONDITIONER_TYPE == 3
     typedef DirectPrecond<OperatorGluerType,LDLOp> BulkPreconditionerType;
     #endif
     BulkPreconditionerType bulkPreconditioner(opGluer);
@@ -398,10 +398,10 @@ class FemScheme
         }
         // re-impose bulk bc
         timerAssembleBulk.start();
-        #if PRESSURE_SPACE_TYPE == 2
-        problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
-        #else
+        #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
         problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp);
+        #elif PRESSURE_SPACE_TYPE == 2
+        problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
         #endif
         timerAssembleBulk.stop();
         // solve bulk

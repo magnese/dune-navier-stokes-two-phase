@@ -224,12 +224,12 @@ class FluidState
   {
     return bulkspace_->template subDiscreteFunctionSpace<1>();
   }
-  #if PRESSURE_SPACE_TYPE != 2
+  #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
   const PressureDumpDiscreteSpaceType& pressureDumpSpace() const
   {
     return bulkspace_->template subDiscreteFunctionSpace<1>();
   }
-  #else
+  #elif PRESSURE_SPACE_TYPE == 2
   const PressureAdditionalDiscreteSpaceType& pressureAdditionalSpace() const
   {
     return bulkspace_->template subDiscreteFunctionSpace<2>();
@@ -283,7 +283,7 @@ class FluidState
   {
     return bulk_->template subDiscreteFunction<1>();
   }
-  #if PRESSURE_SPACE_TYPE != 2
+  #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
   PressureDumpDiscreteFunctionType& pressureDump()
   {
     return bulk_->template subDiscreteFunction<1>();
@@ -292,7 +292,7 @@ class FluidState
   {
     return bulk_->template subDiscreteFunction<1>();
   }
-  #else
+  #elif PRESSURE_SPACE_TYPE == 2
   PressureAdditionalDiscreteFunctionType& pressureAdditional()
   {
     return bulk_->template subDiscreteFunction<2>();

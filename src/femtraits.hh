@@ -41,7 +41,7 @@ struct FemTraits
   #elif PRESSURE_SPACE_TYPE == 1
   typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDiscreteSpaceType;
   typedef PressureDiscreteSpaceType PressureDumpDiscreteSpaceType;
-  #else
+  #elif PRESSURE_SPACE_TYPE == 2
   typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDiscreteSpaceType;
   typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,0> PressureAdditionalDiscreteSpaceType;
   typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDumpDiscreteSpaceType;
@@ -53,9 +53,9 @@ struct FemTraits
   // define discrete functions
   typedef AdaptiveDiscreteFunction<VelocityDiscreteSpaceType> VelocityDiscreteFunctionType;
   typedef AdaptiveDiscreteFunction<PressureDiscreteSpaceType> PressureDiscreteFunctionType;
-  #if PRESSURE_SPACE_TYPE !=2
+  #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
   typedef ExtendedTupleDiscreteFunction<VelocityDiscreteFunctionType,PressureDiscreteFunctionType> BulkDiscreteFunctionType;
-  #else
+  #elif PRESSURE_SPACE_TYPE == 2
   typedef AdaptiveDiscreteFunction<PressureAdditionalDiscreteSpaceType> PressureAdditionalDiscreteFunctionType;
   typedef ExtendedTupleDiscreteFunction<VelocityDiscreteFunctionType,PressureDiscreteFunctionType,PressureAdditionalDiscreteFunctionType>
     BulkDiscreteFunctionType;
