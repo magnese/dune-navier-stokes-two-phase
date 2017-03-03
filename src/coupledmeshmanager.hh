@@ -187,8 +187,9 @@ class CoupledMeshManager
   typedef DomainFilter<BulkGridPartType,std::vector<int>> IndicatorFunctionType;
 
   // define inner and outer grid parts
-  typedef FilteredGridPart<BulkGridPartType,IndicatorFunctionType,false> BulkInnerGridPartType;
-  typedef FilteredGridPart<BulkGridPartType,IndicatorFunctionType,false> BulkOuterGridPartType;
+  static constexpr bool useFilteredIndexSet=false;
+  typedef FilteredGridPart<BulkGridPartType,IndicatorFunctionType,useFilteredIndexSet> BulkInnerGridPartType;
+  typedef FilteredGridPart<BulkGridPartType,IndicatorFunctionType,useFilteredIndexSet> BulkOuterGridPartType;
 
   // define interface entity to inner bulk entity mapper
   typedef typename BulkGridType::template Codim<0>::Entity::EntitySeed BulkEntitySeedType;
