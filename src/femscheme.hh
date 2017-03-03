@@ -51,9 +51,9 @@ class FemScheme
 
   // define discrete functions
   typedef typename FluidStateType::VelocityDiscreteFunctionType VelocityDiscreteFunctionType;
-  typedef typename FluidStateType::PressureDiscreteFunctionType PressureDiscreteFunctionType;
+  typedef typename FluidStateType::Pressure0DiscreteFunctionType Pressure0DiscreteFunctionType;
   #if PRESSURE_SPACE_TYPE == 2
-  typedef typename FluidStateType::PressureAdditionalDiscreteFunctionType PressureAdditionalDiscreteFunctionType;
+  typedef typename FluidStateType::Pressure1DiscreteFunctionType Pressure1DiscreteFunctionType;
   #endif
   typedef typename FluidStateType::CurvatureDiscreteFunctionType CurvatureDiscreteFunctionType;
   typedef typename FluidStateType::DisplacementDiscreteFunctionType DisplacementDiscreteFunctionType;
@@ -90,18 +90,16 @@ class FemScheme
 
   // define operators for bulk
   typedef BulkVelocityOperator<VelocityDiscreteFunctionType,ProblemType> VelocityOperatorType;
-  typedef BulkVelocityPressureOperator<VelocityDiscreteFunctionType,PressureDiscreteFunctionType> VelocityPressureOperatorType;
-  typedef BulkPressureVelocityOperator<PressureDiscreteFunctionType,VelocityDiscreteFunctionType> PressureVelocityOperatorType;
-  typedef NullOperator<PressureDiscreteFunctionType,PressureDiscreteFunctionType> PressureOperatorType;
+  typedef BulkVelocityPressureOperator<VelocityDiscreteFunctionType,Pressure0DiscreteFunctionType> VelocityPressure0OperatorType;
+  typedef BulkPressureVelocityOperator<Pressure0DiscreteFunctionType,VelocityDiscreteFunctionType> Pressure0VelocityOperatorType;
+  typedef NullOperator<Pressure0DiscreteFunctionType,Pressure0DiscreteFunctionType> Pressure0OperatorType;
   #if PRESSURE_SPACE_TYPE == 2
-  typedef BulkVelocityPressureOperator<VelocityDiscreteFunctionType,PressureAdditionalDiscreteFunctionType>
-    VelocityPressureAdditionalOperatorType;
-  typedef BulkPressureVelocityOperator<PressureAdditionalDiscreteFunctionType,VelocityDiscreteFunctionType>
-    PressureAdditionalVelocityOperatorType;
+  typedef BulkVelocityPressureOperator<VelocityDiscreteFunctionType,Pressure1DiscreteFunctionType> VelocityPressure1OperatorType;
+  typedef BulkPressureVelocityOperator<Pressure1DiscreteFunctionType,VelocityDiscreteFunctionType> Pressure1VelocityOperatorType;
   #endif
-  typedef MassMatrix<PressureDiscreteFunctionType,PressureDiscreteFunctionType> BulkMassMatrixOperatorType;
+  typedef MassMatrix<Pressure0DiscreteFunctionType,Pressure0DiscreteFunctionType> BulkMassMatrixOperatorType;
   #if PRESSURE_SPACE_TYPE == 2
-  typedef MassMatrix<PressureAdditionalDiscreteFunctionType,PressureAdditionalDiscreteFunctionType> BulkMassMatrixAdditionalOperatorType;
+  typedef MassMatrix<Pressure1DiscreteFunctionType,Pressure1DiscreteFunctionType> BulkMassMatrixAdditionalOperatorType;
   #endif
   typedef CurvatureVelocityOperator<CurvatureDiscreteFunctionType,VelocityDiscreteFunctionType,CoupledMeshManagerType>
     CurvatureVelocityOperatorType;
@@ -177,29 +175,29 @@ class FemScheme
     timerAssembleBulk.start();
     VelocityOperatorType velocityOp(fluidstate_.velocitySpace(),problem_,fluidstate_.velocity());
     velocityOp.assemble(timeProvider);
-    PressureVelocityOperatorType pressureVelocityOp(fluidstate_.pressureSpace(),fluidstate_.velocitySpace());
-    pressureVelocityOp.assemble();
+    Pressure0VelocityOperatorType pressure0VelocityOp(fluidstate_.pressure0Space(),fluidstate_.velocitySpace());
+    pressure0VelocityOp.assemble();
     #if PRESSURE_SPACE_TYPE == 2
-    PressureAdditionalVelocityOperatorType pressureAdditionalVelocityOp(fluidstate_.pressureAdditionalSpace(),fluidstate_.velocitySpace());
-    pressureAdditionalVelocityOp.assemble();
+    Pressure1VelocityOperatorType pressure1VelocityOp(fluidstate_.pressure1Space(),fluidstate_.velocitySpace());
+    pressure1VelocityOp.assemble();
     #endif
-    VelocityPressureOperatorType velocityPressureOp(fluidstate_.velocitySpace(),fluidstate_.pressureSpace());
+    VelocityPressure0OperatorType velocityPressure0Op(fluidstate_.velocitySpace(),fluidstate_.pressure0Space());
     #if !USE_SYMMETRIC_DIRICHLET
-    velocityPressureOp.assembleTransposingOp(pressureVelocityOp);
+    velocityPressure0Op.assembleTransposingOp(pressure0VelocityOp);
     #endif
     #if PRESSURE_SPACE_TYPE == 2
-    VelocityPressureAdditionalOperatorType velocityPressureAdditionalOp(fluidstate_.velocitySpace(),fluidstate_.pressureAdditionalSpace());
+    VelocityPressure1OperatorType velocityPressure1Op(fluidstate_.velocitySpace(),fluidstate_.pressure1Space());
     #if !USE_SYMMETRIC_DIRICHLET
-    velocityPressureAdditionalOp.assembleTransposingOp(pressureAdditionalVelocityOp);
+    velocityPressure1Op.assembleTransposingOp(pressure1VelocityOp);
     #endif
     #endif
-    PressureOperatorType pressureOp(fluidstate_.pressureSpace(),fluidstate_.pressureSpace());
+    Pressure0OperatorType pressure0Op(fluidstate_.pressure0Space(),fluidstate_.pressure0Space());
     CurvatureVelocityOperatorType curvatureVelocityOp(fluidstate_.curvatureSpace(),fluidstate_.velocitySpace(),fluidstate_.meshManager());
     curvatureVelocityOp.assemble();
-    BulkMassMatrixOperatorType bulkMassMatrixOp(fluidstate_.pressureSpace());
+    BulkMassMatrixOperatorType bulkMassMatrixOp(fluidstate_.pressure0Space());
     bulkMassMatrixOp.assemble();
     #if PRESSURE_SPACE_TYPE == 2
-    BulkMassMatrixAdditionalOperatorType bulkMassMatrixAdditionalOp(fluidstate_.pressureAdditionalSpace());
+    BulkMassMatrixAdditionalOperatorType bulkMassMatrixAdditionalOp(fluidstate_.pressure1Space());
     bulkMassMatrixAdditionalOp.assemble();
     #endif
     timerAssembleBulk.stop();
@@ -256,18 +254,18 @@ class FemScheme
     // impose bulk bc
     timerAssembleBulk.start();
     #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
-    problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp);
+    problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressure0VelocityOp);
     #elif PRESSURE_SPACE_TYPE == 2
-    problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
+    problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressure0VelocityOp,pressure1VelocityOp);
     #endif
     timerAssembleBulk.stop();
 
     // assemble bulk operators
     #if USE_SYMMETRIC_DIRICHLET
     timerAssembleBulk.start();
-    velocityPressureOp.assembleTransposingOp(pressureVelocityOp);
+    velocityPressure0Op.assembleTransposingOp(pressure0VelocityOp);
     #if PRESSURE_SPACE_TYPE == 2
-    velocityPressureAdditionalOp.assembleTransposingOp(pressureAdditionalVelocityOp);
+    velocityPressure1Op.assembleTransposingOp(pressure1VelocityOp);
     #endif
     timerAssembleBulk.stop();
     #endif
@@ -279,17 +277,17 @@ class FemScheme
     CoupledOperatorWrapperType coupledWrapperOp(velocityOp,curvatureVelocityOp,interfaceOp,interfaceInvOp,velocityCurvatureOp,gamma);
 
     #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
-    typedef OperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,
-                            VelocityPressureOperatorType,PressureOperatorType> BulkOperatorWrapperType;
-    BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureOp);
+    typedef OperatorWrapper<CoupledOperatorWrapperType,Pressure0VelocityOperatorType,
+                            VelocityPressure0OperatorType,Pressure0OperatorType> BulkOperatorWrapperType;
+    BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressure0VelocityOp,velocityPressure0Op,pressure0Op);
     #if PRECONDITIONER_TYPE == 0
-    typedef StokesPrecond<BulkDiscreteFunctionType,VelocityOperatorType,PressureVelocityOperatorType,BulkMassMatrixOperatorType>
+    typedef StokesPrecond<BulkDiscreteFunctionType,VelocityOperatorType,Pressure0VelocityOperatorType,BulkMassMatrixOperatorType>
       BulkPreconditionerType;
-    BulkPreconditionerType bulkPreconditioner(velocityOp,pressureVelocityOp,bulkMassMatrixOp);
+    BulkPreconditionerType bulkPreconditioner(velocityOp,pressure0VelocityOp,bulkMassMatrixOp);
     #else
-    typedef OperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,PressureOperatorType>
+    typedef OperatorGluer<VelocityOperatorType,Pressure0VelocityOperatorType,VelocityPressure0OperatorType,Pressure0OperatorType>
       OperatorGluerType;
-    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureOp);
+    OperatorGluerType opGluer(velocityOp,pressure0VelocityOp,velocityPressure0Op,pressure0Op);
     opGluer.assemble();
     #if PRECONDITIONER_TYPE == 1
     typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
@@ -301,19 +299,19 @@ class FemScheme
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
     #elif PRESSURE_SPACE_TYPE == 2
-    typedef ExtendedOperatorWrapper<CoupledOperatorWrapperType,PressureVelocityOperatorType,VelocityPressureOperatorType,
-      PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> BulkOperatorWrapperType;
-    BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,
-                                   velocityPressureAdditionalOp);
+    typedef ExtendedOperatorWrapper<CoupledOperatorWrapperType,Pressure0VelocityOperatorType,VelocityPressure0OperatorType,
+      Pressure1VelocityOperatorType,VelocityPressure1OperatorType> BulkOperatorWrapperType;
+    BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressure0VelocityOp,velocityPressure0Op,pressure1VelocityOp,
+                                   velocityPressure1Op);
     #if PRECONDITIONER_TYPE == 0
-    typedef ExtendedStokesPrecond<BulkDiscreteFunctionType,VelocityOperatorType,PressureVelocityOperatorType,BulkMassMatrixOperatorType,
-                                  PressureAdditionalVelocityOperatorType,BulkMassMatrixAdditionalOperatorType> BulkPreconditionerType;
-    BulkPreconditionerType bulkPreconditioner(velocityOp,pressureVelocityOp,bulkMassMatrixOp,pressureAdditionalVelocityOp,
+    typedef ExtendedStokesPrecond<BulkDiscreteFunctionType,VelocityOperatorType,Pressure0VelocityOperatorType,BulkMassMatrixOperatorType,
+                                  Pressure1VelocityOperatorType,BulkMassMatrixAdditionalOperatorType> BulkPreconditionerType;
+    BulkPreconditionerType bulkPreconditioner(velocityOp,pressure0VelocityOp,bulkMassMatrixOp,pressure1VelocityOp,
                                               bulkMassMatrixAdditionalOp);
     #else
-    typedef ExtendedOperatorGluer<VelocityOperatorType,PressureVelocityOperatorType,VelocityPressureOperatorType,
-                                  PressureAdditionalVelocityOperatorType,VelocityPressureAdditionalOperatorType> OperatorGluerType;
-    OperatorGluerType opGluer(velocityOp,pressureVelocityOp,velocityPressureOp,pressureAdditionalVelocityOp,velocityPressureAdditionalOp);
+    typedef ExtendedOperatorGluer<VelocityOperatorType,Pressure0VelocityOperatorType,VelocityPressure0OperatorType,
+                                  Pressure1VelocityOperatorType,VelocityPressure1OperatorType> OperatorGluerType;
+    OperatorGluerType opGluer(velocityOp,pressure0VelocityOp,velocityPressure0Op,pressure1VelocityOp,velocityPressure1Op);
     opGluer.assemble();
     #if PRECONDITIONER_TYPE == 1
     typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
@@ -401,9 +399,9 @@ class FemScheme
         // re-impose bulk bc
         timerAssembleBulk.start();
         #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
-        problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp);
+        problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressure0VelocityOp);
         #elif PRESSURE_SPACE_TYPE == 2
-        problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressureVelocityOp,pressureAdditionalVelocityOp);
+        problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressure0VelocityOp,pressure1VelocityOp);
         #endif
         timerAssembleBulk.stop();
         // solve bulk
@@ -470,31 +468,31 @@ class FemScheme
     interfaceInvOp.finalize();
     timerSolveInterface.stop();
 
-    // set pressure dump to correct values (if needed)
+    // set pressure to correct values (if needed)
     #if PRESSURE_SPACE_TYPE == 2
     timerSolveBulk.start();
-    for(const auto& entity:entities(fluidstate_.pressure()))
+    for(const auto& entity:entities(fluidstate_.pressure0()))
     {
+      auto localPressure0(fluidstate_.pressure0().localFunction(entity));
+      auto localPressure1(fluidstate_.pressure1().localFunction(entity));
       auto localPressure(fluidstate_.pressure().localFunction(entity));
-      auto localPressureAdditional(fluidstate_.pressureAdditional().localFunction(entity));
-      auto localPressureDump(fluidstate_.pressureDump().localFunction(entity));
-      for(auto i=decltype(localPressureDump.size()){0};i!=localPressureDump.size();++i)
-        localPressureDump[i]=localPressure[i]+localPressureAdditional[0];
+      for(auto i=decltype(localPressure.size()){0};i!=localPressure.size();++i)
+        localPressure[i]=localPressure0[i]+localPressure1[0];
     }
     timerSolveBulk.stop();
     #endif
 
     // project pressure solution to the space of mean zero function
     timerSolveBulk.start();
-    Integrator<CachingQuadrature<typename FluidStateType::BulkGridPartType,0>> integrator(2*fluidstate_.pressureDumpSpace().order()+1);
-    typename FluidStateType::PressureDumpDiscreteFunctionType::RangeType pressureIntegral(0);
-    for(const auto& entity:fluidstate_.pressureDumpSpace())
+    Integrator<CachingQuadrature<typename FluidStateType::BulkGridPartType,0>> integrator(2*fluidstate_.pressureSpace().order()+1);
+    typename FluidStateType::PressureDiscreteFunctionType::RangeType pressureIntegral(0);
+    for(const auto& entity:fluidstate_.pressureSpace())
     {
-      auto localPressure(fluidstate_.pressureDump().localFunction(entity));
+      auto localPressure(fluidstate_.pressure().localFunction(entity));
       integrator.integrateAdd(entity,localPressure,pressureIntegral);
     }
     pressureIntegral/=fluidstate_.meshManager().bulkVolume();
-    for(auto& dof:dofs(fluidstate_.pressureDump()))
+    for(auto& dof:dofs(fluidstate_.pressure()))
       dof-=pressureIntegral;
     timerSolveBulk.stop();
 

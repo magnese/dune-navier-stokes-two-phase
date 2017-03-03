@@ -71,22 +71,22 @@ class FluidState
   typedef typename Traits::InterfaceGridPartType InterfaceGridPartType;
   // define spaces
   typedef typename Traits::VelocityDiscreteSpaceType VelocityDiscreteSpaceType;
-  typedef typename Traits::PressureDiscreteSpaceType PressureDiscreteSpaceType;
+  typedef typename Traits::Pressure0DiscreteSpaceType Pressure0DiscreteSpaceType;
   #if PRESSURE_SPACE_TYPE == 2
-  typedef typename Traits::PressureAdditionalDiscreteSpaceType PressureAdditionalDiscreteSpaceType;
+  typedef typename Traits::Pressure1DiscreteSpaceType Pressure1DiscreteSpaceType;
   #endif
-  typedef typename Traits::PressureDumpDiscreteSpaceType PressureDumpDiscreteSpaceType;
+  typedef typename Traits::PressureDiscreteSpaceType PressureDiscreteSpaceType;
   typedef typename Traits::BulkDisplacementDiscreteSpaceType BulkDisplacementDiscreteSpaceType;
   typedef typename Traits::PhysicalCoefficientDiscreteSpaceType PhysicalCoefficientDiscreteSpaceType;
   typedef typename Traits::CurvatureDiscreteSpaceType CurvatureDiscreteSpaceType;
   typedef typename Traits::DisplacementDiscreteSpaceType DisplacementDiscreteSpaceType;
   // define discrete functions
   typedef typename Traits::VelocityDiscreteFunctionType VelocityDiscreteFunctionType;
-  typedef typename Traits::PressureDiscreteFunctionType PressureDiscreteFunctionType;
+  typedef typename Traits::Pressure0DiscreteFunctionType Pressure0DiscreteFunctionType;
   #if PRESSURE_SPACE_TYPE == 2
-  typedef typename Traits::PressureAdditionalDiscreteFunctionType PressureAdditionalDiscreteFunctionType;
+  typedef typename Traits::Pressure1DiscreteFunctionType Pressure1DiscreteFunctionType;
   #endif
-  typedef typename Traits::PressureDumpDiscreteFunctionType PressureDumpDiscreteFunctionType;
+  typedef typename Traits::PressureDiscreteFunctionType PressureDiscreteFunctionType;
   typedef typename Traits::BulkDiscreteFunctionType BulkDiscreteFunctionType;
   typedef typename Traits::PhysicalCoefficientDiscreteFunctionType PhysicalCoefficientDiscreteFunctionType;
   typedef typename Traits::BulkDisplacementDiscreteFunctionType BulkDisplacementDiscreteFunctionType;
@@ -97,7 +97,7 @@ class FluidState
   typedef typename BulkDiscreteFunctionType::DiscreteFunctionSpaceType BulkDiscreteSpaceType;
   typedef typename InterfaceDiscreteFunctionType::DiscreteFunctionSpaceType InterfaceDiscreteSpaceType;
   // define data outputs
-  typedef std::tuple<VelocityDiscreteFunctionType*,PressureDumpDiscreteFunctionType*> BulkTupleType;
+  typedef std::tuple<VelocityDiscreteFunctionType*,PressureDiscreteFunctionType*> BulkTupleType;
   typedef std::tuple<CurvatureDiscreteFunctionType*> InterfaceTupleType;
   typedef DataOutput<BulkGridType,BulkTupleType> BulkDataOutputType;
   typedef DataOutput<InterfaceGridType,InterfaceTupleType> InterfaceDataOutputType;
@@ -126,7 +126,7 @@ class FluidState
       meshmanager_=other.meshmanager_;
       bulkspace_=other.bulkspace_;
       #if PRESSURE_SPACE_TYPE == 2
-      pressuredumpspace_=other.pressuredumpspace_;
+      pressurespace_=other.pressurespace_;
       #endif
       bulkdisplacementspace_=other.bulkdisplacementspace_;
       #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
@@ -135,7 +135,7 @@ class FluidState
       interfacespace_=other.interfacespace_;
       bulk_=other.bulk_;
       #if PRESSURE_SPACE_TYPE == 2
-      pressuredump_=other.pressuredump_;
+      pressure_=other.pressure_;
       #endif
       bulkdisplacement_=other.bulkdisplacement_;
       #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
@@ -220,23 +220,23 @@ class FluidState
   {
     return bulkspace_->template subDiscreteFunctionSpace<0>();
   }
-  const PressureDiscreteSpaceType& pressureSpace() const
+  const Pressure0DiscreteSpaceType& pressure0Space() const
   {
     return bulkspace_->template subDiscreteFunctionSpace<1>();
   }
   #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
-  const PressureDumpDiscreteSpaceType& pressureDumpSpace() const
+  const PressureDiscreteSpaceType& pressureSpace() const
   {
     return bulkspace_->template subDiscreteFunctionSpace<1>();
   }
   #elif PRESSURE_SPACE_TYPE == 2
-  const PressureAdditionalDiscreteSpaceType& pressureAdditionalSpace() const
+  const Pressure1DiscreteSpaceType& pressure1Space() const
   {
     return bulkspace_->template subDiscreteFunctionSpace<2>();
   }
-  const PressureDumpDiscreteSpaceType& pressureDumpSpace() const
+  const PressureDiscreteSpaceType& pressureSpace() const
   {
-    return *pressuredumpspace_;
+    return *pressurespace_;
   }
   #endif
   const BulkDiscreteSpaceType& bulkSpace() const
@@ -275,6 +275,15 @@ class FluidState
   {
     return bulk_->template subDiscreteFunction<0>();
   }
+  Pressure0DiscreteFunctionType& pressure0()
+  {
+    return bulk_->template subDiscreteFunction<1>();
+  }
+  const Pressure0DiscreteFunctionType& pressure0() const
+  {
+    return bulk_->template subDiscreteFunction<1>();
+  }
+  #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
   PressureDiscreteFunctionType& pressure()
   {
     return bulk_->template subDiscreteFunction<1>();
@@ -283,31 +292,22 @@ class FluidState
   {
     return bulk_->template subDiscreteFunction<1>();
   }
-  #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
-  PressureDumpDiscreteFunctionType& pressureDump()
-  {
-    return bulk_->template subDiscreteFunction<1>();
-  }
-  const PressureDumpDiscreteFunctionType& pressureDump() const
-  {
-    return bulk_->template subDiscreteFunction<1>();
-  }
   #elif PRESSURE_SPACE_TYPE == 2
-  PressureAdditionalDiscreteFunctionType& pressureAdditional()
+  Pressure1DiscreteFunctionType& pressure1()
   {
     return bulk_->template subDiscreteFunction<2>();
   }
-  const PressureAdditionalDiscreteFunctionType& pressureAdditional() const
+  const Pressure1DiscreteFunctionType& pressure1() const
   {
     return bulk_->template subDiscreteFunction<2>();
   }
-  PressureDumpDiscreteFunctionType& pressureDump()
+  PressureDiscreteFunctionType& pressure()
   {
-    return *pressuredump_;
+    return *pressure_;
   }
-  const PressureDumpDiscreteFunctionType& pressureDump() const
+  const PressureDiscreteFunctionType& pressure() const
   {
-    return *pressuredump_;
+    return *pressure_;
   }
   #endif
   BulkDiscreteFunctionType& bulkSolution()
@@ -369,7 +369,7 @@ class FluidState
     // create spaces
     bulkspace_=std::make_shared<BulkDiscreteSpaceType>(bulkGridPart());
     #if PRESSURE_SPACE_TYPE == 2
-    pressuredumpspace_=std::make_shared<PressureDumpDiscreteSpaceType>(bulkGridPart());
+    pressurespace_=std::make_shared<PressureDiscreteSpaceType>(bulkGridPart());
     #endif
     bulkdisplacementspace_=std::make_shared<BulkDisplacementDiscreteSpaceType>(bulkGridPart());
     #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
@@ -379,10 +379,11 @@ class FluidState
     // create discrete functions
     bulk_=std::make_shared<BulkDiscreteFunctionType>("bulk solution",bulkSpace());
     velocity().name()="velocity";
-    pressure().name()="pressure";
+    pressure0().name()="pressure";
     #if PRESSURE_SPACE_TYPE == 2
-    pressureAdditional().name()="additional pressure";
-    pressuredump_=std::make_shared<PressureDumpDiscreteFunctionType>("pressure",pressureDumpSpace());
+    pressure0().name()="pressure 0";
+    pressure1().name()="pressure 1";
+    pressure_=std::make_shared<PressureDiscreteFunctionType>("pressure",pressureSpace());
     #endif
     bulkdisplacement_=std::make_shared<BulkDisplacementDiscreteFunctionType>("bulk displacement",bulkDisplacementSpace());
     #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
@@ -392,7 +393,7 @@ class FluidState
     curvature().name()="curvature";
     displacement().name()="displacement";
     // create IO
-    bulktuple_=std::make_tuple(&velocity(),&pressureDump());
+    bulktuple_=std::make_tuple(&velocity(),&pressure());
     interfacetuple_=std::make_tuple(&curvature());
     bulkoutput_=std::make_shared<BulkDataOutputType>(meshmanager_.bulkGrid(),bulktuple_,bulkoutputparameters_);
     interfaceoutput_=std::make_shared<InterfaceDataOutputType>(meshmanager_.interfaceGrid(),interfacetuple_,interfaceoutputparameters_);
@@ -455,7 +456,7 @@ class FluidState
     s<<"\n"<<str<<" number of pointers for each object (sequence = "<<sequence_<<") :\n";
     s<<"BulkDiscreteSpace = "<<bulkspace_.use_count()<<"\n";
     #if PRESSURE_SPACE_TYPE == 2
-    s<<"PressureDumpDiscreteSpace = "<<pressuredumpspace_.use_count()<<"\n";
+    s<<"PressureDiscreteSpace = "<<pressurespace_.use_count()<<"\n";
     #endif
     s<<"BulkDisplacementDiscreteSpace = "<<bulkdisplacementspace_.use_count()<<"\n";
     #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
@@ -464,7 +465,7 @@ class FluidState
     s<<"InterfaceDiscreteSpace = "<<interfacespace_.use_count()<<"\n";
     s<<"BulkDiscreteFunction = "<<bulk_.use_count()<<"\n";
     #if PRESSURE_SPACE_TYPE == 2
-    s<<"PressureDumpDiscreteFunction = "<<pressuredump_.use_count()<<"\n";
+    s<<"PressureDiscreteFunction = "<<pressure_.use_count()<<"\n";
     #endif
     s<<"BulkDisplacementDiscreteFunction = "<<bulkdisplacement_.use_count()<<"\n";
     #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
@@ -479,7 +480,7 @@ class FluidState
   CoupledMeshManagerType meshmanager_;
   std::shared_ptr<BulkDiscreteSpaceType> bulkspace_;
   #if PRESSURE_SPACE_TYPE == 2
-  std::shared_ptr<PressureDumpDiscreteSpaceType> pressuredumpspace_;
+  std::shared_ptr<PressureDiscreteSpaceType> pressurespace_;
   #endif
   std::shared_ptr<BulkDisplacementDiscreteSpaceType> bulkdisplacementspace_;
   #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
@@ -488,7 +489,7 @@ class FluidState
   std::shared_ptr<InterfaceDiscreteSpaceType> interfacespace_;
   std::shared_ptr<BulkDiscreteFunctionType> bulk_;
   #if PRESSURE_SPACE_TYPE == 2
-  std::shared_ptr<PressureDumpDiscreteFunctionType> pressuredump_;
+  std::shared_ptr<PressureDiscreteFunctionType> pressure_;
   #endif
   std::shared_ptr<BulkDisplacementDiscreteFunctionType> bulkdisplacement_;
   #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
@@ -514,7 +515,7 @@ class FluidState
     #endif
     bulkdisplacement_.reset();
     #if PRESSURE_SPACE_TYPE == 2
-    pressuredump_.reset();
+    pressure_.reset();
     #endif
     bulk_.reset();
     interfacespace_.reset();
@@ -523,7 +524,7 @@ class FluidState
     #endif
     bulkdisplacementspace_.reset();
     #if PRESSURE_SPACE_TYPE == 2
-    pressuredumpspace_.reset();
+    pressurespace_.reset();
     #endif
     bulkspace_.reset();
   }

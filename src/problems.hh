@@ -41,7 +41,7 @@ class BaseProblem
   typedef LocalAnalyticalFunctionBinder<VelocityDiscreteSpaceType> VelocityFunctionType;
   typedef LocalFunctionAdapter<VelocityFunctionType> AdaptedVelocityFunctionType;
 
-  typedef typename FluidStateType::PressureDumpDiscreteSpaceType PressureDiscreteSpaceType;
+  typedef typename FluidStateType::PressureDiscreteSpaceType PressureDiscreteSpaceType;
   typedef typename PressureDiscreteSpaceType::DomainType PressureDomainType;
   typedef typename PressureDiscreteSpaceType::RangeType PressureRangeType;
   typedef LocalAnalyticalFunctionBinder<PressureDiscreteSpaceType> PressureFunctionType;
@@ -129,7 +129,7 @@ class BaseProblem
     if(istimedependent_)
     {
       AdaptedPressureFunctionType pressureICAdapted("pressure IC adapted",pressureIC(),fluidstate_.bulkGridPart(),
-        FluidStateType::PressureDumpDiscreteSpaceType::polynomialOrder);
+        PressureDiscreteSpaceType::polynomialOrder);
       pressureICAdapted.initialize(0.0,0.0);
       interpolate(pressureICAdapted,df);
     }
@@ -148,7 +148,7 @@ class BaseProblem
     if(hasexactsolution_)
     {
       AdaptedPressureFunctionType pressureSolutionAdapted("pressure solution adapted",pressureSolution(),fluidstate_.bulkGridPart(),
-        FluidStateType::PressureDumpDiscreteSpaceType::polynomialOrder);
+        PressureDiscreteSpaceType::polynomialOrder);
       pressureSolutionAdapted.initialize(t,t);
       interpolate(pressureSolutionAdapted,df);
     }

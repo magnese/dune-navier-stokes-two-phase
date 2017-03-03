@@ -36,15 +36,15 @@ struct FemTraits
   // define discrete spaces
   typedef LagrangeDiscreteFunctionSpace<VelocityContinuosSpaceType,BulkGridPartType,2> VelocityDiscreteSpaceType;
   #if PRESSURE_SPACE_TYPE == 0
-  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,0> PressureDiscreteSpaceType;
-  typedef PressureDiscreteSpaceType PressureDumpDiscreteSpaceType;
+  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,0> Pressure0DiscreteSpaceType;
+  typedef Pressure0DiscreteSpaceType PressureDiscreteSpaceType;
   #elif PRESSURE_SPACE_TYPE == 1
-  typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDiscreteSpaceType;
-  typedef PressureDiscreteSpaceType PressureDumpDiscreteSpaceType;
+  typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,1> Pressure0DiscreteSpaceType;
+  typedef Pressure0DiscreteSpaceType PressureDiscreteSpaceType;
   #elif PRESSURE_SPACE_TYPE == 2
-  typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDiscreteSpaceType;
-  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,0> PressureAdditionalDiscreteSpaceType;
-  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDumpDiscreteSpaceType;
+  typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,1> Pressure0DiscreteSpaceType;
+  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,0> Pressure1DiscreteSpaceType;
+  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDiscreteSpaceType;
   #endif
   typedef LagrangeDiscreteFunctionSpace<BulkDisplacementContinuosSpaceType,BulkGridPartType,1> BulkDisplacementDiscreteSpaceType;
   typedef LagrangeDiscontinuousGalerkinSpace<PhysicalCoefficientContinuosSpaceType,BulkGridPartType,0> PhysicalCoefficientDiscreteSpaceType;
@@ -52,15 +52,15 @@ struct FemTraits
   typedef LagrangeDiscreteFunctionSpace<CurvatureContinuosSpaceType,InterfaceGridPartType,1> CurvatureDiscreteSpaceType;
   // define discrete functions
   typedef AdaptiveDiscreteFunction<VelocityDiscreteSpaceType> VelocityDiscreteFunctionType;
-  typedef AdaptiveDiscreteFunction<PressureDiscreteSpaceType> PressureDiscreteFunctionType;
+  typedef AdaptiveDiscreteFunction<Pressure0DiscreteSpaceType> Pressure0DiscreteFunctionType;
   #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
-  typedef ExtendedTupleDiscreteFunction<VelocityDiscreteFunctionType,PressureDiscreteFunctionType> BulkDiscreteFunctionType;
+  typedef ExtendedTupleDiscreteFunction<VelocityDiscreteFunctionType,Pressure0DiscreteFunctionType> BulkDiscreteFunctionType;
   #elif PRESSURE_SPACE_TYPE == 2
-  typedef AdaptiveDiscreteFunction<PressureAdditionalDiscreteSpaceType> PressureAdditionalDiscreteFunctionType;
-  typedef ExtendedTupleDiscreteFunction<VelocityDiscreteFunctionType,PressureDiscreteFunctionType,PressureAdditionalDiscreteFunctionType>
+  typedef AdaptiveDiscreteFunction<Pressure1DiscreteSpaceType> Pressure1DiscreteFunctionType;
+  typedef ExtendedTupleDiscreteFunction<VelocityDiscreteFunctionType,Pressure0DiscreteFunctionType,Pressure1DiscreteFunctionType>
     BulkDiscreteFunctionType;
   #endif
-  typedef AdaptiveDiscreteFunction<PressureDumpDiscreteSpaceType> PressureDumpDiscreteFunctionType;
+  typedef AdaptiveDiscreteFunction<PressureDiscreteSpaceType> PressureDiscreteFunctionType;
   typedef AdaptiveDiscreteFunction<BulkDisplacementDiscreteSpaceType> BulkDisplacementDiscreteFunctionType;
   typedef AdaptiveDiscreteFunction<PhysicalCoefficientDiscreteSpaceType> PhysicalCoefficientDiscreteFunctionType;
   typedef AdaptiveDiscreteFunction<CurvatureDiscreteSpaceType> CurvatureDiscreteFunctionType;

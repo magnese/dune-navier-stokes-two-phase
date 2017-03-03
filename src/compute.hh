@@ -43,7 +43,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
 
   // get initial conditions of the problem
   femScheme.problem().velocityIC(fluidState.velocity());
-  femScheme.problem().pressureIC(fluidState.pressureDump());
+  femScheme.problem().pressureIC(fluidState.pressure());
   #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
   if(!femScheme.problem().isDensityNull())
     femScheme.problem().rho(fluidState.rho());
@@ -105,8 +105,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       // interpolate exact solutions
       typename FluidStateType::VelocityDiscreteFunctionType velocityExactSolution("velocity exact solution",fluidState.velocitySpace());
       femScheme.problem().velocitySolution(velocityExactSolution,timeProvider.time());
-      typename FluidStateType::PressureDumpDiscreteFunctionType pressureExactSolution("pressure exact solution",
-                                                                                      fluidState.pressureDumpSpace());
+      typename FluidStateType::PressureDiscreteFunctionType pressureExactSolution("pressure exact solution",fluidState.pressureSpace());
       femScheme.problem().pressureSolution(pressureExactSolution,timeProvider.time());
       // compute L2 interpolated velocity error
       L2Norm<typename FluidStateType::BulkGridPartType> normL2(fluidState.bulkGridPart());
@@ -125,16 +124,16 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       const auto innerEntity(intersection.inside());
       const auto outerEntity(intersection.outside());
       // compute L2 pressure error
-      for(const auto& entity:fluidState.pressureDumpSpace())
+      for(const auto& entity:fluidState.pressureSpace())
       {
-        auto localPressureDump(fluidState.pressureDump().localFunction(entity));
+        auto localPressure(fluidState.pressure().localFunction(entity));
         constexpr unsigned int order(FluidStateType::BulkGridType::dimensionworld<3?13:10);
         const CachingQuadrature<typename FluidStateType::BulkGridPartType,0> quadrature(entity,order);
         for(const auto& qp:quadrature)
         {
           const auto localPoint(qp.position());
-          typename FluidStateType::PressureDumpDiscreteFunctionType::RangeType value;
-          localPressureDump.evaluate(localPoint,value);
+          typename FluidStateType::PressureDiscreteFunctionType::RangeType value;
+          localPressure.evaluate(localPoint,value);
           const auto globalPoint(entity.geometry().global(localPoint));
           if(globalPoint.two_norm()>femScheme.problem().exactRadius(timeProvider.time()))
             value-=femScheme.problem().pressureSolution().function()(globalPoint,timeProvider.time(),outerEntity);
@@ -152,7 +151,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       #endif
       // compute Linfinity interpolated pressure error
       auto exactPressureIt(pressureExactSolution.dbegin());
-      for(const auto& dof:dofs(fluidState.pressureDump()))
+      for(const auto& dof:dofs(fluidState.pressure()))
         errors[5]=std::max(errors[5],std::abs(dof-*(exactPressureIt++)));
     }
 
