@@ -1,15 +1,15 @@
 #ifndef DUNE_GMSHCOMPOUNDMANAGER_HH
 #define DUNE_GMSHCOMPOUNDMANAGER_HH
 
-#include <string>
+#include <algorithm>
 #include <array>
 #include <cmath>
-#include <vector>
 #include <list>
 #include <map>
-#include <algorithm>
-#include <ostream>
 #include <memory>
+#include <ostream>
+#include <string>
+#include <vector>
 #include <utility>
 
 // HAVE_BLAS
@@ -354,19 +354,19 @@ class GMSHCompoundManagerBase
   }
   void writeInterfaceGeo(const std::string& fileName="interface.geo")
   {
-    interface()->writeGEO(fileName,true,false);
+    interface()->writeGEO(Fem::Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,true,false);
   }
   void writeInterfaceMsh(const std::string& fileName="interface.msh")
   {
-    interface()->writeMSH(fileName,2.2,false,false);
+    interface()->writeMSH(Fem::Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,2.2,false,false);
   }
   void writeCompoundGeo(const std::string& fileName="compound.geo")
   {
-    compound()->writeGEO(fileName,true,false);
+    compound()->writeGEO(Fem::Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,true,false);
   }
   void writeCompoundMsh(const std::string& fileName="compound.msh")
   {
-    compound()->writeMSH(fileName,2.2,false,false);
+    compound()->writeMSH(Fem::Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,2.2,false,false);
   }
   void setAlgorithm(const GmshAlgorithmType& algorithm)
   {

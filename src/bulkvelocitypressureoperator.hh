@@ -1,6 +1,7 @@
 #ifndef DUNE_FEM_BULKVELOCITYPRESSUREOPERATOR_HH
 #define DUNE_FEM_BULKVELOCITYPRESSUREOPERATOR_HH
 
+#include <dune/fem/io/parameter.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
@@ -47,7 +48,7 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
 
   void print(const std::string& filename="velocity_pressure_matrix.dat") const
   {
-    std::ofstream ofs(filename);
+    std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
     op_.matrix().print(ofs);
   }
 

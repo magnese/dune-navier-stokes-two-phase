@@ -4,14 +4,15 @@
 // deprecation warning
 #warning ("WARNING : interfacecurvaturedisplacementoperator.hh is deprecated")
 
+#include <dune/fem/io/parameter.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
 
-#include <vector>
 #include <fstream>
 #include <string>
+#include <vector>
 
 namespace Dune
 {
@@ -49,7 +50,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
 
   void print(const std::string& filename="interface_curvature_displacement_matrix.dat") const
   {
-    std::ofstream ofs(filename);
+    std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
     op_.matrix().print(ofs);
   }
 

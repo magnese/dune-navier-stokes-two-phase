@@ -1,13 +1,14 @@
 #ifndef DUNE_FEM_CURVATUREVELOCITYOPERATOR_HH
 #define DUNE_FEM_CURVATUREVELOCITYOPERATOR_HH
 
+#include <dune/fem/io/parameter.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
-#include <string>
 #include <fstream>
+#include <string>
 #include <vector>
 
 namespace Dune
@@ -54,7 +55,7 @@ class CurvatureVelocityOperator:public Operator<DomainFunctionImp,RangeFunctionI
 
   void print(const std::string& filename="curvature_velocity_matrix.dat") const
   {
-    std::ofstream ofs(filename);
+    std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
     op_.matrix().print(ofs);
   }
 

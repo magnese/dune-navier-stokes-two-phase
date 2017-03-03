@@ -1,13 +1,16 @@
 #ifndef DUNE_FEM_OPERATORGLUER_HH
 #define DUNE_FEM_OPERATORGLUER_HH
 
+#include <dune/fem/io/parameter.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 
 #include <algorithm>
 #include <fstream>
+#include <memory>
 #include <string>
+#include <tuple>
 
 #include "extendedtuplediscretefunction.hh"
 
@@ -67,7 +70,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
 
   void print(const std::string& filename="glued_matrix.dat") const
   {
-    std::ofstream ofs(filename);
+    std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
     op_.matrix().print(ofs);
   }
 
@@ -222,7 +225,7 @@ class ExtendedOperatorGluer:public Operator<
 
   void print(const std::string& filename="extended_glued_matrix.dat") const
   {
-    std::ofstream ofs(filename);
+    std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
     op_.matrix().print(ofs);
   }
 
