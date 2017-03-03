@@ -115,6 +115,10 @@ int main(int argc,char** argv)
     timer.stop();
     std::cout<<"\nTotal running time: "<<timer.elapsed()<<" seconds.\n";
 
+    // output parameters
+    std::cout<<"\nParameters used:\n";
+    Dune::Fem::Parameter::write(std::cout);
+
     return 0;
   }
 
