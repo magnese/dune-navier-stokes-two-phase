@@ -423,16 +423,6 @@ class FluidState
   template<typename TimeProviderType>
   void dumpBulkSolutions(const TimeProviderType& timeProvider)
   {
-    #if PRESSURE_SPACE_TYPE == 2
-    for(const auto& entity:entities(pressure()))
-    {
-      auto localPressure(pressure().localFunction(entity));
-      auto localPressureAdditional(pressureAdditional().localFunction(entity));
-      auto localPressureDump(pressureDump().localFunction(entity));
-      for(auto i=decltype(localPressureDump.size()){0};i!=localPressureDump.size();++i)
-        localPressureDump[i]=localPressure[i]+localPressureAdditional[0];
-    }
-    #endif
     bulkoutput_->write(timeProvider);
     bulkoutputparameters_.saveState(*bulkoutput_);
   }

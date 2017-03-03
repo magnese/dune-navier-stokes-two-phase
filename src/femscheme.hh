@@ -9,6 +9,8 @@
 #include <dune/common/exceptions.hh>
 #include <dune/common/timer.hh>
 #include <dune/fem/io/parameter.hh>
+#include <dune/fem/quadrature/cachingquadrature.hh>
+#include <dune/fem/quadrature/integrator.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 #include <dune/fem/solver/spqrsolver.hh>
 #include <dune/fem/solver/ldlsolver.hh>
@@ -468,12 +470,32 @@ class FemScheme
     interfaceInvOp.finalize();
     timerSolveInterface.stop();
 
+    // set pressure dump to correct values (if needed)
+    #if PRESSURE_SPACE_TYPE == 2
+    timerSolveBulk.start();
+    for(const auto& entity:entities(fluidstate_.pressure()))
+    {
+      auto localPressure(fluidstate_.pressure().localFunction(entity));
+      auto localPressureAdditional(fluidstate_.pressureAdditional().localFunction(entity));
+      auto localPressureDump(fluidstate_.pressureDump().localFunction(entity));
+      for(auto i=decltype(localPressureDump.size()){0};i!=localPressureDump.size();++i)
+        localPressureDump[i]=localPressure[i]+localPressureAdditional[0];
+    }
+    timerSolveBulk.stop();
+    #endif
+
     // project pressure solution to the space of mean zero function
     timerSolveBulk.start();
-    projectZeroMean(fluidstate_.pressure(),bulkMassMatrixOp);
-    #if PRESSURE_SPACE_TYPE == 2
-    projectZeroMean(fluidstate_.pressureAdditional(),bulkMassMatrixAdditionalOp);
-    #endif
+    Integrator<CachingQuadrature<typename FluidStateType::BulkGridPartType,0>> integrator(2*fluidstate_.pressureDumpSpace().order()+1);
+    typename FluidStateType::PressureDumpDiscreteFunctionType::RangeType pressureIntegral(0);
+    for(const auto& entity:fluidstate_.pressureDumpSpace())
+    {
+      auto localPressure(fluidstate_.pressureDump().localFunction(entity));
+      integrator.integrateAdd(entity,localPressure,pressureIntegral);
+    }
+    pressureIntegral/=fluidstate_.meshManager().bulkVolume();
+    for(auto& dof:dofs(fluidstate_.pressureDump()))
+      dof-=pressureIntegral;
     timerSolveBulk.stop();
 
     // remove displacement if the problem has only 1 phase
@@ -494,20 +516,6 @@ class FemScheme
   private:
   FluidStateType& fluidstate_;
   ProblemType problem_;
-
-  // project df into the space of mean zero function
-  template<typename DF,typename Op>
-  void projectZeroMean(DF& df,const Op& op) const
-  {
-    DF temp("temp",df.space());
-    DF ones("ones",df.space());
-    std::fill(ones.dbegin(),ones.dend(),1.0);
-    op(df,temp);
-    auto coeff(ones.scalarProductDofs(temp));
-    op(ones,temp);
-    coeff*=-1.0/ones.scalarProductDofs(temp);
-    df.axpy(coeff,ones);
-  }
 };
 
 }

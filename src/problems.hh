@@ -34,14 +34,14 @@ class BaseProblem
   typedef typename FluidStateType::BulkDiscreteSpaceType BulkDiscreteSpaceType;
   typedef typename FluidStateType::CoupledMeshManagerType CoupledMeshManagerType;
 
-  typedef typename BulkDiscreteSpaceType::template SubDiscreteFunctionSpace<0>::Type VelocityDiscreteSpaceType;
+  typedef typename FluidStateType::VelocityDiscreteSpaceType VelocityDiscreteSpaceType;
   typedef typename VelocityDiscreteSpaceType::EntityType EntityType;
   typedef typename VelocityDiscreteSpaceType::DomainType VelocityDomainType;
   typedef typename VelocityDiscreteSpaceType::RangeType VelocityRangeType;
   typedef LocalAnalyticalFunctionBinder<VelocityDiscreteSpaceType> VelocityFunctionType;
   typedef LocalFunctionAdapter<VelocityFunctionType> AdaptedVelocityFunctionType;
 
-  typedef typename BulkDiscreteSpaceType::template SubDiscreteFunctionSpace<1>::Type PressureDiscreteSpaceType;
+  typedef typename FluidStateType::PressureDumpDiscreteSpaceType PressureDiscreteSpaceType;
   typedef typename PressureDiscreteSpaceType::DomainType PressureDomainType;
   typedef typename PressureDiscreteSpaceType::RangeType PressureRangeType;
   typedef LocalAnalyticalFunctionBinder<PressureDiscreteSpaceType> PressureFunctionType;
