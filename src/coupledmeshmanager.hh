@@ -501,6 +501,14 @@ class CoupledMeshManager
     return remeshPerformed;
   }
 
+  double bulkVolume() const
+  {
+    double volume(0.0);
+    for(const auto& entity:elements(bulkGridPart()))
+      volume+=std::abs(entity.geometry().volume());
+    return volume;
+  }
+
   double bulkInnerVolume() const
   {
     double volume(0.0);
