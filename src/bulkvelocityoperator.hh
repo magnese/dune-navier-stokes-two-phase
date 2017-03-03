@@ -86,7 +86,7 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
       const auto mu(problem_.mu(entity));
       const auto rho(problem_.rho(entity));
 
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
       for(const auto& qp:quadrature)
       {
         baseSet.evaluateAll(qp,phi);
@@ -171,7 +171,7 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
         const auto& baseSet(localMatrix.domainBasisFunctionSet());
         const auto rho(problem_.rho(entity));
 
-        CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+        const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
         for(const auto& qp:quadrature)
         {
           baseSet.evaluateAll(qp,phi);
@@ -211,7 +211,7 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
       const auto mu(problem_.mu(entity));
       const auto rho(problem_.rho(entity));
 
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
       for(const auto& qp:quadrature)
       {
         baseSet.evaluateAll(qp,phi);

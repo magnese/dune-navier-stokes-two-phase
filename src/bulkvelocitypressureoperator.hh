@@ -80,7 +80,7 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
       const auto& domainBaseSet(localMatrix.domainBasisFunctionSet());
       const auto& rangeBaseSet(localMatrix.rangeBasisFunctionSet());
 
-      CachingQuadrature<typename DomainSpaceType::GridPartType,0> quadrature(entity,2*domainspace_.order()+1);
+      const CachingQuadrature<typename DomainSpaceType::GridPartType,0> quadrature(entity,2*domainspace_.order()+1);
       for(const auto& qp:quadrature)
       {
         rangeBaseSet.evaluateAll(qp,phi);

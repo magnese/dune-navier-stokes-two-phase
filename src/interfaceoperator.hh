@@ -88,7 +88,7 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
       // assemble local \vec{A_m} (position)
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
       for(const auto& qp:quadrature)
       {
         // evaluate basis functions and weight
@@ -108,7 +108,7 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
           }
       }
       // assemble local \vec{N_m} (curvature_j-position_i)
-      CachingLumpingQuadrature<typename DiscreteSpaceType::GridPartType,0> lumpingQuadrature(entity);
+      const CachingLumpingQuadrature<typename DiscreteSpaceType::GridPartType,0> lumpingQuadrature(entity);
       for(const auto& qp:lumpingQuadrature)
       {
         // evaluate basis functions and weight

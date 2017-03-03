@@ -56,7 +56,7 @@ void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDi
 
     // loop over quadrature nodes
     typedef CachingQuadrature<typename VelocityDiscreteFunctionType::GridPartType,1> QuadratureType;
-    QuadratureType quadrature(bulkGridPart,intersection,2*curvatureSpace.order()+1,QuadratureType::INSIDE);
+    const QuadratureType quadrature(bulkGridPart,intersection,2*curvatureSpace.order()+1,QuadratureType::INSIDE);
     for(const auto& qp:quadrature)
     {
       curvatureBaseSet.evaluateAll(qp.localPosition(),phiCurvature);

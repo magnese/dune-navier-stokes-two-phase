@@ -37,7 +37,7 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidSt
     rho*=0.5;
     #endif
 
-    CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
+    const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
     for(const auto& qp:quadrature)
     {
       typename FluidStateType::VelocityDiscreteFunctionType::RangeType fValue;

@@ -106,7 +106,7 @@ class CurvatureVelocityOperator:public Operator<DomainFunctionImp,RangeFunctionI
 
       // loop over quadrature nodes
       typedef CachingQuadrature<typename VelocitySpaceType::GridPartType,1> QuadratureType;
-      QuadratureType quadrature(velocityspace_.gridPart(),intersection,2*curvaturespace_.order()+1,QuadratureType::INSIDE);
+      const QuadratureType quadrature(velocityspace_.gridPart(),intersection,2*curvaturespace_.order()+1,QuadratureType::INSIDE);
       for(const auto& qp:quadrature)
       {
         curvatureBaseSet.evaluateAll(qp.localPosition(),phiCurvature);

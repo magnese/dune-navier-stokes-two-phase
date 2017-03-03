@@ -79,7 +79,7 @@ class SmoothingOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
       typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
 
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
       for(const auto& qp:quadrature)
       {
         baseSet.jacobianAll(qp,gradphi);

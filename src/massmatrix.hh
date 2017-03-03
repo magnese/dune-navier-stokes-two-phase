@@ -78,7 +78,7 @@ class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
     {
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
       for(const auto& qp:quadrature)
       {
         baseSet.evaluateAll(qp,phi);

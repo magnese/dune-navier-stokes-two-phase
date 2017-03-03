@@ -96,7 +96,7 @@ class BubbleStatistics
     for(const auto& entity:elements(bulkInnerGridPart))
     {
       const auto fLocal(f.localFunction(entity));
-      CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(entity,2*f.space().order()+1);
+      const CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(entity,2*f.space().order()+1);
       for(const auto& qp:quadrature)
       {
         RangeType fValue;

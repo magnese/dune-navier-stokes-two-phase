@@ -40,7 +40,7 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
           GLocalType gLocal(bc.space().basisFunctionSet(entity),gLocalDOFs);
           const auto normal(intersection.centerUnitOuterNormal());
           typedef CachingQuadrature<typename DiscreteFunctionType::GridPartType,1> QuadratureType;
-          QuadratureType quadrature(gridPart,intersection,2*bc.space().order()+1,QuadratureType::INSIDE);
+          const QuadratureType quadrature(gridPart,intersection,2*bc.space().order()+1,QuadratureType::INSIDE);
           for(const auto& qp:quadrature)
           {
             typename BoundaryConditionType::RangeType gValue;
@@ -63,7 +63,7 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
     {
       auto localRHS(rhs.localFunction(entity));
       const auto& baseSet(space.basisFunctionSet(entity));
-      CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
+      const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
       for(const auto& qp:quadrature)
       {
         baseSet.evaluateAll(qp,phi);

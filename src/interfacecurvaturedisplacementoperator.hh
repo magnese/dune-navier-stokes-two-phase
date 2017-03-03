@@ -97,7 +97,7 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
       const auto& domainBaseSet(localMatrix.domainBasisFunctionSet());
       const auto& rangeBaseSet(localMatrix.rangeBasisFunctionSet());
 
-      CachingQuadrature<typename DomainSpaceType::GridPartType,0> quadrature(entity,2*domainspace_.order()+1);
+      const CachingQuadrature<typename DomainSpaceType::GridPartType,0> quadrature(entity,2*domainspace_.order()+1);
       for(const auto& qp:quadrature)
       {
         domainBaseSet.evaluateAll(qp,phiDomain);
