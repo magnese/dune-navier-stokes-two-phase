@@ -53,9 +53,9 @@ struct FemTraits
   // define discrete functions
   typedef AdaptiveDiscreteFunction<VelocityDiscreteSpaceType> VelocityDiscreteFunctionType;
   typedef AdaptiveDiscreteFunction<Pressure0DiscreteSpaceType> Pressure0DiscreteFunctionType;
-  #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
+  #if !USE_EXTENDED_PRESSURE_SPACE
   typedef ExtendedTupleDiscreteFunction<VelocityDiscreteFunctionType,Pressure0DiscreteFunctionType> BulkDiscreteFunctionType;
-  #elif PRESSURE_SPACE_TYPE == 2
+  #else
   typedef AdaptiveDiscreteFunction<Pressure1DiscreteSpaceType> Pressure1DiscreteFunctionType;
   typedef ExtendedTupleDiscreteFunction<VelocityDiscreteFunctionType,Pressure0DiscreteFunctionType,Pressure1DiscreteFunctionType>
     BulkDiscreteFunctionType;

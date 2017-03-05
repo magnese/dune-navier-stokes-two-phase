@@ -52,7 +52,7 @@ class FemScheme
   // define discrete functions
   typedef typename FluidStateType::VelocityDiscreteFunctionType VelocityDiscreteFunctionType;
   typedef typename FluidStateType::Pressure0DiscreteFunctionType Pressure0DiscreteFunctionType;
-  #if PRESSURE_SPACE_TYPE == 2
+  #if USE_EXTENDED_PRESSURE_SPACE
   typedef typename FluidStateType::Pressure1DiscreteFunctionType Pressure1DiscreteFunctionType;
   #endif
   typedef typename FluidStateType::CurvatureDiscreteFunctionType CurvatureDiscreteFunctionType;
@@ -93,12 +93,12 @@ class FemScheme
   typedef BulkVelocityPressureOperator<VelocityDiscreteFunctionType,Pressure0DiscreteFunctionType> VelocityPressure0OperatorType;
   typedef BulkPressureVelocityOperator<Pressure0DiscreteFunctionType,VelocityDiscreteFunctionType> Pressure0VelocityOperatorType;
   typedef NullOperator<Pressure0DiscreteFunctionType,Pressure0DiscreteFunctionType> Pressure0OperatorType;
-  #if PRESSURE_SPACE_TYPE == 2
+  #if USE_EXTENDED_PRESSURE_SPACE
   typedef BulkVelocityPressureOperator<VelocityDiscreteFunctionType,Pressure1DiscreteFunctionType> VelocityPressure1OperatorType;
   typedef BulkPressureVelocityOperator<Pressure1DiscreteFunctionType,VelocityDiscreteFunctionType> Pressure1VelocityOperatorType;
   #endif
   typedef MassMatrix<Pressure0DiscreteFunctionType,Pressure0DiscreteFunctionType> BulkMassMatrixOperatorType;
-  #if PRESSURE_SPACE_TYPE == 2
+  #if USE_EXTENDED_PRESSURE_SPACE
   typedef MassMatrix<Pressure1DiscreteFunctionType,Pressure1DiscreteFunctionType> BulkMassMatrixAdditionalOperatorType;
   #endif
   typedef CurvatureVelocityOperator<CurvatureDiscreteFunctionType,VelocityDiscreteFunctionType,CoupledMeshManagerType>
@@ -177,7 +177,7 @@ class FemScheme
     velocityOp.assemble(timeProvider);
     Pressure0VelocityOperatorType pressure0VelocityOp(fluidstate_.pressure0Space(),fluidstate_.velocitySpace());
     pressure0VelocityOp.assemble();
-    #if PRESSURE_SPACE_TYPE == 2
+    #if USE_EXTENDED_PRESSURE_SPACE
     Pressure1VelocityOperatorType pressure1VelocityOp(fluidstate_.pressure1Space(),fluidstate_.velocitySpace());
     pressure1VelocityOp.assemble();
     #endif
@@ -185,7 +185,7 @@ class FemScheme
     #if !USE_SYMMETRIC_DIRICHLET
     velocityPressure0Op.assembleTransposingOp(pressure0VelocityOp);
     #endif
-    #if PRESSURE_SPACE_TYPE == 2
+    #if USE_EXTENDED_PRESSURE_SPACE
     VelocityPressure1OperatorType velocityPressure1Op(fluidstate_.velocitySpace(),fluidstate_.pressure1Space());
     #if !USE_SYMMETRIC_DIRICHLET
     velocityPressure1Op.assembleTransposingOp(pressure1VelocityOp);
@@ -196,7 +196,7 @@ class FemScheme
     curvatureVelocityOp.assemble();
     BulkMassMatrixOperatorType bulkMassMatrixOp(fluidstate_.pressure0Space());
     bulkMassMatrixOp.assemble();
-    #if PRESSURE_SPACE_TYPE == 2
+    #if USE_EXTENDED_PRESSURE_SPACE
     BulkMassMatrixAdditionalOperatorType bulkMassMatrixAdditionalOp(fluidstate_.pressure1Space());
     bulkMassMatrixAdditionalOp.assemble();
     #endif
@@ -225,7 +225,7 @@ class FemScheme
     assembleVelocityRHS(velocityRHS,fluidstate_,problem_,timeProvider);
     #if PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 4 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
     assemblePressureRHS(bulkRHS.template subDiscreteFunction<1>(),problem_.velocityBC(),timeProvider);
-    #if PRESSURE_SPACE_TYPE == 2
+    #if USE_EXTENDED_PRESSURE_SPACE
     assemblePressureRHS(bulkRHS.template subDiscreteFunction<2>(),problem_.velocityBC(),timeProvider);
     #endif
     #endif
@@ -253,9 +253,9 @@ class FemScheme
 
     // impose bulk bc
     timerAssembleBulk.start();
-    #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
+    #if !USE_EXTENDED_PRESSURE_SPACE
     problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressure0VelocityOp);
-    #elif PRESSURE_SPACE_TYPE == 2
+    #else
     problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressure0VelocityOp,pressure1VelocityOp);
     #endif
     timerAssembleBulk.stop();
@@ -264,7 +264,7 @@ class FemScheme
     #if USE_SYMMETRIC_DIRICHLET
     timerAssembleBulk.start();
     velocityPressure0Op.assembleTransposingOp(pressure0VelocityOp);
-    #if PRESSURE_SPACE_TYPE == 2
+    #if USE_EXTENDED_PRESSURE_SPACE
     velocityPressure1Op.assembleTransposingOp(pressure1VelocityOp);
     #endif
     timerAssembleBulk.stop();
@@ -276,7 +276,7 @@ class FemScheme
                                    InterfaceInverseOperatorType,VelocityCurvatureOperatorType> CoupledOperatorWrapperType;
     CoupledOperatorWrapperType coupledWrapperOp(velocityOp,curvatureVelocityOp,interfaceOp,interfaceInvOp,velocityCurvatureOp,gamma);
 
-    #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
+    #if !USE_EXTENDED_PRESSURE_SPACE
     typedef OperatorWrapper<CoupledOperatorWrapperType,Pressure0VelocityOperatorType,
                             VelocityPressure0OperatorType,Pressure0OperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressure0VelocityOp,velocityPressure0Op,pressure0Op);
@@ -298,7 +298,7 @@ class FemScheme
     #endif
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
-    #elif PRESSURE_SPACE_TYPE == 2
+    #else
     typedef ExtendedOperatorWrapper<CoupledOperatorWrapperType,Pressure0VelocityOperatorType,VelocityPressure0OperatorType,
       Pressure1VelocityOperatorType,VelocityPressure1OperatorType> BulkOperatorWrapperType;
     BulkOperatorWrapperType bulkOp(coupledWrapperOp,pressure0VelocityOp,velocityPressure0Op,pressure1VelocityOp,
@@ -398,9 +398,9 @@ class FemScheme
         }
         // re-impose bulk bc
         timerAssembleBulk.start();
-        #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
+        #if !USE_EXTENDED_PRESSURE_SPACE
         problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressure0VelocityOp);
-        #elif PRESSURE_SPACE_TYPE == 2
+        #else
         problem_.applyBC(timeProvider,bulkRHS,velocityOp,pressure0VelocityOp,pressure1VelocityOp);
         #endif
         timerAssembleBulk.stop();
