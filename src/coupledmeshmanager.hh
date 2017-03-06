@@ -18,6 +18,7 @@
 #include <dune/geometry/referenceelements.hh>
 #include <dune/grid/common/gridfactory.hh>
 #include <dune/grid/geometrygrid/grid.hh>
+#include <dune/grid/io/file/gmshwriter.hh>
 #include <dune/fem/gridpart/filter/domainfilter.hh>
 #include <dune/fem/gridpart/filteredgridpart.hh>
 #include <dune/fem/gridpart/leafgridpart.hh>
@@ -574,6 +575,13 @@ class CoupledMeshManager
     s<<"InterfaceGrid = "<<interfacegrid_.use_count()<<"\n";
     s<<"InterfaceGridPart = "<<interfacegridpart_.use_count()<<"\n";
     s<<"BulkInterfaceGridMapper = "<<mapper_.use_count()<<"\n\n";
+  }
+
+  // dump interface as msh file
+  void dumpInterface(const std::string& fileName="interface.msh",int precision=6) const
+  {
+    GmshWriter<typename InterfaceGridType::LeafGridView> gmshWriter(interfaceGrid().leafGridView(),precision);
+    gmshWriter.write(Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,elementsIDs(),boundaryIDs());
   }
 
   private:
