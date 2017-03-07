@@ -19,6 +19,7 @@
 #include <dune/grid/common/gridfactory.hh>
 #include <dune/grid/geometrygrid/grid.hh>
 #include <dune/grid/io/file/gmshwriter.hh>
+#include <dune/fem/gridpart/filter/basicfilterwrapper.hh>
 #include <dune/fem/gridpart/filter/domainfilter.hh>
 #include <dune/fem/gridpart/filteredgridpart.hh>
 #include <dune/fem/gridpart/leafgridpart.hh>
@@ -185,7 +186,8 @@ class CoupledMeshManager
   typedef LeafGridPart<InterfaceGridType> InterfaceGridPartType;
 
   // define bulk indicator function
-  typedef DomainFilter<BulkGridPartType,std::vector<int>> IndicatorFunctionType;
+  typedef DomainFilter<BulkGridPartType,std::vector<int>> DomainFilterType;
+  typedef BasicFilterWrapper<BulkGridPartType,DomainFilterType> IndicatorFunctionType;
 
   // define inner and outer grid parts
   static constexpr bool useFilteredIndexSet=false;
@@ -286,8 +288,8 @@ class CoupledMeshManager
       printGridInfo(bulkGrid());
       // create bulk indicator functions and bulk grid parts
       bulkgridpart_=std::make_shared<BulkGridPartType>(bulkGrid());
-      bulkinnerindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),elementsIDs(),1);
-      bulkouterindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),elementsIDs(),2);
+      bulkinnerindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),bulkGridPart(),elementsIDs(),1);
+      bulkouterindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),bulkGridPart(),elementsIDs(),2);
       bulkinnergridpart_=std::make_shared<BulkInnerGridPartType>(bulkGridPart(),bulkInnerIndicatorFunction());
       bulkoutergridpart_=std::make_shared<BulkOuterGridPartType>(bulkGridPart(),bulkOuterIndicatorFunction());
       // copy interface grid
@@ -478,8 +480,8 @@ class CoupledMeshManager
         // reorder boundary IDs
         reorderBoundaryIDs(bulkHostGridFactory);
         // create bulk indicator functions and inner and outer grid parts
-        bulkinnerindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),elementsIDs(),1);
-        bulkouterindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),elementsIDs(),2);
+        bulkinnerindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),bulkGridPart(),elementsIDs(),1);
+        bulkouterindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),bulkGridPart(),elementsIDs(),2);
         bulkinnergridpart_=std::make_shared<BulkInnerGridPartType>(bulkGridPart(),bulkInnerIndicatorFunction());
         bulkoutergridpart_=std::make_shared<BulkOuterGridPartType>(bulkGridPart(),bulkOuterIndicatorFunction());
         // create interface grid and interface grid part
@@ -650,8 +652,8 @@ class CoupledMeshManager
     // reorder boundary IDs
     reorderBoundaryIDs(bulkHostGridFactory);
     // create bulk indicator functions and inner and outer grid parts
-    bulkinnerindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),elementsIDs(),1);
-    bulkouterindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),elementsIDs(),2);
+    bulkinnerindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),bulkGridPart(),elementsIDs(),1);
+    bulkouterindicator_=std::make_shared<IndicatorFunctionType>(bulkGridPart(),bulkGridPart(),elementsIDs(),2);
     bulkinnergridpart_=std::make_shared<BulkInnerGridPartType>(bulkGridPart(),bulkInnerIndicatorFunction());
     bulkoutergridpart_=std::make_shared<BulkOuterGridPartType>(bulkGridPart(),bulkOuterIndicatorFunction());
     // create interface grid and interface grid part
