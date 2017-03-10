@@ -80,7 +80,7 @@ class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionI
     // clear matrix
     op_.clear();
 
-    // define local functions and basis
+    // allocate basis vectors
     constexpr std::size_t velocityLocalBlockSize(VelocitySpaceType::localBlockSize);
     typedef typename VelocityFunctionType::LocalFunctionType::RangeType VelocityRangeType;
     std::vector<VelocityRangeType> phiVelocity(velocityspace_.blockMapper().maxNumDofs()*velocityLocalBlockSize);

@@ -68,8 +68,11 @@ class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
   {
     DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
     op_.reserve(stencil);
+
+    // clear matrix
     op_.clear();
 
+    // allocate basis vector
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
     std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);

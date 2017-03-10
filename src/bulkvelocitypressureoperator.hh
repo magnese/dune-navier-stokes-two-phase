@@ -66,8 +66,11 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
   {
     DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
     op_.reserve(stencil);
+
+    // clear matrix
     op_.clear();
 
+    // allocate basis vectors
     constexpr std::size_t domainLocalBlockSize(DomainSpaceType::localBlockSize);
     constexpr std::size_t rangeLocalBlockSize(RangeSpaceType::localBlockSize);
     typedef typename DomainFunctionType::LocalFunctionType::JacobianRangeType DomainJacobianRangeType;
@@ -111,6 +114,8 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
   {
     DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
     op_.reserve(stencil);
+
+    // clear matrix
     op_.clear();
 
     for(const auto& entity:domainspace_)
