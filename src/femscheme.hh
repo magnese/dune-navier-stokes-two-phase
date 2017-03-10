@@ -151,7 +151,6 @@ class FemScheme
     InterfaceDiscreteFunctionType rhs("interface RHS",fluidstate_.interfaceSpace());
     rhs.clear();
     assembleInterfaceRHS(rhs,interfaceOp);
-    rhs*=-1.0;
 
     // solve
     UMFPACKOp<InterfaceDiscreteFunctionType,InterfaceOperatorType> interfaceInvOp(interfaceOp);
