@@ -64,7 +64,10 @@ class BulkPressureVelocityOperator:public Operator<DomainFunctionImp,RangeFuncti
 
   void assemble()
   {
-    DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
+    // allocate matrix
+    Stencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
+    for(const auto& entity:domainspace_)
+      stencil.fill(entity,entity);
     op_.reserve(stencil);
 
     // clear matrix

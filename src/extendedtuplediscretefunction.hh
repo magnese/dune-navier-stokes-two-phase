@@ -40,7 +40,7 @@ class ExtendedTupleDiscreteFunction:public TupleDiscreteFunction<DiscreteFunctio
 
   ThisType& operator=(const ThisType& other)
   {
-    dofVector_ = other.dofVector_;
+    dofVector_=other.dofVector_;
     return *this;
   }
 
@@ -54,6 +54,38 @@ class ExtendedTupleDiscreteFunction:public TupleDiscreteFunction<DiscreteFunctio
     return std::sqrt(scalarProductDofs(*this));
   }
 };
+
+template<typename DiscreteFunctionType>
+struct UninitializedLocalFunctionHelper
+{
+  static auto get(DiscreteFunctionType& df)
+  {
+    return std::tuple<typename DiscreteFunctionType::LocalFunctionType>(df.localFunction());
+  }
+};
+
+template<typename... DiscreteFunctionsType>
+struct UninitializedLocalFunctionHelper<ExtendedTupleDiscreteFunction<DiscreteFunctionsType...>>
+{
+  typedef ExtendedTupleDiscreteFunction<DiscreteFunctionsType...> DiscreteFunctionType;
+
+  static auto get(DiscreteFunctionType& df)
+  {
+    return get(df,typename DiscreteFunctionType::Sequence{});
+  }
+
+  template<std::size_t... i>
+  static auto get(DiscreteFunctionType& df,std::index_sequence<i...> )
+  {
+    return std::tuple<typename DiscreteFunctionsType::LocalFunctionType...>(df.template subDiscreteFunction<i>().localFunction()...);
+  }
+};
+
+template<typename DiscreteFunctionType>
+auto getUninitializedLocalFunctions(DiscreteFunctionType& df)
+{
+  return UninitializedLocalFunctionHelper<DiscreteFunctionType>::get(df);
+}
 
 }
 }

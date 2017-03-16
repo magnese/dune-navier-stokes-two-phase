@@ -190,7 +190,11 @@ class CoupledMeshManager
   typedef BasicFilterWrapper<BulkGridPartType,DomainFilterType> IndicatorFunctionType;
 
   // define inner and outer grid parts
+  #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1 || PRESSURE_SPACE_TYPE == 2
   static constexpr bool useFilteredIndexSet=false;
+  #elif PRESSURE_SPACE_TYPE == 3
+  static constexpr bool useFilteredIndexSet=true;
+  #endif
   typedef FilteredGridPart<BulkGridPartType,IndicatorFunctionType,useFilteredIndexSet> BulkInnerGridPartType;
   typedef FilteredGridPart<BulkGridPartType,IndicatorFunctionType,useFilteredIndexSet> BulkOuterGridPartType;
 

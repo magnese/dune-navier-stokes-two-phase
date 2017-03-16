@@ -64,7 +64,10 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
 
   void assemble()
   {
-    DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
+    // allocate matrix
+    Stencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
+    for(const auto& entity:rangespace_)
+      stencil.fill(entity,entity);
     op_.reserve(stencil);
 
     // clear matrix
@@ -78,7 +81,7 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
     typedef typename RangeFunctionType::LocalFunctionType::RangeType RangeRangeType;
     std::vector<RangeRangeType> phi(rangespace_.blockMapper().maxNumDofs()*rangeLocalBlockSize);
 
-    for(const auto& entity:domainspace_)
+    for(const auto& entity:rangespace_)
     {
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto& domainBaseSet(localMatrix.domainBasisFunctionSet());
@@ -112,13 +115,16 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
   template<typename TransposeOperatorType>
   void assembleTransposingOp(const TransposeOperatorType& opT)
   {
-    DiagonalAndNeighborStencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
+    // allocate matrix
+    Stencil<DomainSpaceType,RangeSpaceType> stencil(domainspace_,rangespace_);
+    for(const auto& entity:rangespace_)
+      stencil.fill(entity,entity);
     op_.reserve(stencil);
 
     // clear matrix
     op_.clear();
 
-    for(const auto& entity:domainspace_)
+    for(const auto& entity:rangespace_)
     {
       auto localMatrix(op_.localMatrix(entity,entity));
       const auto localMatrixT(opT.systemMatrix().localMatrix(entity,entity));

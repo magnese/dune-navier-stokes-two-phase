@@ -18,6 +18,9 @@
 #include <dune/common/hybridutilities.hh>
 #include <dune/fem/function/common/localfunctionadapter.hh>
 
+#include "extendedtuplediscretefunction.hh"
+#include "gridparthelper.hh"
+
 namespace Dune
 {
 namespace Fem
@@ -268,15 +271,22 @@ class DirichletCondition:
 
   // clear as unit rows the ones which have a Dirichlet condition (first operator is the one on the diagonal)
   // set in the RHS vector the Dirichlet component to the correct value
-  template<typename TimeProviderType,typename RHSType,typename FirstOperatorType,typename... OperatorsType>
-  void setDOFs(const EntityType& entity,const TimeProviderType& timeProvider,RHSType& rhs,FirstOperatorType& firstOperator,
-               OperatorsType&... operators) const
+  template<typename TimeProviderType,typename RHSType,typename... OperatorsType>
+  void setDOFs(const EntityType& entity,const TimeProviderType& timeProvider,RHSType& rhs,OperatorsType&... operators) const
   {
-    typedef typename FirstOperatorType::LinearOperatorType::LocalMatrixType FirstLocalMatrixType;
-    FirstLocalMatrixType firstLocalMatrix(firstOperator.systemMatrix().localMatrix(entity,entity));
-    typedef std::tuple<typename OperatorsType::LinearOperatorType::LocalMatrixType...> LocalMatricesType;
-    LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
-    auto rhsLocal(rhs.localFunction(entity));
+    constexpr std::size_t operatorsSize(sizeof...(OperatorsType));
+    auto contained(isEntityContained(entity,operators.domainSpace().gridPart()...));
+    auto localMatrices(std::make_tuple(operators.systemMatrix().localMatrix()...));
+    auto localRHSs(getUninitializedLocalFunctions(rhs));
+    Hybrid::forEach(std::make_index_sequence<operatorsSize>{},
+      [&](auto i)
+      {
+        if(std::get<i>(contained))
+        {
+          std::get<i>(localMatrices).init(entity,entity);
+          std::get<i>(localRHSs).init(entity);
+        }
+      });;
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     const auto numLocalBlocks(space().basisFunctionSet(entity).size()/DiscreteSpaceType::dimRange);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
@@ -292,36 +302,44 @@ class DirichletCondition:
         for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
         {
           // impose bc on first operator
+          auto& firstLocalMatrix(std::get<0>(localMatrices));
+          auto& firstLocalRHS(std::get<0>(localRHSs));
           firstLocalMatrix.clearRow(row);
           #if USE_SYMMETRIC_DIRICHLET
           for(auto j=decltype(firstLocalMatrix.rows()){0};j!=firstLocalMatrix.rows();++j)
           {
             // keep matrix symmetric
-            rhsLocal[j]-=firstLocalMatrix.get(j,row)*localBCDOFs[row];
+            firstLocalRHS[j]-=firstLocalMatrix.get(j,row)*localBCDOFs[row];
             firstLocalMatrix.set(j,row,0.0);
           }
           #endif
           firstLocalMatrix.set(row,row,1.0);
           // impose bc on others operators
           #if USE_SYMMETRIC_DIRICHLET
-          std::size_t offset(firstLocalMatrix.rows());
-          Hybrid::forEach(std::make_index_sequence<std::tuple_size<LocalMatricesType>::value>{},
+          Hybrid::forEach(std::make_index_sequence<operatorsSize-1>{},
             [&](auto i)
               {
-                auto& entry(std::get<i>(localMatrices));
-                for(auto j=decltype(entry.columns()){0};j!=entry.columns();++j)
+                if(std::get<i+1>(contained))
                 {
-                  rhsLocal[j+offset]-=entry.get(row,j)*localBCDOFs[row];
-                  entry.set(row,j,0.0);
+                  auto& currentLocalMatrix(std::get<i+1>(localMatrices));
+                  auto& currentLocalRHS(std::get<i+1>(localRHSs));
+                  for(auto j=decltype(currentLocalMatrix.columns()){0};j!=currentLocalMatrix.columns();++j)
+                  {
+                    currentLocalRHS[j]-=currentLocalMatrix.get(row,j)*localBCDOFs[row];
+                    currentLocalMatrix.set(row,j,0.0);
+                  }
                 }
-                offset+=entry.columns();
               });
           #else
-          Hybrid::forEach(std::make_index_sequence<std::tuple_size<LocalMatricesType>::value>{},
-            [&](auto i){std::get<i>(localMatrices).clearRow(row);});
+          Hybrid::forEach(std::make_index_sequence<operatorsSize-1>{},
+            [&](auto i)
+            {
+              if(std::get<i+1>(contained))
+                std::get<i+1>(localMatrices).clearRow(row);
+            });
           #endif
           // impose bc on RHS term
-          rhsLocal[row]=localBCDOFs[row];
+          firstLocalRHS[row]=localBCDOFs[row];
         }
       }
       else
@@ -408,9 +426,17 @@ class FreeSlipCondition:
   template<typename Foo,typename RHSType,typename... OperatorsType>
   void setDOFs(const EntityType& entity,const Foo& ,RHSType& rhs,OperatorsType&... operators) const
   {
-    typedef std::tuple<typename OperatorsType::LinearOperatorType::LocalMatrixType...> LocalMatricesType;
-    LocalMatricesType localMatrices(operators.systemMatrix().localMatrix(entity,entity)...);
-    auto rhsLocal(rhs.localFunction(entity));
+    constexpr std::size_t operatorsSize(sizeof...(OperatorsType));
+    auto contained(isEntityContained(entity,operators.domainSpace().gridPart()...));
+    auto localMatrices(std::make_tuple(operators.systemMatrix().localMatrix()...));
+    auto localRHSs(getUninitializedLocalFunctions(rhs));
+    std::get<0>(localRHSs).init(entity);
+    Hybrid::forEach(std::make_index_sequence<operatorsSize>{},
+      [&](auto i)
+      {
+        if(std::get<i>(contained))
+          std::get<i>(localMatrices).init(entity,entity);
+      });
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     const auto numLocalBlocks(space().basisFunctionSet(entity).size()/DiscreteSpaceType::dimRange);
     std::vector<std::size_t> globalIdxs(numLocalBlocks);
@@ -428,13 +454,19 @@ class FreeSlipCondition:
           const auto f(evaluateBoundaryFunction(typename BaseType::DomainType(0.0),0.0,entity,boundaryID));
           for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
           {
+            // impose bc on operators
             if(f[l]==0.0)
             {
-              Hybrid::forEach(std::make_index_sequence<std::tuple_size<LocalMatricesType>::value>{},
-                [&](auto i){std::get<i>(localMatrices).clearRow(row);});
+              Hybrid::forEach(std::make_index_sequence<operatorsSize>{},
+                [&](auto i)
+                {
+                  if(std::get<i>(contained))
+                    std::get<i>(localMatrices).clearRow(row);
+                });
               std::get<0>(localMatrices).set(row,row,1.0);
             }
-            rhsLocal[row]*=localBCDOFs[row];
+            // impose bc on RHS term
+            std::get<0>(localRHSs)[row]*=localBCDOFs[row];
           }
           row-=localBlockSize;
         }

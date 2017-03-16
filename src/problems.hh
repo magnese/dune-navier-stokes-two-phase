@@ -199,7 +199,7 @@ class BaseProblem
   }
 
   template<typename... Args>
-  void applyBC(const Args&... args)
+  void applyBC(Args&... args)
   {
     Hybrid::forEach(std::make_index_sequence<std::tuple_size<VelocityBCsType>::value>{},
       [&](auto i){std::get<i>(velocitybcs_).apply(args...);});

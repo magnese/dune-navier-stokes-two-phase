@@ -45,6 +45,10 @@ struct FemTraits
   typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,1> Pressure0DiscreteSpaceType;
   typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,0> Pressure1DiscreteSpaceType;
   typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDiscreteSpaceType;
+  #elif PRESSURE_SPACE_TYPE == 3
+  typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkInnerGridPartType,1> Pressure0DiscreteSpaceType;
+  typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkOuterGridPartType,1> Pressure1DiscreteSpaceType;
+  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDiscreteSpaceType;
   #endif
   typedef LagrangeDiscreteFunctionSpace<BulkDisplacementContinuosSpaceType,BulkGridPartType,1> BulkDisplacementDiscreteSpaceType;
   typedef LagrangeDiscontinuousGalerkinSpace<PhysicalCoefficientContinuosSpaceType,BulkGridPartType,0> PhysicalCoefficientDiscreteSpaceType;

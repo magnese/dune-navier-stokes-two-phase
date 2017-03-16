@@ -367,7 +367,14 @@ class FluidState
     // reset pointers to avoid dangling references
     resetPointers();
     // create spaces
+    #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1 || PRESSURE_SPACE_TYPE == 2
     bulkspace_=std::make_shared<BulkDiscreteSpaceType>(bulkGridPart());
+    #elif PRESSURE_SPACE_TYPE == 3
+    bulkspace_=std::make_shared<BulkDiscreteSpaceType>(std::make_tuple(
+      std::make_unique<VelocityDiscreteSpaceType>(bulkGridPart()),
+      std::make_unique<Pressure0DiscreteSpaceType>(bulkInnerGridPart()),
+      std::make_unique<Pressure1DiscreteSpaceType>(bulkOuterGridPart())));
+    #endif
     #if USE_EXTENDED_PRESSURE_SPACE
     pressurespace_=std::make_shared<PressureDiscreteSpaceType>(bulkGridPart());
     #endif

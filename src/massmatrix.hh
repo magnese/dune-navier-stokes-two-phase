@@ -66,7 +66,10 @@ class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
 
   void assemble()
   {
-    DiagonalAndNeighborStencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
+    // allocate matrix
+    Stencil<DiscreteSpaceType,DiscreteSpaceType> stencil(space_,space_);
+    for(const auto& entity:space_)
+      stencil.fill(entity,entity);
     op_.reserve(stencil);
 
     // clear matrix

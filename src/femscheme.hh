@@ -479,6 +479,27 @@ class FemScheme
         localPressure[i]=localPressure0[i]+localPressure1[0];
     }
     timerSolveBulk.stop();
+    #elif PRESSURE_SPACE_TYPE == 3
+    timerSolveBulk.start();
+    std::vector<typename FluidStateType::PressureDiscreteSpaceType::RangeFieldType> localDOFs;
+    localDOFs.reserve(fluidstate_.pressureSpace().blockMapper().maxNumDofs()*FluidStateType::PressureDiscreteSpaceType::localBlockSize);
+    for(const auto& entity:fluidstate_.pressureSpace())
+    {
+      const auto interpolation(fluidstate_.pressureSpace().interpolation(entity));
+      localDOFs.resize(fluidstate_.pressureSpace().basisFunctionSet(entity).size());
+      if(fluidstate_.bulkInnerGridPart().contains(entity))
+      {
+        const auto localPressure(fluidstate_.pressure0().localFunction(entity));
+        interpolation(localPressure,localDOFs);
+      }
+      else
+      {
+        const auto localPressure(fluidstate_.pressure1().localFunction(entity));
+        interpolation(localPressure,localDOFs);
+      }
+      fluidstate_.pressure().setLocalDofs(entity,localDOFs);
+    }
+    timerSolveBulk.stop();
     #endif
 
     // project pressure solution to the space of mean zero function

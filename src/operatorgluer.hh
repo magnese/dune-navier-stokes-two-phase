@@ -207,7 +207,10 @@ class ExtendedOperatorGluer:public Operator<
 
   ExtendedOperatorGluer(const Op11Type& op11,const Op12Type& op12,const Op21Type& op21,const Op13Type& op13,const Op31Type& op31):
     mat11_(op11.systemMatrix().matrix()),mat12_(op12.systemMatrix().matrix()),mat21_(op21.systemMatrix().matrix()),
-    mat13_(op13.systemMatrix().matrix()),mat31_(op31.systemMatrix().matrix()),space_(op11.domainSpace().gridPart()),
+    mat13_(op13.systemMatrix().matrix()),mat31_(op31.systemMatrix().matrix()),
+    space_(std::make_tuple(std::make_unique<typename DomainFunction1Type::DiscreteFunctionSpaceType>(op11.domainSpace().gridPart()),
+                           std::make_unique<typename DomainFunction2Type::DiscreteFunctionSpaceType>(op12.domainSpace().gridPart()),
+                           std::make_unique<typename DomainFunction3Type::DiscreteFunctionSpaceType>(op13.domainSpace().gridPart()))),
     op_("extended gluer operator",space_,space_)
   {}
 
@@ -323,6 +326,7 @@ class ExtendedOperatorGluer:public Operator<
       matrix.set(i,row,0.0);
     #endif
     matrix.set(row,row,1.0);
+    #if PRESSURE_SPACE_TYPE != 3
     row+=mat12_.cols();
     matrix.clearRow(row);
     #if USE_SYMMETRIC_DIRICHLET
@@ -330,6 +334,7 @@ class ExtendedOperatorGluer:public Operator<
       matrix.set(i,row,0.0);
     #endif
     matrix.set(row,row,1.0);
+    #endif
   }
 
   template<typename RHSType>
@@ -337,8 +342,10 @@ class ExtendedOperatorGluer:public Operator<
   {
     auto row(mat11_.cols());
     rhs[row]=0.0;
+    #if PRESSURE_SPACE_TYPE != 3
     row+=mat12_.cols();
     rhs[row]=0.0;
+    #endif
   }
 
   private:
