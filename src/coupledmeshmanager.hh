@@ -590,6 +590,13 @@ class CoupledMeshManager
     gmshWriter.write(Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,elementsIDs(),boundaryIDs());
   }
 
+  // dump interface as msh file
+  template<typename TimeProviderType>
+  void dumpInterface(const TimeProviderType& timeProvider,int precision=6) const
+  {
+    dumpInterface("interface_"+std::to_string(timeProvider.time())+".msh",precision);
+  }
+
   private:
   std::shared_ptr<std::vector<int>> boundaryids_;
   std::shared_ptr<std::vector<int>> elementsids_;
