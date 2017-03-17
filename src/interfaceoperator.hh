@@ -5,7 +5,6 @@
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
-#include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/quadrature/lumpingquadrature.hh>
 
 #include <fstream>
@@ -86,17 +85,18 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
       const auto normalVector(intersection.centerUnitOuterNormal());
       // extract local matrix and basis functions
       auto localMatrix(op_.localMatrix(entity,entity));
+      const auto columnLocalSize(localMatrix.columns());
+      const auto rowLocalSize(localMatrix.rows());
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
-      // assemble local \vec{A_m} (position)
-      const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
+      // assemble local matrix
+      const CachingLumpingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity);
       for(const auto& qp:quadrature)
       {
         // evaluate basis functions and weight
+        baseSet.evaluateAll(qp,phi);
         baseSet.jacobianAll(qp,gradphi);
         const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
-        // fill \vec{A_m}
-        const auto columnLocalSize(localMatrix.columns());
-        const auto rowLocalSize(localMatrix.rows());
+        // fill \vec{A_m} (position)
         for(auto i=decltype(rowLocalSize){worlddim};i!=rowLocalSize;++i)
           for(auto j=decltype(columnLocalSize){worlddim};j!=columnLocalSize;++j)
           {
@@ -106,17 +106,7 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
             value*=weight;
             localMatrix.add(i,j,value);
           }
-      }
-      // assemble local \vec{N_m} (curvature_j-position_i)
-      const CachingLumpingQuadrature<typename DiscreteSpaceType::GridPartType,0> lumpingQuadrature(entity);
-      for(const auto& qp:lumpingQuadrature)
-      {
-        // evaluate basis functions and weight
-        baseSet.evaluateAll(qp,phi);
-        const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
-        // fill \vec{N_m}
-        const auto columnLocalSize(localMatrix.columns());
-        const auto rowLocalSize(localMatrix.rows());
+        // fill \vec{N_m} (curvature_j-position_i) and -\vec{N_m}^T
         for(auto i=decltype(rowLocalSize){worlddim};i!=rowLocalSize;++i)
           for(auto j=decltype(columnLocalSize){0};j!=columnLocalSize;++j)
           {
