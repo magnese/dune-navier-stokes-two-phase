@@ -19,6 +19,7 @@
 #include <dune/grid/common/gridfactory.hh>
 #include <dune/grid/geometrygrid/grid.hh>
 #include <dune/grid/io/file/gmshwriter.hh>
+#include <dune/grid/utility/hostgridaccess.hh>
 #include <dune/fem/gridpart/filter/basicfilterwrapper.hh>
 #include <dune/fem/gridpart/filter/domainfilter.hh>
 #include <dune/fem/gridpart/filteredgridpart.hh>
@@ -433,8 +434,9 @@ class CoupledMeshManager
       const auto numCorners(intersection.geometry().corners());
       const auto& refElement(ReferenceElements<typename BulkGridType::ctype,worlddim>::general(bulkEntity.type()));
       std::size_t offset(0);
-      const auto bulkFirstVertex(bulkEntity.impl().hostEntity().geometry().corner(refElement.subEntity(faceLocalIndex,1,0,worlddim)));
-      while(interfaceEntity.impl().hostEntity().geometry().corner(offset)!=bulkFirstVertex)
+      const auto bulkFirstVertex(
+        HostGridAccess<BulkGridType>::hostEntity(bulkEntity).geometry().corner(refElement.subEntity(faceLocalIndex,1,0,worlddim)));
+      while(HostGridAccess<InterfaceGridType>::hostEntity(interfaceEntity).geometry().corner(offset)!=bulkFirstVertex)
         ++offset;
       for(auto interfaceLocalIndex=decltype(numCorners){0};interfaceLocalIndex!=numCorners;++interfaceLocalIndex)
       {
