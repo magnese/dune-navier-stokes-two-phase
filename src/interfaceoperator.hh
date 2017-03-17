@@ -108,7 +108,7 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
           }
         // fill \vec{N_m} (curvature_j-position_i) and -\vec{N_m}^T
         for(auto i=decltype(rowLocalSize){worlddim};i!=rowLocalSize;++i)
-          for(auto j=decltype(columnLocalSize){0};j!=columnLocalSize;++j)
+          for(auto j=decltype(worlddim){0};j!=worlddim;++j)
           {
             RangeFieldType value(0.0);
             for(auto index=decltype(worlddim){0};index!=worlddim;++index)
