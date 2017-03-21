@@ -588,9 +588,8 @@ class CoupledMeshManager
   // dump interface as msh file
   void dumpInterface(const std::string& fileName="interface.msh",int precision=6) const
   {
-    std::vector<int> interfaceElementsIDs(interfaceGrid().size(0),1);
     GmshWriter<typename InterfaceGridType::LeafGridView> gmshWriter(interfaceGrid().leafGridView(),precision);
-    gmshWriter.write(Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,interfaceElementsIDs);
+    gmshWriter.write(Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,std::vector<int>(interfaceGrid().size(0),1));
   }
 
   // dump interface as msh file
