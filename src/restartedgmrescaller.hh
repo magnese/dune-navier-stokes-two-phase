@@ -1,13 +1,13 @@
 #ifndef DUNE_FEM_RESTARTED_GMRES_CALLER_HH
 #define DUNE_FEM_RESTARTED_GMRES_CALLER_HH
 
+#include <dune/fem/io/parameter.hh>
+#include <dune/istl/solvers.hh>
+
 namespace Dune
 {
 namespace Fem
 {
-
-#include <dune/fem/io/parameter.hh>
-#include <dune/istl/solvers.hh>
 
 template<typename DiscreteFunctionType>
 class RestartedGMResCaller
@@ -16,7 +16,7 @@ class RestartedGMResCaller
   template<typename OperatorType,typename PreconditionerType>
   RestartedGMResCaller(OperatorType& op,PreconditionerType& preconditioner):
     invop_(op,preconditioner,Parameter::getValue<double>("SolverTolerance",1.e-12),Parameter::getValue<int>("SolverRestart",5),
-      Parameter::getValue<int>("SolverMaxIterations",1000),Parameter::getValue<int>("SolverVerbosity",0))
+    Parameter::getValue<int>("SolverMaxIterations",1000),Parameter::getValue<int>("SolverVerbosity",0))
   {}
 
   void operator()(DiscreteFunctionType& x,const DiscreteFunctionType& rhs)
