@@ -586,7 +586,7 @@ class CoupledMeshManager
   }
 
   // dump interface as msh file
-  void dumpInterface(const std::string& fileName="interface.msh",int precision=6) const
+  void dumpInterface(const std::string& fileName="interface.msh",int precision=16) const
   {
     GmshWriter<typename InterfaceGridType::LeafGridView> gmshWriter(interfaceGrid().leafGridView(),precision);
     gmshWriter.write(Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,std::vector<int>(interfaceGrid().size(0),1));
@@ -594,13 +594,13 @@ class CoupledMeshManager
 
   // dump interface as msh file
   template<typename TimeProviderType>
-  void dumpInterface(const TimeProviderType& timeProvider,int precision=6) const
+  void dumpInterface(const TimeProviderType& timeProvider,int precision=16) const
   {
     dumpInterface("interface_"+std::to_string(timeProvider.time())+".msh",precision);
   }
 
   // dump bulk as msh file
-  void dumpBulk(const std::string& fileName="bulk.msh",int precision=6) const
+  void dumpBulk(const std::string& fileName="bulk.msh",int precision=16) const
   {
     GmshWriter<typename BulkGridType::LeafGridView> gmshWriter(bulkGrid().leafGridView(),precision);
     gmshWriter.write(Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,elementsIDs(),boundaryIDs());
@@ -608,7 +608,7 @@ class CoupledMeshManager
 
   // dump bulk as msh file
   template<typename TimeProviderType>
-  void dumpBulk(const TimeProviderType& timeProvider,int precision=6) const
+  void dumpBulk(const TimeProviderType& timeProvider,int precision=16) const
   {
     dumpBulk("bulk_"+std::to_string(timeProvider.time())+".msh",precision);
   }
