@@ -153,13 +153,6 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
     matrix.set(row,row,1.0);
   }
 
-  template<typename RHSType>
-  void applyDoctoringRHS(RHSType& rhs)
-  {
-    const auto row(mat11_.cols());
-    rhs[row]=0.0;
-  }
-
   private:
   const Matrix11Type& mat11_;
   const Matrix12Type& mat12_;
@@ -334,17 +327,6 @@ class ExtendedOperatorGluer:public Operator<
       matrix.set(i,row,0.0);
     #endif
     matrix.set(row,row,1.0);
-    #endif
-  }
-
-  template<typename RHSType>
-  void applyDoctoringRHS(RHSType& rhs)
-  {
-    auto row(mat11_.cols());
-    rhs[row]=0.0;
-    #if PRESSURE_SPACE_TYPE != 3
-    row+=mat12_.cols();
-    rhs[row]=0.0;
     #endif
   }
 

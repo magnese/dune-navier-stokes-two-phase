@@ -178,10 +178,6 @@ class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunction
     auto bIt(b_.begin());
     Hybrid::forEach(typename range_type::Sequence{},[&](auto i){bIt=std::copy(std::get<i>(b).dbegin(),std::get<i>(b).dend(),bIt);});
 
-    // apply doctoring to RHS
-    if(usedoctoring_)
-      op_.applyDoctoringRHS(b_);
-
     // solve system
     invop_.apply(b_.data(),x_.data());
 
