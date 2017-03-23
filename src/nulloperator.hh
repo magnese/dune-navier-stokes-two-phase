@@ -42,7 +42,8 @@ class NullOperator:public Operator<DomainFunctionImp,RangeFunctionImp>
     w.clear();
   }
 
-  void print(const std::string& ) const
+  template<typename... Args>
+  void print(Args&&... ) const
   {}
 
   const DomainSpaceType& domainSpace() const

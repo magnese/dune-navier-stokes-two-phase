@@ -68,10 +68,10 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
     op_.apply(u,w);
   }
 
-  void print(const std::string& filename="glued_matrix.dat") const
+  void print(const std::string& filename="glued_matrix.dat",unsigned int offset=0) const
   {
     std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
-    op_.matrix().print(ofs);
+    op_.matrix().print(ofs,offset);
   }
 
   const DomainSpaceType& domainSpace() const
@@ -219,10 +219,10 @@ class ExtendedOperatorGluer:public Operator<
     op_.apply(u,w);
   }
 
-  void print(const std::string& filename="extended_glued_matrix.dat") const
+  void print(const std::string& filename="extended_glued_matrix.dat",unsigned int offset=0) const
   {
     std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
-    op_.matrix().print(ofs);
+    op_.matrix().print(ofs,offset);
   }
 
   const DomainSpaceType& domainSpace() const

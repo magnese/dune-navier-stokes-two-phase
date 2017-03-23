@@ -53,10 +53,10 @@ class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionI
     op_.apply(u,w);
   }
 
-  void print(const std::string& filename="velocity_curvature_matrix.dat") const
+  void print(const std::string& filename="velocity_curvature_matrix.dat",unsigned int offset=0) const
   {
     std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
-    op_.matrix().print(ofs);
+    op_.matrix().print(ofs,offset);
   }
 
   const VelocitySpaceType& domainSpace() const
