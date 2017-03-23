@@ -32,7 +32,7 @@ class StokesPrecond:public Dune::Preconditioner<DFT,DFT>
     op11_(op11),op12_(op12),op22_(op22),invop11_(op11),invop22_(op22)
   {}
 
-  void pre(domain_type& x,range_type& )
+  void pre(domain_type& ,range_type& )
   {
     invop11_.prepare();
     invop22_.prepare();
@@ -94,7 +94,7 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<DFT,DFT>
     op11_(op11),op12_(op12),op22_(op22),op13_(op13),op33_(op33),invop11_(op11),invop22_(op22),invop33_(op33)
   {}
 
-  void pre(domain_type& x,range_type& )
+  void pre(domain_type& ,range_type& )
   {
     invop11_.prepare();
     invop22_.prepare();
@@ -165,7 +165,7 @@ class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunction
     b_(op_.domainSpace().size(),0),x_(op_.domainSpace().size(),0)
   {}
 
-  void pre(domain_type& x,range_type& )
+  void pre(domain_type& ,range_type& )
   {
     if(usedoctoring_)
       op_.applyDoctoring();
@@ -215,7 +215,7 @@ class IdPrecond:public Dune::Preconditioner<DFT,DFT>
 
   IdPrecond() = default;
 
-  void pre(domain_type& x,range_type& )
+  void pre(domain_type& ,range_type& )
   {}
 
   void apply(domain_type& x,const range_type& b)
