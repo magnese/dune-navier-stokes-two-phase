@@ -102,7 +102,7 @@ int main(int argc,char** argv)
     constexpr bool checkEntityWithNoVerticesInDomain(true);
     #endif
     typedef Dune::Fem::FluidState<CoupledMeshManagerType> FluidStateType;
-    FluidStateType fluidState(argc,argv,Dune::automatic,false,checkEntityWithNoVerticesInDomain);
+    FluidStateType fluidState(argc,argv,checkEntityWithNoVerticesInDomain);
     fluidState.meshManager().printInfo();
 
     // create mesh smoothing

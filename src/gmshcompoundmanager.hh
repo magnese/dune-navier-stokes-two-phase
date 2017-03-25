@@ -93,9 +93,6 @@
 namespace Dune
 {
 
-// mesh algorithms type
-enum GmshAlgorithmType {automatic=2,delaunay=5,frontal=6,meshadapt=1};
-
 // fixed charlength policy
 struct FixedCharlength
 {
@@ -205,8 +202,7 @@ class GMSHSimpleManager
 
   typedef GMSHSimpleManager ThisType;
 
-  template<typename... Args>
-  GMSHSimpleManager(const Args&... ):
+  GMSHSimpleManager(int ,char** ):
     filename_(static_cast<std::string>(MSHFILESDIR)+Fem::Parameter::getValue<std::string>("CompoundFileName","compound.msh"))
   {}
 
@@ -299,7 +295,7 @@ class GMSHCompoundManagerBase
   typedef CharlengthPolicyImp CharlengthPolicyType;
   typedef GMSHCompoundManagerBase<dim,CharlengthPolicyType,Implementation> ThisType;
 
-  GMSHCompoundManagerBase(int argc,char** argv,const GmshAlgorithmType& algorithm,bool verbosity):
+  GMSHCompoundManagerBase(int argc,char** argv):
     domainfilename_(static_cast<std::string>(GEOFILESDIR)+Fem::Parameter::getValue<std::string>("DomainGeometry","domain.geo")),
     interfacefilename_(static_cast<std::string>(MSHFILESDIR)+Fem::Parameter::getValue<std::string>("InterfaceGeometry","interface.msh")),
     holefilename_(static_cast<std::string>(GEOFILESDIR)+Fem::Parameter::getValue<std::string>("HoleGeometry","")),gmodelptrs_(),
@@ -307,11 +303,8 @@ class GMSHCompoundManagerBase
   {
     // init gmsh
     GmshSetOption("General","Terminal",1.);
-    if(verbosity)
-      GmshSetOption("General","Verbosity",99.);
-    else
-      GmshSetOption("General","Verbosity",0.);
-    GmshSetOption("Mesh","Algorithm",static_cast<double>(algorithm));
+    GmshSetOption("General","Verbosity",Fem::Parameter::getValue<double>("GmshVerbosity",0));
+    GmshSetOption("Mesh","Algorithm",Fem::Parameter::getValue<double>("GmshAlgorithm",2));
   }
 
   GMSHCompoundManagerBase(const ThisType& )=default;
@@ -367,10 +360,6 @@ class GMSHCompoundManagerBase
   void writeCompoundMsh(const std::string& fileName="compound.msh")
   {
     compound()->writeMSH(Fem::Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,2.2,false,false);
-  }
-  void setAlgorithm(const GmshAlgorithmType& algorithm)
-  {
-    GmshSetOption("Mesh","Algorithm",static_cast<double>(algorithm));
   }
 
   // check pointers status

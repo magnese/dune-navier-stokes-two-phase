@@ -103,8 +103,8 @@ class FluidState
   typedef DataOutput<InterfaceGridType,InterfaceTupleType> InterfaceDataOutputType;
 
   // constructor
-  explicit FluidState(int argc,char** argv,const GmshAlgorithmType& algorithm,bool verbosity,bool checkEntityWithNoVerticesInDomain):
-    meshmanager_(argc,argv,algorithm,verbosity,checkEntityWithNoVerticesInDomain),sequence_(0),bulkoutputparameters_("bulk-"),
+  explicit FluidState(int argc,char** argv,bool checkEntityWithNoVerticesInDomain):
+    meshmanager_(argc,argv,checkEntityWithNoVerticesInDomain),sequence_(0),bulkoutputparameters_("bulk-"),
     interfaceoutputparameters_("interface-")
   {}
 

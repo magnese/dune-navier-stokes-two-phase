@@ -229,9 +229,8 @@ class CoupledMeshManager
 
   public:
   // constructor
-  explicit CoupledMeshManager(int argc,char** argv,const GmshAlgorithmType& algorithm,bool verbosity,
-                              bool checkEntityWithNoVerticesInDomain):
-    manager_(argc,argv,algorithm,verbosity),sequence_(0),performentityverticescheck_(checkEntityWithNoVerticesInDomain)
+  explicit CoupledMeshManager(int argc,char** argv,bool checkEntityWithNoVerticesInDomain):
+    manager_(argc,argv),sequence_(0),performentityverticescheck_(checkEntityWithNoVerticesInDomain)
   {
     init();
   }

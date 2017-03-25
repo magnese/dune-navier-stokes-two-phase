@@ -77,6 +77,12 @@ InterfaceGeometry: /simple/1D/circle_r025_c05_cl005.msh
 
 #HoleGeometry: /3D/cube_l03_cl05.geo
 
+# gmsh verbosity (default: 0)
+GmshVerbosity: 0
+
+# gmsh meshing algorithm (default:2): 1 -> meshadapt | 2 -> automatic | 5 -> delaunay | 6 -> frontal
+GmshAlgorithm: 2
+
 # time step
 fem.timeprovider.fixedtimestep: 1.e-3
 
