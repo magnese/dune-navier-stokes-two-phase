@@ -113,6 +113,9 @@ CoeffSmoothing: 1
 # remeshing coefficient (default: 3 for volume criterion and 20 for angle criterion)
 CoeffRemeshing: 3
 
+# verbosity of the direct solvers (default:0)
+fem.solver.verbose: 0
+
 # verbosity of the iterative solver (default: 0)
 SolverVerbosity: 0
 
