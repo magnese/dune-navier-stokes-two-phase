@@ -135,6 +135,14 @@ struct UniformCharlength
       charlength_=2.0*std::pow(3.0,-0.25)*std::pow(charlength_,0.5);
   }
 
+  UniformCharlength(double interfaceAverageVolume,unsigned int worlddim):
+    charlength_(interfaceAverageVolume)
+  {
+    // in 3D charlength is not the average volume but the edge length of an equilateral triangle with that area
+    if(worlddim==3)
+      charlength_=2.0*std::pow(3.0,-0.25)*std::pow(charlength_,0.5);
+  }
+
   UniformCharlength(const ThisType& )=default;
   ThisType& operator=(const ThisType& )=default;
 
@@ -170,6 +178,14 @@ struct AdaptiveCharlength
       charlength_=2.0*std::pow(3.0,-0.25)*std::pow(charlength_,0.5);
   }
 
+  AdaptiveCharlength(double interfaceAverageVolume,unsigned int worlddim):
+    charlength_(interfaceAverageVolume)
+  {
+    // in 3D charlength is not the average volume but the edge length of an equilateral triangle with that area
+    if(worlddim==3)
+      charlength_=2.0*std::pow(3.0,-0.25)*std::pow(charlength_,0.5);
+  }
+
   AdaptiveCharlength(const ThisType& )=default;
   ThisType& operator=(const ThisType& )=default;
 
@@ -187,6 +203,18 @@ struct AdaptiveCharlength
       FieldVector<double,3> temp({vtx.x(),vtx.y(),vtx.z()});
       for(std::size_t i=0;i!=InterfaceGridType::dimensionworld;i++)
         temp[i]-=vertex.geometry().center()[i];
+      dist=std::min(dist,temp.two_norm());
+    }
+    return dist;
+  }
+
+  template<typename VertexType>
+  double operator()(const VertexType& vtx,const std::shared_ptr<GModel>& interfaceModel) const
+  {
+    double dist(8.0*charlength_);
+    for(auto vtxIt=interfaceModel->firstVertex();vtxIt!=interfaceModel->lastVertex();++vtxIt)
+    {
+      FieldVector<double,3> temp{vtx.x()-(*vtxIt)->x(),vtx.y()-(*vtxIt)->y(),vtx.z()-(*vtxIt)->z()};
       dist=std::min(dist,temp.two_norm());
     }
     return dist;
@@ -260,19 +288,27 @@ class GMSHCompoundManagerBase
     // load interface
     interface()=std::make_shared<GModel>();
     interface()->setFactory("Gmsh");
-    if(interfacefilename_.find(".geo")!=std::string::npos)
+    bool readInterfaceFromGeo(interfacefilename_.find(".geo")!=std::string::npos);
+    double interfaceAverageVolume(0);
+    if(readInterfaceFromGeo)
       interface()->readGEO(interfacefilename_);
     else
     {
       interface()->readMSH(interfacefilename_);
-      imp().interfaceMesh2GModel(interface());
+      interfaceAverageVolume=imp().interfaceMesh2GModel(interface());
     }
     // load hole (if present)
     hole()=std::make_shared<GModel>();
     hole()->setFactory("Gmsh");
     if(hashole_)
       hole()->readGEO(holefilename_);
-    imp().createCompoundGeo(FixedCharlength());
+    if(readInterfaceFromGeo)
+      imp().createCompoundGeo(FixedCharlength());
+    else
+    {
+      CharlengthPolicyType charlengthPolicy(interfaceAverageVolume,worlddim);
+      imp().createCompoundGeo([&](const GVertex& vtx){return charlengthPolicy(vtx,interface());});
+    }
     compound()->mesh(worlddim);
     imp().bulkMesh2Dune(bulkGridFactory,boundaryIDs,elementsIDs);
   }
@@ -464,7 +500,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     }
   }
 
-  void interfaceMesh2GModel(std::shared_ptr<GModel>& model)
+  double interfaceMesh2GModel(std::shared_ptr<GModel>& model)
   {
     // create new gmodel
     auto newGModel(std::make_shared<GModel>());
@@ -490,6 +526,8 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
       }
     }
     // add edges
+    double lineTotalVolume(0);
+    long int lineCounter(0);
     std::array<long int,worlddim> posVtx;
     constexpr int physicalID(1);
     for(auto edgeIt=model->firstEdge();edgeIt!=model->lastEdge();++edgeIt)
@@ -497,6 +535,8 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
       for(auto i=decltype((*edgeIt)->lines.size()){0};i!=(*edgeIt)->lines.size();++i)
       {
         auto linePtr((*edgeIt)->lines[i]);
+        lineTotalVolume+=linePtr->getLength();
+        ++lineCounter;
         posVtx[0]=verticesMap[linePtr->getVertex(0)->getNum()];
         posVtx[1]=verticesMap[linePtr->getVertex(1)->getNum()];
         (newGModel->addLine(vertices[posVtx[0]],vertices[posVtx[1]]))->addPhysicalEntity(physicalID);
@@ -504,6 +544,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     }
     // assign new gmodel
     model=newGModel;
+    return lineTotalVolume/static_cast<double>(lineCounter);
   }
 
   template<typename InterfaceGridType>
@@ -692,7 +733,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     }
   }
 
-  void interfaceMesh2GModel(std::shared_ptr<GModel>& model)
+  double interfaceMesh2GModel(std::shared_ptr<GModel>& model)
   {
     // create new gmodel
     auto newGModel(std::make_shared<GModel>());
@@ -719,6 +760,8 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
       }
     }
     // add simplices
+    double simplexTotalVolume(0);
+    long int simplexCounter(0);
     std::array<long int,worlddim> idVtx;
     constexpr int physicalID(1);
     std::vector<GEdge*> simplexEdges(worlddim,nullptr);
@@ -728,6 +771,8 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
       for(auto i=decltype((*faceIt)->triangles.size()){0};i!=(*faceIt)->triangles.size();++i)
       {
         auto simplexPtr((*faceIt)->triangles[i]);
+        simplexTotalVolume+=simplexPtr->getVolume();
+        ++simplexCounter;
         // loop over edges
         for(auto l=decltype(worlddim){0};l!=worlddim;++l)
         {
@@ -763,6 +808,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     }
     // assign new gmodel
     model=newGModel;
+    return simplexTotalVolume/static_cast<double>(simplexCounter);
   }
 
   template<typename InterfaceGridType>
