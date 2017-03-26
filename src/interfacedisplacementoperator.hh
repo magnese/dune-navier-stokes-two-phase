@@ -4,6 +4,7 @@
 // deprecation warning
 #warning ("WARNING : interfacedisplacementoperator.hh is deprecated")
 
+#include <dune/fem/io/io.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/operator/common/operator.hh>
@@ -51,7 +52,10 @@ class InterfaceDisplacementOperator:public Operator<DiscreteFunctionImp,Discrete
 
   void print(const std::string& filename="interface_displacement_matrix.dat",unsigned int offset=0) const
   {
-    std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
+    const std::string& path(Parameter::getValue<std::string>("fem.prefix","."));
+    if(!directoryExists(path))
+      createDirectory(path);
+    std::ofstream ofs(path+"/"+filename);
     op_.matrix().print(ofs,offset);
   }
 

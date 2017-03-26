@@ -85,6 +85,7 @@
 #undef DUNE_HAVE_PETSC
 #endif
 
+#include <dune/fem/io/io.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/geometry/referenceelements.hh>
 #include <dune/grid/common/gridfactory.hh>
@@ -383,19 +384,31 @@ class GMSHCompoundManagerBase
   }
   void writeInterfaceGeo(const std::string& fileName="interface.geo")
   {
-    interface()->writeGEO(Fem::Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,true,false);
+    const std::string& path(Fem::Parameter::getValue<std::string>("fem.prefix","."));
+    if(!Fem::directoryExists(path))
+      Fem::createDirectory(path);
+    interface()->writeGEO(path+"/"+fileName,true,false);
   }
   void writeInterfaceMsh(const std::string& fileName="interface.msh")
   {
-    interface()->writeMSH(Fem::Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,2.2,false,false);
+    const std::string& path(Fem::Parameter::getValue<std::string>("fem.prefix","."));
+    if(!Fem::directoryExists(path))
+      Fem::createDirectory(path);
+    interface()->writeMSH(path+"/"+fileName,2.2,false,false);
   }
   void writeCompoundGeo(const std::string& fileName="compound.geo")
   {
-    compound()->writeGEO(Fem::Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,true,false);
+    const std::string& path(Fem::Parameter::getValue<std::string>("fem.prefix","."));
+    if(!Fem::directoryExists(path))
+      Fem::createDirectory(path);
+    compound()->writeGEO(path+"/"+fileName,true,false);
   }
   void writeCompoundMsh(const std::string& fileName="compound.msh")
   {
-    compound()->writeMSH(Fem::Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,2.2,false,false);
+    const std::string& path(Fem::Parameter::getValue<std::string>("fem.prefix","."));
+    if(!Fem::directoryExists(path))
+      Fem::createDirectory(path);
+    compound()->writeMSH(path+"/"+fileName,2.2,false,false);
   }
 
   // check pointers status

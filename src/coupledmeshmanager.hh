@@ -24,6 +24,7 @@
 #include <dune/fem/gridpart/filter/domainfilter.hh>
 #include <dune/fem/gridpart/filteredgridpart.hh>
 #include <dune/fem/gridpart/leafgridpart.hh>
+#include <dune/fem/io/io.hh>
 #include <dune/fem/io/parameter.hh>
 
 #include "vertexfunction.hh"
@@ -587,8 +588,11 @@ class CoupledMeshManager
   // dump interface as msh file
   void dumpInterface(const std::string& fileName="interface.msh",int precision=16) const
   {
+    const std::string& path(Parameter::getValue<std::string>("fem.prefix","."));
+    if(!directoryExists(path))
+      createDirectory(path);
     GmshWriter<typename InterfaceGridType::LeafGridView> gmshWriter(interfaceGrid().leafGridView(),precision);
-    gmshWriter.write(Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,std::vector<int>(interfaceGrid().size(0),1));
+    gmshWriter.write(path+"/"+fileName,std::vector<int>(interfaceGrid().size(0),1));
   }
 
   // dump interface as msh file
@@ -601,8 +605,11 @@ class CoupledMeshManager
   // dump bulk as msh file
   void dumpBulk(const std::string& fileName="bulk.msh",int precision=16) const
   {
+    const std::string& path(Parameter::getValue<std::string>("fem.prefix","."));
+    if(!directoryExists(path))
+      createDirectory(path);
     GmshWriter<typename BulkGridType::LeafGridView> gmshWriter(bulkGrid().leafGridView(),precision);
-    gmshWriter.write(Parameter::getValue<std::string>("fem.prefix",".")+"/"+fileName,elementsIDs(),boundaryIDs());
+    gmshWriter.write(path+"/"+fileName,elementsIDs(),boundaryIDs());
   }
 
   // dump bulk as msh file

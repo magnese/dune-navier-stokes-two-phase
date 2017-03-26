@@ -1,6 +1,7 @@
 #ifndef DUNE_FEM_MASSMATRIX_HH
 #define DUNE_FEM_MASSMATRIX_HH
 
+#include <dune/fem/io/io.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
@@ -50,7 +51,10 @@ class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
 
   void print(const std::string& filename="mass_matrix.dat",unsigned int offset=0) const
   {
-    std::ofstream ofs(Parameter::getValue<std::string>("fem.prefix",".")+"/"+filename);
+    const std::string& path(Parameter::getValue<std::string>("fem.prefix","."));
+    if(!directoryExists(path))
+      createDirectory(path);
+    std::ofstream ofs(path+"/"+filename);
     op_.matrix().print(ofs,offset);
   }
 

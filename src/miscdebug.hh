@@ -17,8 +17,9 @@
 #include <iomanip>
 
 #include <dune/common/exceptions.hh>
-#include <dune/fem/io/parameter.hh>
 #include <dune/fem/function/common/rangegenerators.hh>
+#include <dune/fem/io/io.hh>
+#include <dune/fem/io/parameter.hh>
 
 #include "gnuplotwriter.hh"
 
@@ -277,7 +278,10 @@ struct FunctionMaxInfo:public GnuplotWriter
 template<typename TimerType,typename MeshManagerType>
 void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const MeshManagerType& meshManager)
 {
-  std::ofstream file(Parameter::getValue<std::string>("fem.prefix",".")+"/log.tex");
+  const std::string& path(Parameter::getValue<std::string>("fem.prefix","."));
+  if(!directoryExists(path))
+    createDirectory(path);
+  std::ofstream file(path+"/log.tex");
   if(file.is_open())
   {
     file<<"\\documentclass[a4paper,11pt]{report}\n\n";
