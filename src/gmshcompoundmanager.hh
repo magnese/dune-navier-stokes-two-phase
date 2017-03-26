@@ -200,7 +200,7 @@ struct AdaptiveCharlength
     double dist(8.0*charlength_);
     for(const auto& vertex:vertices(interfaceGrid.leafGridView()))
     {
-      FieldVector<double,3> temp({vtx.x(),vtx.y(),vtx.z()});
+      FieldVector<double,3> temp{vtx.x(),vtx.y(),vtx.z()};
       for(std::size_t i=0;i!=InterfaceGridType::dimensionworld;i++)
         temp[i]-=vertex.geometry().center()[i];
       dist=std::min(dist,temp.two_norm());
@@ -457,9 +457,9 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
     if(hasHole())
       addGModelToCompound(hole(),holeEdges,charlength);
     // add line loops and faces to compound gmodel
-    std::vector<std::vector<GEdge*>> outerLineLoop({domainEdges,interfaceEdges});
+    std::vector<std::vector<GEdge*>> outerLineLoop{domainEdges,interfaceEdges};
     (compound()->addPlanarFace(outerLineLoop))->addPhysicalEntity(2);
-    std::vector<std::vector<GEdge*>> innerLineLoop({interfaceEdges});
+    std::vector<std::vector<GEdge*>> innerLineLoop{interfaceEdges};
     if(hasHole())
       innerLineLoop.push_back(holeEdges);
     (compound()->addPlanarFace(innerLineLoop))->addPhysicalEntity(1);
@@ -670,9 +670,9 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     if(hasHole())
       addGModelToCompound(hole(),holeFaces,charlength);
     // add surface loops and volumes to compound gmodel
-    std::vector<std::vector<GFace*>> outerSurfaceLoop({domainFaces,interfaceFaces});
+    std::vector<std::vector<GFace*>> outerSurfaceLoop{domainFaces,interfaceFaces};
     (compound()->addVolume(outerSurfaceLoop))->addPhysicalEntity(2);
-    std::vector<std::vector<GFace*>> innerSurfaceLoop({interfaceFaces});
+    std::vector<std::vector<GFace*>> innerSurfaceLoop{interfaceFaces};
     if(hasHole())
       innerSurfaceLoop.push_back(holeFaces);
     (compound()->addVolume(innerSurfaceLoop))->addPhysicalEntity(1);
@@ -682,7 +682,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
   void addGModelToCompound(std::shared_ptr<GModel>& model,std::vector<GFace*>& faces,const CharlengthType& charlength)
   {
     std::vector<GVertex*> vertices(0);
-    std::array<GVertex*,2> vtxPtr({nullptr,nullptr});
+    std::array<GVertex*,2> vtxPtr{nullptr,nullptr};
     std::vector<long int> verticesMap(model->getNumVertices()+1,-1);
     long int vtxCounter(0);
     std::map<long int,GEdge*> edgesMap;
@@ -727,7 +727,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
         ++edgeCounter;
       }
       // add lineloop
-      std::vector<std::vector<GEdge*>> lineLoop({edges});
+      std::vector<std::vector<GEdge*>> lineLoop{edges};
       faces.push_back(compound()->addPlanarFace(lineLoop));
       faces.back()->addPhysicalEntity(physicalID);
     }
@@ -802,7 +802,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
             verticesMap[idVtx[1]].second.push_back(simplexEdges[l]);
           }
         }
-        std::vector<std::vector<GEdge*>> edgeLoop({simplexEdges});
+        std::vector<std::vector<GEdge*>> edgeLoop{simplexEdges};
         (newGModel->addPlanarFace(edgeLoop))->addPhysicalEntity(physicalID);
       }
     }

@@ -31,7 +31,7 @@ namespace Fem
 template<typename GridPartType>
 std::array<double,3> meshVolumesInfo(const GridPartType& gridPart,const std::string& info="")
 {
-  std::array<double,3> volumes({0.0,std::numeric_limits<double>::max(),std::numeric_limits<double>::min()});
+  std::array<double,3> volumes{0.0,std::numeric_limits<double>::max(),std::numeric_limits<double>::min()};
   for(const auto& entity:elements(gridPart))
   {
     const auto volume(std::abs(entity.geometry().volume()));
@@ -197,7 +197,7 @@ template<typename DF>
 std::array<typename DF::RangeFieldType,3> checkFunctionAbsRange(const DF& df)
 {
   typedef typename DF::RangeFieldType RangeFieldType;
-  std::array<RangeFieldType,3> values({std::numeric_limits<RangeFieldType>::max(),std::numeric_limits<RangeFieldType>::min(),0.0});
+  std::array<RangeFieldType,3> values{std::numeric_limits<RangeFieldType>::max(),std::numeric_limits<RangeFieldType>::min(),0.0};
   for(const auto& dof:dofs(df))
   {
     values[0]=std::min(std::abs(dof),values[0]);
@@ -217,7 +217,7 @@ template<typename DF>
 std::array<typename DF::RangeFieldType,3> checkFunctionRange(const DF& df)
 {
   typedef typename DF::RangeFieldType RangeFieldType;
-  std::array<RangeFieldType,3> values({std::numeric_limits<RangeFieldType>::max(),std::numeric_limits<RangeFieldType>::min(),0.0});
+  std::array<RangeFieldType,3> values{std::numeric_limits<RangeFieldType>::max(),std::numeric_limits<RangeFieldType>::min(),0.0};
   for(const auto& dof:dofs(df))
   {
     values[0]=std::min(dof,values[0]);
@@ -244,7 +244,7 @@ struct FunctionRangeInfo:public GnuplotWriter
   template<typename DF,typename TimeProviderType>
   void add(const DF& df,const TimeProviderType& timeProvider)
   {
-    std::array<double,2> values({std::numeric_limits<double>::max(),std::numeric_limits<double>::min()});
+    std::array<double,2> values{std::numeric_limits<double>::max(),std::numeric_limits<double>::min()};
     for(const auto& dof:dofs(df))
     {
       values[0]=std::min(dof,values[0]);
