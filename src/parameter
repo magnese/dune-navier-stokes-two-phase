@@ -80,7 +80,7 @@ InterfaceGeometry: /simple/1D/circle_r025_c05_cl005.msh
 # gmsh verbosity (default: 0)
 GmshVerbosity: 0
 
-# gmsh meshing algorithm (default:2): 1 -> meshadapt | 2 -> automatic | 5 -> delaunay | 6 -> frontal
+# gmsh meshing algorithm (default: 2): 1 -> meshadapt | 2 -> automatic | 5 -> delaunay | 6 -> frontal
 GmshAlgorithm: 2
 
 # time step
@@ -113,7 +113,7 @@ CoeffSmoothing: 1
 # remeshing coefficient (default: 3 for volume criterion and 20 for angle criterion)
 CoeffRemeshing: 3
 
-# verbosity of the direct solvers (default:0)
+# verbosity of the direct solvers (default: 0)
 fem.solver.verbose: 0
 
 # verbosity of the iterative solver (default: 0)
