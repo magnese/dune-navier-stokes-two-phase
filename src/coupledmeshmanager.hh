@@ -231,7 +231,7 @@ class CoupledMeshManager
   public:
   // constructor
   explicit CoupledMeshManager(int argc,char** argv,bool checkEntityWithNoVerticesInDomain):
-    manager_(argc,argv),sequence_(0),performentityverticescheck_(checkEntityWithNoVerticesInDomain)
+    manager_(argc,argv),sequence_(0),performentityverticescheck_(checkEntityWithNoVerticesInDomain&&(worlddim==2))
   {
     init();
   }
@@ -561,7 +561,7 @@ class CoupledMeshManager
         for(const auto& intersection:intersections(bulkGridPart(),entity))
           if(intersection.boundary())
             ++count;
-        // if the number of boundary faces is equal to worlddim it means that this entity has all vertices on the boundary
+        // if number of boundary faces is equal to worlddim than the entity has all vertices on the boundary (true only in 2D)
         if(count==worlddim)
           return true;
       }
