@@ -231,7 +231,7 @@ class CoupledMeshManager
   public:
   // constructor
   explicit CoupledMeshManager(int argc,char** argv,bool checkEntityWithNoVerticesInDomain):
-    manager_(argc,argv),sequence_(0),performentityverticescheck_(checkEntityWithNoVerticesInDomain&&(worlddim==2))
+    manager_(argc,argv),sequence_(0),performentityverticescheck_(checkEntityWithNoVerticesInDomain&&(worlddim==2)),interfaceelements_(0)
   {
     init();
   }
@@ -259,6 +259,7 @@ class CoupledMeshManager
       mapper_=other.mapper_;
       remeshingcriterion_=other.remeshingcriterion_;
       sequence_=other.sequence_;
+      interfaceelements_=other.interfaceelements_;
     }
     return *this;
   }
@@ -273,6 +274,8 @@ class CoupledMeshManager
       // copy IDs
       boundaryids_=std::make_shared<std::vector<int>>(other.boundaryIDs());
       elementsids_=std::make_shared<std::vector<int>>(other.elementsIDs());
+      // copy manager
+      manager_=other.manager_;
       // copy bulk grid
       std::vector<unsigned int> verticesMap(other.bulkGrid().size(bulkGriddim));
       unsigned int count(0);
@@ -318,11 +321,11 @@ class CoupledMeshManager
       printGridInfo(interfaceGrid());
       // create interface grid part
       interfacegridpart_=std::make_shared<InterfaceGridPartType>(interfaceGrid());
-      // copy sequence, manager, remeshing criterion and mapper
-      sequence_=other.sequence_;
-      manager_=other.manager_;
-      remeshingcriterion_=other.remeshingcriterion_;
+      // copy mapper, sequence, remeshing criterion and number interface elements
       mapper_=std::make_shared<BulkInterfaceGridMapperType>(*(other.mapper_));
+      remeshingcriterion_=other.remeshingcriterion_;
+      sequence_=other.sequence_;
+      interfaceelements_=other.interfaceelements_;
     }
   }
 
@@ -494,6 +497,9 @@ class CoupledMeshManager
         if(performentityverticescheck_)
           if(existEntityWithNoVerticesInDomain())
             DUNE_THROW(InvalidStateException,"ERROR: exists an entity with all the vertices on the boundary -> LBB not satisfied!");
+        // check that number of interface elements hasn't change
+        if(interfaceGrid().size(0)!=interfaceelements_)
+          DUNE_THROW(InvalidStateException,"ERROR: the number of interface elements is changed!");
         // print remesh time
         timer.stop();
         std::cout<<"Remeshing time: "<<timer.elapsed()<<" seconds.\n";
@@ -627,6 +633,7 @@ class CoupledMeshManager
   RemeshingCriterionType remeshingcriterion_;
   unsigned int sequence_;
   const bool performentityverticescheck_;
+  int interfaceelements_;
 
   std::vector<int>& boundaryIDs()
   {
@@ -693,6 +700,8 @@ class CoupledMeshManager
     if(performentityverticescheck_)
       if(existEntityWithNoVerticesInDomain())
         DUNE_THROW(InvalidStateException,"ERROR: exists an entity with all the vertices on the boundary -> LBB not satisfied!");
+    // save number of interface elements
+    interfaceelements_=interfaceGrid().size(0);
   }
 
   void extractInterface(InterfaceHostGridFactoryType& interfaceHostGridFactory)
