@@ -15,7 +15,6 @@
 #include <dune/fem/quadrature/integrator.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 #include <dune/fem/solver/spqrsolver.hh>
-#include <dune/fem/solver/ldlsolver.hh>
 #include <dune/fem/space/common/interpolate.hh>
 
 #include "problems.hh"
@@ -292,8 +291,6 @@ class FemScheme
     typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
     #elif PRECONDITIONER_TYPE == 2
     typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
-    #elif PRECONDITIONER_TYPE == 3
-    typedef DirectPrecond<OperatorGluerType,LDLOp> BulkPreconditionerType;
     #endif
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
@@ -316,8 +313,6 @@ class FemScheme
     typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
     #elif PRECONDITIONER_TYPE == 2
     typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
-    #elif PRECONDITIONER_TYPE == 3
-    typedef DirectPrecond<OperatorGluerType,LDLOp> BulkPreconditionerType;
     #endif
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif

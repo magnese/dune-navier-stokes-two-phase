@@ -1,6 +1,6 @@
 #define PRESSURE_SPACE_TYPE 0 // 0 P0, 1 P1, 2 P1+P0, 3 P1-DG
 
-#define PRECONDITIONER_TYPE 1 // 0 blocks UMFPACK, 1 full UMFPACK, 2 full SPQR, 3 full LDL
+#define PRECONDITIONER_TYPE 1 // 0 blocks UMFPACK, 1 full UMFPACK, 2 full SPQR
 
 #define REMESH_TYPE 1 // 0 none, 1 uniform, 2 fixed, 3 adaptive
 
@@ -14,12 +14,7 @@
 
 #define USE_SYMMETRIC_LAPLACIAN_TERM 1
 #define USE_ANTISYMMETRIC_CONVECTIVE_TERM 0
-
-#if PRECONDITIONER_TYPE == 3
-#define USE_SYMMETRIC_DIRICHLET 1
-#else
 #define USE_SYMMETRIC_DIRICHLET 0
-#endif
 
 #if PRESSURE_SPACE_TYPE == 0 || PRESSURE_SPACE_TYPE == 1
 #define USE_EXTENDED_PRESSURE_SPACE 0
@@ -66,6 +61,7 @@ int main(int argc,char** argv)
     Dune::Fem::Parameter::append("InterpolationType",STRINGIZE(INTERPOLATION_TYPE));
     Dune::Fem::Parameter::append("UseSymmetricLaplacianTerm",STRINGIZE(USE_SYMMETRIC_LAPLACIAN_TERM));
     Dune::Fem::Parameter::append("UseAntisymmetricConvectiveTerm",STRINGIZE(USE_ANTISYMMETRIC_CONVECTIVE_TERM));
+    Dune::Fem::Parameter::append("UseSymmetricDirichlet",STRINGIZE(USE_SYMMETRIC_DIRICHLET));
 
     #if REMESH_TYPE == 1 || REMESH_TYPE == 2 || REMESH_TYPE == 3
     GmshInitialize(argc,argv);
