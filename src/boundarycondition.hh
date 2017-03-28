@@ -130,6 +130,12 @@ class BoundaryCondition
     return localBoundaryDOFs(t,intersection.inside(),meshmanager_.intersectionID(intersection));
   }
 
+  template<typename FilteredIntersectionType>
+  LocalBoundaryDOFsType localBoundaryDOFs(double t,const FilteredIntersectionType& intersection) const
+  {
+    return localBoundaryDOFs(t,intersection.inside(),meshmanager_.intersectionID(intersection.hostIntersection()));
+  }
+
   // update space and gadapt
   void update()
   {

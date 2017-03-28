@@ -4,9 +4,11 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <utility>
 #include <vector>
 
 #include <dune/common/exceptions.hh>
+#include <dune/common/hybridutilities.hh>
 #include <dune/common/timer.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
@@ -223,10 +225,8 @@ class FemScheme
     auto& velocityRHS(bulkRHS.template subDiscreteFunction<0>());
     assembleVelocityRHS(velocityRHS,fluidstate_,problem_,timeProvider);
     #if PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 4 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
-    assemblePressureRHS(bulkRHS.template subDiscreteFunction<1>(),problem_.velocityBC(),timeProvider);
-    #if USE_EXTENDED_PRESSURE_SPACE
-    assemblePressureRHS(bulkRHS.template subDiscreteFunction<2>(),problem_.velocityBC(),timeProvider);
-    #endif
+    Hybrid::forEach(std::make_index_sequence<BulkDiscreteFunctionType::Sequence::size()-1>{},
+      [&](auto i){assemblePressureRHS(bulkRHS.template subDiscreteFunction<i+1>(),problem_.velocityBC(),timeProvider);});
     #endif
     timerAssembleBulk.stop();
 
