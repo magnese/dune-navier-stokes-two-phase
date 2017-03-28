@@ -388,14 +388,6 @@ class CoupledMeshManager
   {
     return *interfacegridpart_;
   }
-  GmshManagerType& manager()
-  {
-    return manager_;
-  }
-  const GmshManagerType& manager() const
-  {
-    return manager_;
-  }
 
   // the sequence numebr increase each time the mesh changes
   unsigned int sequence() const
