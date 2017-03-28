@@ -126,7 +126,7 @@ SolverMaxIterations: 1000
 SolverTolerance: 1.e-12
 
 # restart gmres iterative solver (default: 5)
-SolverRestart: 1000
+SolverRestart: 50
 
 # non-linear solver: 0 -> none | 1 -> fixed-point | 2 -> ALE (default: 0)
 NonLinearSolverType: 0
