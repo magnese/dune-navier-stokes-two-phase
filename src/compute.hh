@@ -119,7 +119,7 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         errors[3]=std::max(errors[3],std::abs(dof-*(exactVelocityIt++)));
       #if PROBLEM_NUMBER == 2 || PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
       // store an inner and an outer entity, needed for indicator function
-      const auto interfaceEntity(*(fluidState.interfaceGridPart().template begin<0>());
+      const auto interfaceEntity(*(fluidState.interfaceGridPart().template begin<0>()));
       const auto intersection(fluidState.meshManager().correspondingInnerBulkIntersection(interfaceEntity));
       const auto innerEntity(intersection.inside());
       const auto outerEntity(intersection.outside());
