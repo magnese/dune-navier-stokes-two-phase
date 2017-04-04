@@ -181,13 +181,14 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
         }
     }
 
+    // rebuild all quantities if the mesh is changed
+    fluidState.update();
+
     // interpolate velocity and rho onto the new grid
     if(interpolationNeeded)
     {
       Timer timerInterpolation(false);
       timerInterpolation.start();
-      // rebuild all quantities if the mesh is changed
-      fluidState.update();
       // set old bulk grid and old velocity to the correct values
       if(remeshPerformed)
         oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
