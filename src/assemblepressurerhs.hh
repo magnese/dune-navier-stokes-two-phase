@@ -20,18 +20,15 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
   bc.update();
 
   // compute domain volume and \int_{\partial\Omega} I\vec g . \vec n
-  typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
-  typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
-  const auto& space(rhs.space());
-  const auto& gridPart(space.gridPart());
+  typedef typename BoundaryConditionType::DiscreteSpaceType::RangeFieldType RangeFieldType;
   RangeFieldType vol(0.0);
   RangeFieldType integral(0.0);
-  for(const auto& entity:space)
+  for(const auto& entity:bc.space())
   {
     vol+=std::abs(entity.geometry().volume());
     if(entity.hasBoundaryIntersections())
     {
-      for(const auto& intersection:intersections(gridPart,entity))
+      for(const auto& intersection:intersections(bc.space().gridPart(),entity))
         if(intersection.boundary())
         {
           const auto& gLocalDOFs(bc.localBoundaryDOFs(timeProvider.time(),intersection));
@@ -39,8 +36,8 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
                                 typename BoundaryConditionType::LocalBoundaryDOFsType> GLocalType;
           GLocalType gLocal(bc.space().basisFunctionSet(entity),gLocalDOFs);
           const auto normal(intersection.centerUnitOuterNormal());
-          typedef CachingQuadrature<typename DiscreteFunctionType::GridPartType,1> QuadratureType;
-          const QuadratureType quadrature(gridPart,intersection,2*bc.space().order()+1,QuadratureType::INSIDE);
+          typedef CachingQuadrature<typename BoundaryConditionType::DiscreteSpaceType::GridPartType,1> QuadratureType;
+          const QuadratureType quadrature(bc.space().gridPart(),intersection,2*bc.space().order()+1,QuadratureType::INSIDE);
           for(const auto& qp:quadrature)
           {
             typename BoundaryConditionType::RangeType gValue;
@@ -58,12 +55,13 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
   if(std::abs(coeff)>nullTolerance)
   {
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(space.blockMapper().maxNumDofs()*DiscreteSpaceType::localBlockSize);
-    for(const auto& entity:space)
+    constexpr std::size_t localBlockSize(DiscreteFunctionType::DiscreteFunctionSpaceType::localBlockSize);
+    std::vector<LocalFunctionRangeType> phi(rhs.space().blockMapper().maxNumDofs()*localBlockSize);
+    for(const auto& entity:rhs.space())
     {
       auto localRHS(rhs.localFunction(entity));
-      const auto& baseSet(space.basisFunctionSet(entity));
-      const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
+      const auto& baseSet(rhs.space().basisFunctionSet(entity));
+      const CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(entity,2*rhs.space().order()+1);
       for(const auto& qp:quadrature)
       {
         baseSet.evaluateAll(qp,phi);
