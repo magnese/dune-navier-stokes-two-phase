@@ -2,6 +2,7 @@
 #define DUNE_FEM_OPERATORWRAPPER_HH
 
 #include <dune/istl/operators.hh>
+#include <dune/istl/solvercategory.hh>
 
 #include "extendedtuplediscretefunction.hh"
 
@@ -24,11 +25,15 @@ class OperatorWrapper:public Dune::LinearOperator<
   typedef ExtendedTupleDiscreteFunction<typename Oper11T::DomainFunctionType,typename Oper12T::DomainFunctionType> domain_type;
   typedef ExtendedTupleDiscreteFunction<typename Oper11T::RangeFunctionType,typename Oper21T::RangeFunctionType> range_type;
   typedef typename domain_type::field_type field_type;
-  enum {category=SolverCategory::sequential};
 
   OperatorWrapper(const Oper11Type& oper11,const Oper12Type& oper12,const Oper21Type& oper21,const Oper22Type& oper22):
     oper11_(oper11),oper12_(oper12),oper21_(oper21),oper22_(oper22)
   {}
+
+  virtual SolverCategory::Category category() const
+  {
+    return SolverCategory::Category::sequential;
+  }
 
   void apply(const domain_type& x,range_type& b) const
   {
@@ -92,12 +97,16 @@ class ExtendedOperatorWrapper:public Dune::LinearOperator<
   typedef ExtendedTupleDiscreteFunction<typename Oper11T::RangeFunctionType,typename Oper21T::RangeFunctionType,
     typename Oper31T::RangeFunctionType> range_type;
   typedef typename domain_type::field_type field_type;
-  enum {category=SolverCategory::sequential};
 
   ExtendedOperatorWrapper(const Oper11Type& oper11,const Oper12Type& oper12,const Oper21Type& oper21,const Oper13Type& oper13,
                           const Oper31Type& oper31):
     oper11_(oper11),oper12_(oper12),oper21_(oper21),oper13_(oper13),oper31_(oper31)
   {}
+
+  virtual SolverCategory::Category category() const
+  {
+    return SolverCategory::Category::sequential;
+  }
 
   void apply(const domain_type& x,range_type& b) const
   {

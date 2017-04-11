@@ -3,6 +3,7 @@
 
 #include <dune/common/hybridutilities.hh>
 #include <dune/istl/preconditioner.hh>
+#include <dune/istl/solvercategory.hh>
 #include <dune/fem/solver/spqrsolver.hh>
 #include <dune/fem/solver/umfpacksolver.hh>
 
@@ -26,11 +27,15 @@ class StokesPrecond:public Dune::Preconditioner<DFT,DFT>
   typedef DFT domain_type;
   typedef domain_type range_type;
   typedef typename domain_type::field_type field_type;
-  enum {category=SolverCategory::sequential};
 
   StokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22):
     op11_(op11),op12_(op12),op22_(op22),invop11_(op11),invop22_(op22)
   {}
+
+  virtual SolverCategory::Category category() const
+  {
+    return SolverCategory::Category::sequential;
+  }
 
   void pre(domain_type& ,range_type& )
   {
@@ -87,12 +92,16 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<DFT,DFT>
   typedef DFT domain_type;
   typedef domain_type range_type;
   typedef typename domain_type::field_type field_type;
-  enum {category=SolverCategory::sequential};
 
   explicit ExtendedStokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22,const Oper13Type& op13,
                                  const Oper33Type& op33):
     op11_(op11),op12_(op12),op22_(op22),op13_(op13),op33_(op33),invop11_(op11),invop22_(op22),invop33_(op33)
   {}
+
+  virtual SolverCategory::Category category() const
+  {
+    return SolverCategory::Category::sequential;
+  }
 
   void pre(domain_type& ,range_type& )
   {
@@ -157,13 +166,17 @@ class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunction
   typedef typename OperType::DiscreteFunctionType domain_type;
   typedef domain_type range_type;
   typedef typename domain_type::field_type field_type;
-  enum {category=SolverCategory::sequential};
   typedef InvOperT<domain_type,OperType,false> InvOperType;
 
   explicit DirectPrecond(OperType& op):
     op_(op),invop_(op_),usedoctoring_((std::is_same<InvOperType,SPQROp<domain_type,OperType,false>>::value)?false:true),
     b_(op_.domainSpace().size(),0),x_(op_.domainSpace().size(),0)
   {}
+
+  virtual SolverCategory::Category category() const
+  {
+    return SolverCategory::Category::sequential;
+  }
 
   void pre(domain_type& ,range_type& )
   {
@@ -207,9 +220,13 @@ class IdPrecond:public Dune::Preconditioner<DFT,DFT>
   typedef DFT domain_type;
   typedef domain_type range_type;
   typedef typename domain_type::field_type field_type;
-  enum {category=SolverCategory::sequential};
 
   IdPrecond() = default;
+
+  virtual SolverCategory::Category category() const
+  {
+    return SolverCategory::Category::sequential;
+  }
 
   void pre(domain_type& ,range_type& )
   {}
