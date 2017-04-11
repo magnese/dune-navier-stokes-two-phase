@@ -321,6 +321,19 @@ void dumpTexLog(const std::vector<double>& errors,const TimerType& timer,const M
   }
 }
 
+// print latex errors
+template<typename InterfaceGridType>
+void printLatexErrors(const std::vector<double>& errors,const InterfaceGridType& interfaceGrid)
+{
+  const double nullTolerance(Parameter::getValue<double>("NullTolerance",1.e-12));
+  std::cout.precision(5);
+  std::cout<<std::scientific;
+  std::cout<<interfaceGrid.size(0)<<" & "<<(std::abs(errors[0])<nullTolerance?0:errors[0])<<" & "
+    <<(std::abs(errors[1])<nullTolerance?0:errors[1])<<" & - & "<<(std::abs(errors[2])<nullTolerance?0:errors[2])<<" & "
+    <<(std::abs(errors[4])<nullTolerance?0:errors[4])<<" & - & - \\\\\n";
+  std::cout.unsetf(std::ios_base::floatfield);
+}
+
 // print discrete function boundary values with a certain boundary ID
 template<typename DF,typename MeshManagerType>
 void printDiscreteFunctionBoundaryValues(const DF& df,const MeshManagerType& meshManager,int boundaryID)
