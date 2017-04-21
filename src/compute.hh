@@ -190,19 +190,22 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       Timer timerInterpolation(false);
       timerInterpolation.start();
       // set old bulk grid and old velocity to the correct values
-      if(remeshPerformed)
-        oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
-      else
+      if(!useALE)
       {
-        // deep copy of the old mesh manager from the new mesh manager to have independent fluid states
-        oldFluidState.meshManager().deepCopy(fluidState.meshManager());
-        oldFluidState.init();
-        // set old bulk grid, old velocity and old rho to the correct values
-        oldFluidState.bulkGrid().coordFunction()-=fluidState.bulkDisplacement();
-        oldFluidState.velocity().assign(fluidState.velocity());
-        #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
-        oldFluidState.rho().assign(fluidState.rho());
-        #endif
+        if(remeshPerformed)
+          oldFluidState.bulkGrid().coordFunction()-=oldFluidState.bulkDisplacement();
+        else
+        {
+          // deep copy of the old mesh manager from the new mesh manager to have independent fluid states
+          oldFluidState.meshManager().deepCopy(fluidState.meshManager());
+          oldFluidState.init();
+          // set old bulk grid, old velocity and old rho to the correct values
+          oldFluidState.bulkGrid().coordFunction()-=fluidState.bulkDisplacement();
+          oldFluidState.velocity().assign(fluidState.velocity());
+          #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+          oldFluidState.rho().assign(fluidState.rho());
+          #endif
+        }
       }
       #if INTERPOLATION_TYPE == 0
       constexpr bool useBarycentricEntitySearch(false);
