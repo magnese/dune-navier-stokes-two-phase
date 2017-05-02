@@ -10,6 +10,8 @@
 # GMSH_LIBRARIES     Name of the GMSH libraries
 #
 
+find_package(LAPACK QUIET)
+
 #look for Gmsh.h header at positions given by the user
 find_path(GMSH_INCLUDE_DIR
   NAMES "Gmsh.h"
@@ -62,6 +64,9 @@ if(GMSH_FOUND)
     "Library directory: ${GMSH_LIBRARIES}\n\n")
   set(GMSH_COMPILER_FLAGS)
   set(GMSH_COMPILER_FLAGS "${GMSH_COMPILER_FLAGS} -I${GMSH_INCLUDE_DIRS}/")
+  if(LAPACK_FOUND)
+    list(APPEND GMSH_LIBRARIES ${LAPACK_LIBRARIES})
+  endif()
   set(GMSH_DUNE_COMPILE_FLAGS ${GMSH_COMPILER_FLAGS}
     CACHE STRING "Compile Flags used by DUNE when compiling with GMSH programs")
   set(GMSH_DUNE_LIBRARIES ${GMSH_LIBRARIES}
