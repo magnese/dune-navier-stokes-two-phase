@@ -62,8 +62,7 @@ if(GMSH_FOUND)
     "Determining location of GMSH succeded:\n"
     "Include directory: ${GMSH_INCLUDE_DIRS}\n"
     "Library directory: ${GMSH_LIBRARIES}\n\n")
-  set(GMSH_COMPILER_FLAGS)
-  set(GMSH_COMPILER_FLAGS "${GMSH_COMPILER_FLAGS} -I${GMSH_INCLUDE_DIRS}/")
+  set(GMSH_COMPILER_FLAGS "-I${GMSH_INCLUDE_DIRS}/")
   if(LAPACK_FOUND)
     list(APPEND GMSH_LIBRARIES ${LAPACK_LIBRARIES})
   endif()
