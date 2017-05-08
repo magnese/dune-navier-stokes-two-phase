@@ -32,11 +32,6 @@ class BubbleStatistics
   template<typename FluidStateType,typename TimeProviderType>
   void add(FluidStateType& fluidState,const TimeProviderType& timeProvider)
   {
-    // update mesh according interface displacement
-    fluidState.interfaceGrid().coordFunction()+=fluidState.displacement();
-    fluidState.bulkDisplacement().clear();
-    fluidState.meshManager().setInterfaceDFInBulkDF(fluidState.displacement(),fluidState.bulkDisplacement());
-    fluidState.bulkGrid().coordFunction()+=fluidState.bulkDisplacement();
     // compute circularity
     auto bulkInnerVolume(fluidState.meshManager().bulkInnerVolume());
     innervolumewriter_.add(timeProvider.time(),bulkInnerVolume);
@@ -47,9 +42,6 @@ class BubbleStatistics
     typename FluidStateType::BulkDisplacementDiscreteFunctionType bulkCoor("bulkCoor",fluidState.bulkDisplacementSpace());
     bulkCoor.assign(fluidState.bulkGrid().coordFunction().discreteFunction());
     barycenterwriter_.add(timeProvider.time(),verticalComponentInnerIntegration(bulkCoor,bulkInnerVolume,fluidState.bulkInnerGridPart()));
-    // restore mesh
-    fluidState.interfaceGrid().coordFunction()-=fluidState.displacement();
-    fluidState.bulkGrid().coordFunction()-=fluidState.bulkDisplacement();
     // compute average rising velocity
     bulkInnerVolume=fluidState.meshManager().bulkInnerVolume();
     velocitywriter_.add(timeProvider.time(),verticalComponentInnerIntegration(fluidState.velocity(),bulkInnerVolume,

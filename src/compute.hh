@@ -95,10 +95,6 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
     fluidState.dumpBulkSolutions(timeProvider);
     fluidState.dumpInterfaceSolutions(timeProvider);
 
-    #if PROBLEM_NUMBER == 7
-    bubbleStatistics.add(fluidState,timeProvider);
-    #endif
-
     // compute bulk errors
     if(computeErrors)
     {
@@ -250,6 +246,10 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       std::cout<<"Velocity interpolation time: "<<timerInterpolation.elapsed()<<" seconds.\n";
     }
     timerStep.stop();
+
+    #if PROBLEM_NUMBER == 7
+    bubbleStatistics.add(fluidState,timeProvider);
+    #endif
 
     std::cout<<"Full timestep time: "<<timerStep.elapsed()<<" seconds.\n";
   }
