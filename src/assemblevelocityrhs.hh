@@ -33,8 +33,7 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidSt
     const auto localOldRho(fluidState.rho().localFunction(entity));
     typename FluidStateType::PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
     localOldRho.evaluate(entity.geometry().center(),oldRho);
-    rho+=oldRho[0];
-    rho*=0.5;
+    rho=oldRho[0];
     #endif
 
     const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);

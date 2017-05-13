@@ -91,6 +91,12 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
       const auto mu(problem_.mu(entity));
       const auto rho(problem_.rho(entity));
 
+      #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+      const auto localOldRho(problem_.fluidState().rho().localFunction(entity));
+      typename ProblemType::FluidStateType::PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
+      localOldRho.evaluate(entity.geometry().center(),oldRho);
+      #endif
+
       const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
       for(const auto& qp:quadrature)
       {
@@ -143,7 +149,11 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
               RangeFieldType valueTime(0.0);
               for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
                 valueTime+=phi[j][k]*phi[i][k];
+              #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+              valueTime*=((rho+oldRho[0])/(2*timeProvider.deltaT()));
+              #else
               valueTime*=(rho/timeProvider.deltaT());
+              #endif
               value+=valueTime;
             }
             // add to the local matrix
@@ -174,7 +184,15 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
         auto localMatrix(op_.localMatrix(entity,entity));
         typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
         const auto& baseSet(localMatrix.domainBasisFunctionSet());
-        const auto rho(problem_.rho(entity));
+        auto rho(problem_.rho(entity));
+
+        #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+        const auto localOldRho(problem_.fluidState().rho().localFunction(entity));
+        typename ProblemType::FluidStateType::PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
+        localOldRho.evaluate(entity.geometry().center(),oldRho);
+        rho+=oldRho[0];
+        rho*=0.5;
+        #endif
 
         const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
         for(const auto& qp:quadrature)
