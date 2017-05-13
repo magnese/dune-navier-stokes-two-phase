@@ -59,6 +59,15 @@ class BaseProblem
     gamma_(Parameter::getValue<double>("Gamma",1.0)),rho_(fluidstate_,"Rho",[](auto val){return val>=0.0;})
   {}
 
+  const FluidStateType& fluidState() const
+  {
+    return fluidstate_;
+  }
+  FluidStateType& fluidState()
+  {
+    return fluidstate_;
+  }
+
   bool isTimeDependent() const
   {
     return istimedependent_;
@@ -213,7 +222,6 @@ class BaseProblem
     rho_.printInfo(s);
     Hybrid::forEach(std::make_index_sequence<std::tuple_size<VelocityBCsType>::value>{},
       [&](auto i){std::get<i>(velocitybcs_).printInfo(s);});
-
   }
 
   protected:
