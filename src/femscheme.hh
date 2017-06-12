@@ -82,11 +82,11 @@ class FemScheme
   #elif PROBLEM_NUMBER == 7
   typedef RisingBubbleProblem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 8
-  typedef NavierStokesTest1Problem<FluidStateType> ProblemType;
+  typedef NavierStokesExpandingBubble1Problem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 9
-  typedef NavierStokesTest2Problem<FluidStateType> ProblemType;
+  typedef NavierStokesExpandingBubble2Problem<FluidStateType> ProblemType;
   #elif PROBLEM_NUMBER == 10
-  typedef NavierStokesExpandingBubbleProblem<FluidStateType> ProblemType;
+  typedef NavierStokesExpandingBubble3Problem<FluidStateType> ProblemType;
   #endif
 
   // define operators for bulk

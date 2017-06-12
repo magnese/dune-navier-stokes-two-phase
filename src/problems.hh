@@ -53,7 +53,7 @@ class BaseProblem
   typedef PhysicalCoefficient<PhysicalCoefficientDiscreteSpaceType,FluidStateType> PhysicalCoefficientType;
   typedef LocalFunctionAdapter<PhysicalCoefficientType> AdaptedPhysicalCoefficientType;
 
-  BaseProblem(FluidStateType& fluidState,bool isTimeDependent,bool hasExactSolution,const std::string& name):
+  BaseProblem(FluidStateType& fluidState,bool isTimeDependent,bool hasExactSolution,std::string&& name):
     fluidstate_(fluidState),velocitybcs_(VelocityBCImp<VelocityDiscreteSpaceType,CoupledMeshManagerType>(fluidstate_.meshManager())...),
     istimedependent_(isTimeDependent),hasexactsolution_(hasExactSolution),name_(name),mu_(fluidstate_,"Mu",[](auto val){return val>0.0;}),
     gamma_(Parameter::getValue<double>("Gamma",1.0)),rho_(fluidstate_,"Rho",[](auto val){return val>=0.0;})
@@ -263,8 +263,8 @@ class StokesTest1Problem:public BaseProblem<FluidStateImp,DirichletCondition>
   using BaseType::velocityRHS;
   using BaseType::mu;
 
-  StokesTest1Problem(FluidStateType& fluidState):
-    BaseType(fluidState,false,true,"Stokes test 1")
+  StokesTest1Problem(FluidStateType& fluidState,std::string&& name="Stokes test 1"):
+    BaseType(fluidState,false,true,std::move(name))
   {
     velocityRHS().function()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
     {
@@ -305,8 +305,8 @@ class StokesTest2Problem:public BaseProblem<FluidStateImp,DirichletCondition>
   using BaseType::velocityRHS;
   using BaseType::mu;
 
-  StokesTest2Problem(FluidStateType& fluidState):
-    BaseType(fluidState,false,true,"Stokes test 2")
+  StokesTest2Problem(FluidStateType& fluidState,std::string&& name="Stokes test 2"):
+    BaseType(fluidState,false,true,std::move(name))
   {
     velocityRHS().function()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
     {
@@ -351,8 +351,8 @@ class StationaryBubbleProblem:public BaseProblem<FluidStateImp,DirichletConditio
   using BaseType::worlddim;
   using BaseType::fluidstate_;
 
-  StationaryBubbleProblem(FluidStateType& fluidState):
-    BaseType(fluidState,true,true,"stationary bubble"),r0_(0.5)
+  StationaryBubbleProblem(FluidStateType& fluidState,std::string&& name="stationary bubble"):
+    BaseType(fluidState,true,true,std::move(name)),r0_(0.5)
   {
     pressureSolution().function()=[&](const PressureDomainType& x,double ,const EntityType& )
     {
@@ -401,8 +401,8 @@ class ExpandingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition
   using BaseType::worlddim;
   using BaseType::fluidstate_;
 
-  ExpandingBubbleProblem(FluidStateType& fluidState):
-    BaseType(fluidState,true,true,"expanding bubble"),r0_(0.5),alpha_(0.15)
+  ExpandingBubbleProblem(FluidStateType& fluidState,std::string&& name="expanding bubble"):
+    BaseType(fluidState,true,true,std::move(name)),r0_(0.5),alpha_(0.15)
   {
     velocitySolution().function()=[&](const VelocityDomainType& x,double ,const EntityType& )
     {
@@ -455,8 +455,8 @@ class ShearFlowProblem:public BaseProblem<FluidStateImp,DirichletCondition>
   using BaseType::velocityBC;
   using BaseType::worlddim;
 
-  ShearFlowProblem(FluidStateType& fluidState):
-    BaseType(fluidState,true,false,"shear flow")
+  ShearFlowProblem(FluidStateType& fluidState,std::string&& name="shear flow"):
+    BaseType(fluidState,true,false,std::move(name))
   {
     VelocityFunctionType f([&](const VelocityDomainType& x,double ,const EntityType& )
                            {
@@ -492,8 +492,8 @@ class StationaryNavierStokesProblem:public BaseProblem<FluidStateImp,DirichletCo
   using BaseType::pressureIC;
   using BaseType::mu;
 
-  StationaryNavierStokesProblem(FluidStateType& fluidState):
-    BaseType(fluidState,false,true,"stationary Navier-Stokes")
+  StationaryNavierStokesProblem(FluidStateType& fluidState,std::string&& name="stationary Navier-Stokes"):
+    BaseType(fluidState,false,true,std::move(name))
   {
     velocityRHS().function()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
     {
@@ -548,8 +548,8 @@ class NavierStokes2DProblem:public BaseProblem<FluidStateImp,DirichletCondition>
   using BaseType::pressureIC;
   using BaseType::mu;
 
-  NavierStokes2DProblem(FluidStateType& fluidState):
-    BaseType(fluidState,true,true,"Navier-Stokes 2D")
+  NavierStokes2DProblem(FluidStateType& fluidState,std::string&& name="Navier-Stokes 2D"):
+    BaseType(fluidState,true,true,std::move(name))
   {
     velocitySolution().function()=[&](const VelocityDomainType& x,double t,const EntityType& entity)
     {
@@ -593,8 +593,8 @@ class RisingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition,Fr
   using BaseType::rho;
   using BaseType::worlddim;
 
-  RisingBubbleProblem(FluidStateType& fluidState):
-    BaseType(fluidState,true,false,"rising bubble")
+  RisingBubbleProblem(FluidStateType& fluidState,std::string&& name="rising bubble"):
+    BaseType(fluidState,true,false,std::move(name))
   {
     velocityRHS().function()=[&](const VelocityDomainType& ,double ,const EntityType& entity)
     {
@@ -619,13 +619,13 @@ class RisingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition,Fr
   }
 };
 
-// Navier-Stokes test 1
+// Navier-Stokes expanding bubble 1
 template<typename FluidStateImp>
-class NavierStokesTest1Problem:public BaseProblem<FluidStateImp,DirichletCondition>
+class NavierStokesExpandingBubble1Problem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
   typedef FluidStateImp FluidStateType;
-  typedef NavierStokesTest1Problem<FluidStateType> ThisType;
+  typedef NavierStokesExpandingBubble1Problem<FluidStateType> ThisType;
   typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
 
   typedef typename BaseType::EntityType EntityType;
@@ -647,8 +647,8 @@ class NavierStokesTest1Problem:public BaseProblem<FluidStateImp,DirichletConditi
   using BaseType::worlddim;
   using BaseType::fluidstate_;
 
-  NavierStokesTest1Problem(FluidStateType& fluidState):
-    BaseType(fluidState,true,true,"Navier-Stokes test 1"),r0_(0.5),alpha_(0.15)
+  NavierStokesExpandingBubble1Problem(FluidStateType& fluidState,std::string&& name="Navier-Stokes expanding bubble 1"):
+    BaseType(fluidState,true,true,std::move(name)),r0_(0.5),alpha_(0.15)
   {
     velocityRHS().function()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
     {
@@ -689,13 +689,13 @@ class NavierStokesTest1Problem:public BaseProblem<FluidStateImp,DirichletConditi
   const double alpha_;
 };
 
-// Navier-Stokes test 2
+// Navier-Stokes expanding bubble 2
 template<typename FluidStateImp>
-class NavierStokesTest2Problem:public BaseProblem<FluidStateImp,DirichletCondition>
+class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,DirichletCondition>
 {
   public:
   typedef FluidStateImp FluidStateType;
-  typedef NavierStokesTest1Problem<FluidStateType> ThisType;
+  typedef NavierStokesExpandingBubble2Problem<FluidStateType> ThisType;
   typedef BaseProblem<FluidStateType,DirichletCondition> BaseType;
 
   typedef typename BaseType::EntityType EntityType;
@@ -717,8 +717,8 @@ class NavierStokesTest2Problem:public BaseProblem<FluidStateImp,DirichletConditi
   using BaseType::worlddim;
   using BaseType::fluidstate_;
 
-  NavierStokesTest2Problem(FluidStateType& fluidState):
-    BaseType(fluidState,true,true,"Navier-Stokes test 2"),r0_(0.5),alpha1_(0.15),alpha2_(0.15)
+  NavierStokesExpandingBubble2Problem(FluidStateType& fluidState,std::string&& name="Navier-Stokes expanding bubble 2"):
+    BaseType(fluidState,true,true,std::move(name)),r0_(0.5),alpha1_(0.15),alpha2_(0.15)
   {
     velocityRHS().function()=[&](const VelocityDomainType& x,double t,const EntityType& entity)
     {
@@ -767,13 +767,13 @@ class NavierStokesTest2Problem:public BaseProblem<FluidStateImp,DirichletConditi
   const double alpha2_;
 };
 
-// Navier-Stokes expanding bubble
+// Navier-Stokes expanding bubble 3
 template<typename FluidStateImp>
-class NavierStokesExpandingBubbleProblem:public ExpandingBubbleProblem<FluidStateImp>
+class NavierStokesExpandingBubble3Problem:public ExpandingBubbleProblem<FluidStateImp>
 {
   public:
   typedef FluidStateImp FluidStateType;
-  typedef NavierStokesExpandingBubbleProblem<FluidStateType> ThisType;
+  typedef NavierStokesExpandingBubble3Problem<FluidStateType> ThisType;
   typedef ExpandingBubbleProblem<FluidStateType> BaseType;
 
   typedef typename BaseType::EntityType EntityType;
@@ -784,8 +784,8 @@ class NavierStokesExpandingBubbleProblem:public ExpandingBubbleProblem<FluidStat
   using BaseType::worlddim;
   using BaseType::rho;
 
-  NavierStokesExpandingBubbleProblem(FluidStateType& fluidState):
-    BaseType(fluidState)
+  NavierStokesExpandingBubble3Problem(FluidStateType& fluidState,std::string&& name="Navier-Stokes expanding bubble 3"):
+    BaseType(fluidState,std::move(name))
   {
     velocityRHS().function()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
     {

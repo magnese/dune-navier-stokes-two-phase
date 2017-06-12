@@ -9,8 +9,8 @@
 #define INTERPOLATION_TYPE 2 // 0 linear search, 1 barycentric coordinate search, 2 sorted entities + barycentric search
 
 #define PROBLEM_NUMBER 7 // 0 StokesTest1, 1 StokesTest2, 2 StationaryBubble, 3 ExpandingBubble, 4 ShearFlow
-                         // 5 StationaryNavierStokes, 6 NavierStokes2D, 7 RisingBubble, 8 NavierStokesTest1, 9 NavierStokesTest2,
-                         // 10 NavierStokesExpandingBubble
+                         // 5 StationaryNavierStokes, 6 NavierStokes2D, 7 RisingBubble, 8 NavierStokesExpandingBubble1,
+                         // 9 NavierStokesExpandingBubble2, 10 NavierStokesExpandingBubble3
 
 #define USE_SYMMETRIC_LAPLACIAN_TERM 1
 #define USE_ANTISYMMETRIC_CONVECTIVE_TERM 0
