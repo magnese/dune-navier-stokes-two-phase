@@ -782,6 +782,7 @@ class NavierStokesExpandingBubbleProblem:public ExpandingBubbleProblem<FluidStat
   using BaseType::velocityRHS;
   using BaseType::alpha_;
   using BaseType::worlddim;
+  using BaseType::rho;
 
   NavierStokesExpandingBubbleProblem(FluidStateType& fluidState):
     BaseType(fluidState)
@@ -789,7 +790,7 @@ class NavierStokesExpandingBubbleProblem:public ExpandingBubbleProblem<FluidStat
     velocityRHS().function()=[&](const VelocityDomainType& x,double ,const EntityType& entity)
     {
       auto value(x);
-      value*=-std::pow(alpha_,2)*(worlddim-1);
+      value*=-std::pow(alpha_,2)*(worlddim-1)*rho(entity);
       value/=std::pow(x.two_norm(),2*worlddim);
       return value;
     };
