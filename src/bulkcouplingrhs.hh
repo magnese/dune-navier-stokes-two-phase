@@ -29,14 +29,14 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
     typedef typename VelocityDiscreteFunctionType::LocalFunctionType::RangeType VelocityLocalFunctionRangeType;
     typedef typename VelocityDiscreteFunctionType::DiscreteFunctionSpaceType VelocitySpaceType;
     constexpr std::size_t velocityLocalBlockSize(VelocitySpaceType::localBlockSize);
-    std::vector<VelocityLocalFunctionRangeType> phiVelocity(velocitySpace.blockMapper().maxNumDofs()*velocityLocalBlockSize);
+    std::vector<VelocityLocalFunctionRangeType> phiVelocity(velocitySpace.maxNumDofs());
 
     // define space, local function and basis for curvature
     const auto& curvatureSpace(curvatureSolutiontm.space());
     typedef typename CurvatureDiscreteFunctionType::LocalFunctionType::RangeType CurvatureLocalFunctionRangeType;
     typedef typename CurvatureDiscreteFunctionType::DiscreteFunctionSpaceType CurvatureSpaceType;
     constexpr std::size_t curvatureLocalBlockSize(CurvatureSpaceType::localBlockSize);
-    std::vector<CurvatureLocalFunctionRangeType> phiCurvature(curvatureSpace.blockMapper().maxNumDofs()*curvatureLocalBlockSize);
+    std::vector<CurvatureLocalFunctionRangeType> phiCurvature(curvatureSpace.maxNumDofs());
 
     // loop over interface grid entities
     for(const auto& interfaceEntity:curvatureSpace)

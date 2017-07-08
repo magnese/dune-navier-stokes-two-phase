@@ -85,12 +85,10 @@ class VelocityCurvatureOperator:public Operator<DomainFunctionImp,RangeFunctionI
     op_.clear();
 
     // allocate basis vectors
-    constexpr std::size_t velocityLocalBlockSize(VelocitySpaceType::localBlockSize);
     typedef typename VelocityFunctionType::LocalFunctionType::RangeType VelocityRangeType;
-    std::vector<VelocityRangeType> phiVelocity(velocityspace_.blockMapper().maxNumDofs()*velocityLocalBlockSize);
-    constexpr std::size_t curvatureLocalBlockSize(CurvatureSpaceType::localBlockSize);
+    std::vector<VelocityRangeType> phiVelocity(velocityspace_.maxNumDofs());
     typedef typename CurvatureFunctionType::LocalFunctionType::RangeType CurvatureRangeType;
-    std::vector<CurvatureRangeType> phiCurvature(curvaturespace_.blockMapper().maxNumDofs()*curvatureLocalBlockSize);
+    std::vector<CurvatureRangeType> phiCurvature(curvaturespace_.maxNumDofs());
 
     // perform an interface walkthrough and assemble the global matrix
     for(const auto& interfaceEntity:curvaturespace_)

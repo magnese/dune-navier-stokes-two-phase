@@ -72,11 +72,10 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
     op_.reserve(stencil);
     op_.clear();
     // allocate local basis
-    constexpr std::size_t blockSize(DiscreteSpaceType::localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*blockSize );
+    std::vector<LocalFunctionRangeType> phi(space_.maxNumDofs());
     typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
-    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.blockMapper().maxNumDofs()*blockSize);
+    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.maxNumDofs());
     // extract dimensions
     constexpr unsigned int worlddim(DiscreteSpaceType::GridType::dimensionworld);
     constexpr unsigned int rangedim(DiscreteSpaceType::FunctionSpaceType::dimRange);

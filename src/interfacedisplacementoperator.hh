@@ -80,9 +80,8 @@ class InterfaceDisplacementOperator:public Operator<DiscreteFunctionImp,Discrete
     op_.reserve(stencil);
     op_.clear();
 
-    constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
-    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.blockMapper().maxNumDofs()*localBlockSize);
+    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.maxNumDofs());
 
     constexpr std::size_t rangedim(DiscreteSpaceType::FunctionSpaceType::dimRange);
 

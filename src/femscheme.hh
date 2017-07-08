@@ -477,7 +477,7 @@ class FemScheme
     #elif PRESSURE_SPACE_TYPE == 3
     timerSolveBulk.start();
     std::vector<typename FluidStateType::PressureDiscreteSpaceType::RangeFieldType> localDOFs;
-    localDOFs.reserve(fluidstate_.pressureSpace().blockMapper().maxNumDofs()*FluidStateType::PressureDiscreteSpaceType::localBlockSize);
+    localDOFs.reserve(fluidstate_.pressureSpace().maxNumDofs());
     for(const auto& entity:fluidstate_.pressureSpace())
     {
       const auto interpolation(fluidstate_.pressureSpace().interpolation(entity));

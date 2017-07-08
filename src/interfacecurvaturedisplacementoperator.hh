@@ -79,12 +79,10 @@ class InterfaceCurvatureDisplacementOperator:public Operator<DomainFunctionImp,R
     op_.reserve(stencil);
     op_.clear();
 
-    constexpr std::size_t domainLocalBlockSize(DomainSpaceType::localBlockSize);
-    constexpr std::size_t rangeLocalBlockSize(RangeSpaceType::localBlockSize);
     typedef typename DomainSpaceType::RangeType DomainType;
     typedef typename RangeSpaceType::RangeType RangeType;
-    std::vector<DomainType> phiDomain(domainspace_.blockMapper().maxNumDofs()*domainLocalBlockSize);
-    std::vector<RangeType> phiRange(rangespace_.blockMapper().maxNumDofs()*rangeLocalBlockSize);
+    std::vector<DomainType> phiDomain(domainspace_.maxNumDofs());
+    std::vector<RangeType> phiRange(rangespace_.maxNumDofs());
 
     // define selector
     constexpr unsigned int dim(DomainType::dimension);

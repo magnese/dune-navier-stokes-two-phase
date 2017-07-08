@@ -80,9 +80,8 @@ class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
     op_.clear();
 
     // allocate basis vector
-    constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
+    std::vector<LocalFunctionRangeType> phi(space_.maxNumDofs());
 
     // perform a grid walkthrough and assemble the global matrix
     for(const auto& entity:space_)

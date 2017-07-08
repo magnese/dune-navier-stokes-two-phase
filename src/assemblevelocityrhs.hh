@@ -18,7 +18,7 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidSt
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
   constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
   const auto& space(rhs.space());
-  std::vector<LocalFunctionRangeType> phi(space.blockMapper().maxNumDofs()*localBlockSize);
+  std::vector<LocalFunctionRangeType> phi(space.maxNumDofs());
   problem.velocityRHS().initialize(timeProvider.time(),timeProvider.time());
 
   // perform a grid walkthrough and assemble the RHS

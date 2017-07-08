@@ -77,9 +77,9 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
 
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
+    std::vector<LocalFunctionRangeType> phi(space_.maxNumDofs());
     typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
-    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.blockMapper().maxNumDofs()*localBlockSize);
+    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.maxNumDofs());
 
     // perform a grid walkthrough and assemble the global matrix
     for(const auto& entity:space_)
@@ -176,7 +176,7 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
     {
       constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
       typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-      std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
+      std::vector<LocalFunctionRangeType> phi(space_.maxNumDofs());
 
       // perform a grid walkthrough and assemble the time derivative
       for(const auto& entity:space_)
@@ -220,9 +220,9 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
   {
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(space_.blockMapper().maxNumDofs()*localBlockSize);
+    std::vector<LocalFunctionRangeType> phi(space_.maxNumDofs());
     typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
-    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.blockMapper().maxNumDofs()*localBlockSize);
+    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.maxNumDofs());
 
     // perform a grid walkthrough and assemble the remaining terms
     for(const auto& entity:space_)

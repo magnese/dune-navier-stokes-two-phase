@@ -213,15 +213,13 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       constexpr bool useBarycentricEntitySearch(true);
       SortedView<typename FluidStateType::BulkGridType> newBulkGridPart(fluidState.bulkGrid(),bulkBoundingBox);
       #endif
-      constexpr std::size_t velocityLocalBlockSize(FluidStateType::VelocityDiscreteSpaceType::localBlockSize);
       std::vector<typename FluidStateType::VelocityDiscreteFunctionType::RangeFieldType> velocityInterpolatedDOFs;
-      velocityInterpolatedDOFs.reserve(fluidState.velocitySpace().blockMapper().maxNumDofs()*velocityLocalBlockSize);
+      velocityInterpolatedDOFs.reserve(fluidState.velocitySpace().maxNumDofs());
       DifferentMeshLocalEvaluator<typename FluidStateType::VelocityDiscreteFunctionType,useBarycentricEntitySearch>
         localOldVelocity(oldFluidState.velocity());
       #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
-      constexpr std::size_t rhoLocalBlockSize(FluidStateType::PhysicalCoefficientDiscreteSpaceType::localBlockSize);
       std::vector<typename FluidStateType::PhysicalCoefficientDiscreteFunctionType::RangeFieldType> rhoInterpolatedDOFs;
-      rhoInterpolatedDOFs.reserve(fluidState.rhoSpace().blockMapper().maxNumDofs()*rhoLocalBlockSize);
+      rhoInterpolatedDOFs.reserve(fluidState.rhoSpace().maxNumDofs());
       DifferentMeshLocalEvaluator<typename FluidStateType::PhysicalCoefficientDiscreteFunctionType,useBarycentricEntitySearch>
         localOldRho(oldFluidState.rho());
       #endif

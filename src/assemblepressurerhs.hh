@@ -55,8 +55,7 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
   if(std::abs(coeff)>nullTolerance)
   {
     typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    constexpr std::size_t localBlockSize(DiscreteFunctionType::DiscreteFunctionSpaceType::localBlockSize);
-    std::vector<LocalFunctionRangeType> phi(rhs.space().blockMapper().maxNumDofs()*localBlockSize);
+    std::vector<LocalFunctionRangeType> phi(rhs.space().maxNumDofs());
     for(const auto& entity:rhs.space())
     {
       auto localRHS(rhs.localFunction(entity));

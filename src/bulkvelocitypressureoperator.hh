@@ -79,11 +79,10 @@ class BulkVelocityPressureOperator:public Operator<DomainFunctionImp,RangeFuncti
 
     // allocate basis vectors
     constexpr std::size_t domainLocalBlockSize(DomainSpaceType::localBlockSize);
-    constexpr std::size_t rangeLocalBlockSize(RangeSpaceType::localBlockSize);
     typedef typename DomainFunctionType::LocalFunctionType::JacobianRangeType DomainJacobianRangeType;
-    std::vector<DomainJacobianRangeType> gradphi(domainspace_.blockMapper().maxNumDofs()*domainLocalBlockSize);
+    std::vector<DomainJacobianRangeType> gradphi(domainspace_.maxNumDofs());
     typedef typename RangeFunctionType::LocalFunctionType::RangeType RangeRangeType;
-    std::vector<RangeRangeType> phi(rangespace_.blockMapper().maxNumDofs()*rangeLocalBlockSize);
+    std::vector<RangeRangeType> phi(rangespace_.maxNumDofs());
 
     for(const auto& entity:rangespace_)
     {
