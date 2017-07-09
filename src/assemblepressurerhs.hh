@@ -1,6 +1,7 @@
 #ifndef DUNE_FEM_ASSEMBLEPRESSURERHS_HH
 #define DUNE_FEM_ASSEMBLEPRESSURERHS_HH
 
+#include <dune/fem/function/common/localcontribution.hh>
 #include <dune/fem/function/localfunction/localfunction.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
@@ -54,11 +55,11 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
   const auto coeff(-integral/vol);
   if(std::abs(coeff)>nullTolerance)
   {
-    typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(rhs.space().maxNumDofs());
+    LocalContribution<DiscreteFunctionType,Assembly::Add> localRHS(rhs);
+    std::vector<typename DiscreteFunctionType::RangeType> phi(rhs.space().maxNumDofs());
     for(const auto& entity:rhs.space())
     {
-      auto localRHS(rhs.localFunction(entity));
+      localRHS.bind(entity);
       const auto& baseSet(rhs.space().basisFunctionSet(entity));
       const CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(entity,2*rhs.space().order()+1);
       for(const auto& qp:quadrature)
@@ -68,6 +69,7 @@ void assemblePressureRHS(DiscreteFunctionType& rhs,BoundaryConditionType& bc,con
         for(auto row=decltype(localRHS.size()){0};row!=localRHS.size();++row)
           localRHS[row]+=phi[row]*weight*coeff;
       }
+      localRHS.unbind();
     }
   }
 }

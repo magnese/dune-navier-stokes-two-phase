@@ -1,6 +1,8 @@
 #ifndef DUNE_FEM_ASSEMBLEVELOCITYRHS_HH
 #define DUNE_FEM_ASSEMBLEVELOCITYRHS_HH
 
+#include <dune/fem/function/common/localcontribution.hh>
+#include <dune/fem/function/localfunction/const.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 
 #include <vector>
@@ -22,16 +24,22 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidSt
   problem.velocityRHS().initialize(timeProvider.time(),timeProvider.time());
 
   // perform a grid walkthrough and assemble the RHS
+  LocalContribution<DiscreteFunctionType,Assembly::Add> localRHS(rhs);
+  ConstLocalDiscreteFunction<VelocityDiscreteFunctionType> localOldVelocity(fluidState.velocity());
+  #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+  typedef typename FluidStateType::PhysicalCoefficientDiscreteFunctionType PhysicalCoefficientDiscreteFunctionType;
+  ConstLocalDiscreteFunction<PhysicalCoefficientDiscreteFunctionType> localOldRho(fluidState.rho());
+  #endif
   for(const auto& entity:space)
   {
     problem.velocityRHS().init(entity);
-    auto localRHS(rhs.localFunction(entity));
-    const auto localOldVelocity(fluidState.velocity().localFunction(entity));
+    localRHS.bind(entity);
+    localOldVelocity.init(entity);
     const auto& baseSet(space.basisFunctionSet(entity));
     auto rho(problem.rho(entity));
     #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
-    const auto localOldRho(fluidState.rho().localFunction(entity));
-    typename FluidStateType::PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
+    localOldRho.init(entity);
+    typename PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
     localOldRho.evaluate(entity.geometry().center(),oldRho);
     rho=oldRho[0];
     #endif
@@ -61,6 +69,7 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidSt
         localRHS[row]+=value;
       }
     }
+    localRHS.unbind();
   }
 }
 

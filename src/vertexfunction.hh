@@ -6,6 +6,8 @@
 #include <dune/grid/geometrygrid/coordfunction.hh>
 
 #include <dune/fem/function/adaptivefunction.hh>
+#include <dune/fem/function/common/localcontribution.hh>
+#include <dune/fem/function/localfunction/const.hh>
 #include <dune/fem/gridpart/leafgridpart.hh>
 #include <dune/fem/space/common/functionspace.hh>
 #include <dune/fem/space/lagrange.hh>
@@ -37,7 +39,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
   typedef typename GridType::template Codim<griddim>::Entity HostVertexType;
 
   explicit VertexFunction(GridType& grid):
-    gridpart_(grid),space_(gridpart_),coord_("coordinates",space_)
+    gridpart_(grid),space_(gridpart_),coord_("coordinates",space_),localcoord_(coord_)
   {
     initialize(grid);
   }
@@ -62,10 +64,11 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
   void initialize(const GridType& grid)
   {
     // fill the vertices coordinates with the grid vertices
+    LocalContribution<DiscreteFunctionType,Assembly::Set> localCoord(coord_);
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
     for(const auto& entity:entities(coord_))
     {
-      auto localCoord(coord_.localFunction(entity));
+      localCoord.bind(entity);
       const auto numLocalBlocks(entity.geometry().corners());
       std::size_t row(0);
       for(auto localIdx=decltype(numLocalBlocks){0};localIdx!=numLocalBlocks;++localIdx)
@@ -74,6 +77,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
         for(auto l=decltype(localBlockSize){0};l!=localBlockSize;++l,++row)
           localCoord[row]=x[l];
       }
+      localCoord.unbind();
     }
   }
 
@@ -101,7 +105,8 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
   void evaluate(const HostEntityType& entity,unsigned int corner,RangeVectorType& y) const
   {
     const auto& referenceElement(ReferenceElements<ctype,griddim>::general((gridpart_.template begin<0>())->type()));
-    coord_.localFunction(entity).evaluate(referenceElement.position(corner,griddim),y);
+    localcoord_.init(entity);
+    localcoord_.evaluate(referenceElement.position(corner,griddim),y);
   }
 
   void evaluate(const HostVertexType& vertex,unsigned int ,RangeVectorType& y) const
@@ -118,6 +123,7 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
   GridPartType gridpart_;
   const DiscreteSpaceType space_;
   DiscreteFunctionType coord_;
+  mutable ConstLocalDiscreteFunction<DiscreteFunctionType> localcoord_;
 };
 
 }

@@ -4,6 +4,7 @@
 // deprecation warning
 #warning ("WARNING : bulkcouplingrhs.hh is deprecated")
 
+#include <dune/fem/function/common/localcontribution.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <vector>
 #include <cmath>
@@ -26,17 +27,17 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
 
     // define space, local function and basis for velocity
     const auto& velocitySpace(rhs.space());
-    typedef typename VelocityDiscreteFunctionType::LocalFunctionType::RangeType VelocityLocalFunctionRangeType;
     typedef typename VelocityDiscreteFunctionType::DiscreteFunctionSpaceType VelocitySpaceType;
     constexpr std::size_t velocityLocalBlockSize(VelocitySpaceType::localBlockSize);
-    std::vector<VelocityLocalFunctionRangeType> phiVelocity(velocitySpace.maxNumDofs());
+    std::vector<typename VelocityDiscreteFunctionType::RangeType> phiVelocity(velocitySpace.maxNumDofs());
+    LocalContribution<VelocityDiscreteFunctionType,Assembly::Add> localRHS(rhs);
 
     // define space, local function and basis for curvature
     const auto& curvatureSpace(curvatureSolutiontm.space());
-    typedef typename CurvatureDiscreteFunctionType::LocalFunctionType::RangeType CurvatureLocalFunctionRangeType;
     typedef typename CurvatureDiscreteFunctionType::DiscreteFunctionSpaceType CurvatureSpaceType;
     constexpr std::size_t curvatureLocalBlockSize(CurvatureSpaceType::localBlockSize);
-    std::vector<CurvatureLocalFunctionRangeType> phiCurvature(curvatureSpace.maxNumDofs());
+    std::vector<typename CurvatureDiscreteFunctionType::RangeType > phiCurvature(curvatureSpace.maxNumDofs());
+    LocalContribution<CurvatureDiscreteFunctionType,Assembly::Add> localCurvature(curvatureSolutiontm);
 
     // loop over interface grid entities
     for(const auto& interfaceEntity:curvatureSpace)
@@ -46,8 +47,8 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
       const auto bulkEntity(intersection.inside());
 
       // create local functions for velocity and curvature
-      auto localRHS(rhs.localFunction(bulkEntity));
-      auto localCurvature(curvatureSolutiontm.localFunction(interfaceEntity));
+      localRHS.bind(bulkEntity);
+      localCurvature.bind(interfaceEntity);
 
       // compute normal to interface entity
       const auto normalVector(intersection.centerUnitOuterNormal());
@@ -83,6 +84,8 @@ void addCouplingBulkRHS(VelocityDiscreteFunctionType& rhs,double gamma,const Cur
           }
         }
       }
+      localRHS.unbind();
+      localCurvature.unbind();
     }
   }
 }

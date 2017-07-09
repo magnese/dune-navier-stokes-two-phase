@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 
+#include <dune/fem/function/localfunction/const.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/misc/h1norm.hh>
@@ -119,10 +120,11 @@ void compute(FemSchemeType& femScheme,MeshSmoothingType& meshSmoothing,std::vect
       const auto intersection(fluidState.meshManager().correspondingInnerBulkIntersection(interfaceEntity));
       const auto innerEntity(intersection.inside());
       const auto outerEntity(intersection.outside());
+      ConstLocalDiscreteFunction<typename FluidStateType::PressureDiscreteFunctionType> localPressure(fluidState.pressure());
       // compute L2 pressure error
       for(const auto& entity:fluidState.pressureSpace())
       {
-        auto localPressure(fluidState.pressure().localFunction(entity));
+        localPressure.init(entity);
         constexpr unsigned int order(FluidStateType::BulkGridType::dimensionworld<3?13:10);
         const CachingQuadrature<typename FluidStateType::BulkGridPartType,0> quadrature(entity,order);
         for(const auto& qp:quadrature)

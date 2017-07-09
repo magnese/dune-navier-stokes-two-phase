@@ -4,6 +4,7 @@
 // deprecation warning
 #warning ("WARNING : interfacecouplingrhs.hh is deprecated")
 
+#include <dune/fem/function/common/localcontribution.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <vector>
 #include <cmath>
@@ -24,15 +25,15 @@ void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDi
 
   // define space, local function and basis for velocity
   const auto& velocitySpace(velocitySolutiontm.space());
-  typedef typename VelocityDiscreteFunctionType::LocalFunctionType::RangeType VelocityLocalFunctionRangeType;
   typedef typename VelocityDiscreteFunctionType::DiscreteFunctionSpaceType VelocitySpaceType;
-  std::vector<VelocityLocalFunctionRangeType> phiVelocity(velocitySpace.maxNumDofs());
+  std::vector<typename VelocityDiscreteFunctionType::RangeType> phiVelocity(velocitySpace.maxNumDofs());
+  LocalContribution<VelocityDiscreteFunctionType,Assembly::Add> localVelocity(velocitySolutiontm);
 
   // define space, local function and basis for curvature
   const auto& curvatureSpace(rhs.space());
-  typedef typename CurvatureDiscreteFunctionType::LocalFunctionType::RangeType CurvatureLocalFunctionRangeType;
   typedef typename CurvatureDiscreteFunctionType::DiscreteFunctionSpaceType CurvatureSpaceType;
-  std::vector<CurvatureLocalFunctionRangeType> phiCurvature(curvatureSpace.maxNumDofs());
+  std::vector<typename CurvatureDiscreteFunctionType::RangeType> phiCurvature(curvatureSpace.maxNumDofs());
+  LocalContribution<CurvatureDiscreteFunctionType,Assembly::Add> localRHS(rhs);
 
   // loop over interface entities
   for(const auto& interfaceEntity:curvatureSpace)
@@ -42,8 +43,8 @@ void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDi
     const auto bulkEntity(intersection.inside());
 
     // create local functions for velocity and curvature
-    auto localRHS(rhs.localFunction(interfaceEntity));
-    auto localVelocity(velocitySolutiontm.localFunction(bulkEntity));
+    localRHS.bind(interfaceEntity);
+    localVelocity.bind(bulkEntity);
 
     // compute normal to interface entity
     const auto normalVector(intersection.centerUnitOuterNormal());
@@ -79,6 +80,8 @@ void addCouplingInterfaceRHS(CurvatureDiscreteFunctionType& rhs,const VelocityDi
         localRHS[row]+=value;
       }
     }
+    localRHS.unbind();
+    localVelocity.unbind();
   }
 }
 

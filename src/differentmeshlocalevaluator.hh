@@ -3,6 +3,7 @@
 
 #include <dune/common/exceptions.hh>
 #include <dune/fem/common/coordinate.hh>
+#include <dune/fem/function/localfunction/const.hh>
 #include <dune/fem/gridpart/common/entitysearch.hh>
 
 #include "barycentricentitysearch.hh"
@@ -28,7 +29,7 @@ class DifferentMeshLocalEvaluator
   typedef typename FunctionSpaceType::RangeType RangeType;
 
   DifferentMeshLocalEvaluator(const DiscreteFunctionType& df):
-    df_(df),oldentity_(*(df_.space().begin())),searchiterations_(0)
+    df_(df),oldentity_(*(df_.space().begin())),searchiterations_(0),localdf_(df_)
   {}
 
   template<class PointType>
@@ -42,8 +43,8 @@ class DifferentMeshLocalEvaluator
       EntitySearch<GridPartType> entitySearch(df_.gridPart());
       oldentity_=entitySearch(xGlobal);
     }
-    const auto& localDF(df_.localFunction(oldentity_));
-    localDF.evaluate(oldentity_.geometry().local(xGlobal),ret);
+    localdf_.init(oldentity_);
+    localdf_.evaluate(oldentity_.geometry().local(xGlobal),ret);
   }
 
   unsigned int order() const
@@ -82,6 +83,7 @@ class DifferentMeshLocalEvaluator
   mutable EntityType oldentity_;
   mutable unsigned int searchiterations_;
   const EntityType* entity_;
+  mutable ConstLocalDiscreteFunction<DiscreteFunctionType> localdf_;
 };
 
 }

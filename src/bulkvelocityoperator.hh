@@ -1,6 +1,7 @@
 #ifndef DUNE_FEM_BULKVELOCITYOPERATOR_HH
 #define DUNE_FEM_BULKVELOCITYOPERATOR_HH
 
+#include <dune/fem/function/localfunction/const.hh>
 #include <dune/fem/io/io.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/operator/common/operator.hh>
@@ -76,15 +77,18 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
     op_.clear();
 
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
-    typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(space_.maxNumDofs());
-    typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
-    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.maxNumDofs());
+    std::vector<typename DiscreteFunctionType::RangeType> phi(space_.maxNumDofs());
+    std::vector<typename DiscreteFunctionType::JacobianRangeType> gradphi(space_.maxNumDofs());
+    ConstLocalDiscreteFunction<DiscreteFunctionType> localOldVelocity(oldvelocity_);
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    typedef typename ProblemType::FluidStateType::PhysicalCoefficientDiscreteFunctionType PhysicalCoefficientDiscreteFunctionType;
+    ConstLocalDiscreteFunction<PhysicalCoefficientDiscreteFunctionType> localOldRho(problem_.fluidState().rho());
+    #endif
 
     // perform a grid walkthrough and assemble the global matrix
     for(const auto& entity:space_)
     {
-      const auto localOldVelocity(oldvelocity_.localFunction(entity));
+      localOldVelocity.init(entity);
       auto localMatrix(op_.localMatrix(entity,entity));
       typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
@@ -92,8 +96,8 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
       const auto rho(problem_.rho(entity));
 
       #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
-      const auto localOldRho(problem_.fluidState().rho().localFunction(entity));
-      typename ProblemType::FluidStateType::PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
+      localOldRho.init(entity);
+      typename PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
       localOldRho.evaluate(entity.geometry().center(),oldRho);
       #endif
 
@@ -175,8 +179,11 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
     if(!problem_.isDensityNull())
     {
       constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
-      typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-      std::vector<LocalFunctionRangeType> phi(space_.maxNumDofs());
+      std::vector<typename DiscreteFunctionType::RangeType> phi(space_.maxNumDofs());
+      #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+      typedef typename ProblemType::FluidStateType::PhysicalCoefficientDiscreteFunctionType PhysicalCoefficientDiscreteFunctionType;
+      ConstLocalDiscreteFunction<PhysicalCoefficientDiscreteFunctionType> localOldRho(problem_.fluidState().rho());
+      #endif
 
       // perform a grid walkthrough and assemble the time derivative
       for(const auto& entity:space_)
@@ -187,8 +194,8 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
         auto rho(problem_.rho(entity));
 
         #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
-        const auto localOldRho(problem_.fluidState().rho().localFunction(entity));
-        typename ProblemType::FluidStateType::PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
+        localOldRho.init(entity);
+        typename PhysicalCoefficientDiscreteFunctionType::RangeType oldRho;
         localOldRho.evaluate(entity.geometry().center(),oldRho);
         rho+=oldRho[0];
         rho*=0.5;
@@ -219,15 +226,14 @@ class BulkVelocityOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionI
   void assembleRemainingTerms(const TimeProviderType& timeProvider)
   {
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
-    typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(space_.maxNumDofs());
-    typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
-    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.maxNumDofs());
+    std::vector<typename DiscreteFunctionType::RangeType> phi(space_.maxNumDofs());
+    std::vector<typename DiscreteFunctionType::JacobianRangeType> gradphi(space_.maxNumDofs());
+    ConstLocalDiscreteFunction<DiscreteFunctionType> localOldVelocity(oldvelocity_);
 
     // perform a grid walkthrough and assemble the remaining terms
     for(const auto& entity:space_)
     {
-      const auto localOldVelocity(oldvelocity_.localFunction(entity));
+      localOldVelocity.init(entity);
       auto localMatrix(op_.localMatrix(entity,entity));
       typedef typename DiscreteSpaceType::RangeFieldType RangeFieldType;
       const auto& baseSet(localMatrix.domainBasisFunctionSet());

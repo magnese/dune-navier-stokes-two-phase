@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 
+#include <dune/fem/function/localfunction/const.hh>
+
 #include "gnuplotwriter.hh"
 
 namespace Dune
@@ -81,13 +83,14 @@ class BubbleStatistics
                                            const BulkInnerGridPartType& bulkInnerGridPart) const
   {
     // compute \int_{\Omega_-}(\vec f * \vec e_d) / \int_{\Omega_-}( 1 )
+    ConstLocalDiscreteFunction<DiscreteFunctionType> fLocal(f);
     typedef typename DiscreteFunctionType::RangeType RangeType;
     RangeType e_d(0.0);
     e_d[DiscreteFunctionType::GridType::dimensionworld-1]=1.0;
     double integral(0.0);
     for(const auto& entity:elements(bulkInnerGridPart))
     {
-      const auto fLocal(f.localFunction(entity));
+      fLocal.init(entity);
       const CachingQuadrature<typename DiscreteFunctionType::GridPartType,0> quadrature(entity,2*f.space().order()+1);
       for(const auto& qp:quadrature)
       {

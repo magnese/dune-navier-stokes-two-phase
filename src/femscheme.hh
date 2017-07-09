@@ -10,6 +10,8 @@
 #include <dune/common/exceptions.hh>
 #include <dune/common/hybridutilities.hh>
 #include <dune/common/timer.hh>
+#include <dune/fem/function/common/localcontribution.hh>
+#include <dune/fem/function/localfunction/const.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/quadrature/integrator.hh>
@@ -56,6 +58,7 @@ class FemScheme
   #if USE_EXTENDED_PRESSURE_SPACE
   typedef typename FluidStateType::Pressure1DiscreteFunctionType Pressure1DiscreteFunctionType;
   #endif
+  typedef typename FluidStateType::PressureDiscreteFunctionType PressureDiscreteFunctionType;
   typedef typename FluidStateType::CurvatureDiscreteFunctionType CurvatureDiscreteFunctionType;
   typedef typename FluidStateType::DisplacementDiscreteFunctionType DisplacementDiscreteFunctionType;
   typedef typename FluidStateType::BulkDiscreteFunctionType BulkDiscreteFunctionType;
@@ -465,32 +468,38 @@ class FemScheme
     // set pressure to correct values (if needed)
     #if PRESSURE_SPACE_TYPE == 2
     timerSolveBulk.start();
+    ConstLocalDiscreteFunction<Pressure0DiscreteFunctionType> localPressure0(fluidstate_.pressure0());
+    ConstLocalDiscreteFunction<Pressure1DiscreteFunctionType> localPressure1(fluidstate_.pressure1());
+    LocalContribution<PressureDiscreteFunctionType,Assembly::Set> localPressureContribution(fluidstate_.pressure());
     for(const auto& entity:entities(fluidstate_.pressure0()))
     {
-      auto localPressure0(fluidstate_.pressure0().localFunction(entity));
-      auto localPressure1(fluidstate_.pressure1().localFunction(entity));
-      auto localPressure(fluidstate_.pressure().localFunction(entity));
-      for(auto i=decltype(localPressure.size()){0};i!=localPressure.size();++i)
-        localPressure[i]=localPressure0[i]+localPressure1[0];
+      localPressure0.init(entity);
+      localPressure1.init(entity);
+      localPressureContribution.bind(entity);
+      for(auto i=decltype(localPressureContribution.size()){0};i!=localPressureContribution.size();++i)
+        localPressureContribution[i]=localPressure0[i]+localPressure1[0];
+      localPressureContribution.unbind();
     }
     timerSolveBulk.stop();
     #elif PRESSURE_SPACE_TYPE == 3
     timerSolveBulk.start();
     std::vector<typename FluidStateType::PressureDiscreteSpaceType::RangeFieldType> localDOFs;
     localDOFs.reserve(fluidstate_.pressureSpace().maxNumDofs());
+    ConstLocalDiscreteFunction<Pressure0DiscreteFunctionType> localPressure0(fluidstate_.pressure0());
+    ConstLocalDiscreteFunction<Pressure1DiscreteFunctionType> localPressure1(fluidstate_.pressure1());
     for(const auto& entity:fluidstate_.pressureSpace())
     {
       const auto interpolation(fluidstate_.pressureSpace().interpolation(entity));
       localDOFs.resize(fluidstate_.pressureSpace().basisFunctionSet(entity).size());
       if(fluidstate_.bulkInnerGridPart().contains(entity))
       {
-        const auto localPressure(fluidstate_.pressure0().localFunction(entity));
-        interpolation(localPressure,localDOFs);
+        localPressure0.init(entity);
+        interpolation(localPressure0,localDOFs);
       }
       else
       {
-        const auto localPressure(fluidstate_.pressure1().localFunction(entity));
-        interpolation(localPressure,localDOFs);
+        localPressure1.init(entity);
+        interpolation(localPressure1,localDOFs);
       }
       fluidstate_.pressure().setLocalDofs(entity,localDOFs);
     }
@@ -500,10 +509,11 @@ class FemScheme
     // project pressure solution to the space of mean zero function
     timerSolveBulk.start();
     Integrator<CachingQuadrature<typename FluidStateType::BulkGridPartType,0>> integrator(2*fluidstate_.pressureSpace().order()+1);
-    typename FluidStateType::PressureDiscreteFunctionType::RangeType pressureIntegral(0);
+    typename PressureDiscreteFunctionType::RangeType pressureIntegral(0);
+    ConstLocalDiscreteFunction<PressureDiscreteFunctionType> localPressure(fluidstate_.pressure());
     for(const auto& entity:fluidstate_.pressureSpace())
     {
-      auto localPressure(fluidstate_.pressure().localFunction(entity));
+      localPressure.init(entity);
       integrator.integrateAdd(entity,localPressure,pressureIntegral);
     }
     pressureIntegral/=fluidstate_.meshManager().bulkVolume();

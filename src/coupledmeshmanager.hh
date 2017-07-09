@@ -20,6 +20,8 @@
 #include <dune/grid/geometrygrid/grid.hh>
 #include <dune/grid/io/file/gmshwriter.hh>
 #include <dune/grid/utility/hostgridaccess.hh>
+#include <dune/fem/function/common/localcontribution.hh>
+#include <dune/fem/function/localfunction/const.hh>
 #include <dune/fem/gridpart/filter/basicfilterwrapper.hh>
 #include <dune/fem/gridpart/filter/domainfilter.hh>
 #include <dune/fem/gridpart/filteredgridpart.hh>
@@ -419,12 +421,14 @@ class CoupledMeshManager
   template<typename InterfaceFunctionType,typename BulkFunctionType>
   void setInterfaceDFInBulkDF(const InterfaceFunctionType& interfaceFunction,BulkFunctionType& bulkFunction) const
   {
+    ConstLocalDiscreteFunction<InterfaceFunctionType> localInterfaceFunction(interfaceFunction);
+    LocalContribution<BulkFunctionType,Assembly::Set> localBulkFunction(bulkFunction);
     for(const auto& interfaceEntity:elements(interfaceGridPart()))
     {
-      const auto localInterfaceFunction(interfaceFunction.localFunction(interfaceEntity));
+      localInterfaceFunction.init(interfaceEntity);
       const auto intersection(correspondingInnerBulkIntersection(interfaceEntity));
       const auto bulkEntity(intersection.inside());
-      auto localBulkFunction(bulkFunction.localFunction(bulkEntity));
+      localBulkFunction.bind(bulkEntity);
       const auto faceLocalIndex(intersection.indexInInside());
       const auto numCorners(intersection.geometry().corners());
       const auto& refElement(ReferenceElements<typename BulkGridType::ctype,worlddim>::general(bulkEntity.type()));
@@ -440,6 +444,7 @@ class CoupledMeshManager
         for(auto l=decltype(worlddim){0};l!=worlddim;++l,++interfaceRow,++bulkRow)
           localBulkFunction[bulkRow]=localInterfaceFunction[interfaceRow];
       }
+      localBulkFunction.unbind();
     }
   }
 
