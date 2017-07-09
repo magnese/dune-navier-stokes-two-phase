@@ -80,8 +80,7 @@ class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
     op_.clear();
 
     // allocate basis vector
-    typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
-    std::vector<LocalFunctionRangeType> phi(space_.maxNumDofs());
+    std::vector<typename DiscreteFunctionType::RangeType> phi(space_.maxNumDofs());
 
     // perform a grid walkthrough and assemble the global matrix
     for(const auto& entity:space_)

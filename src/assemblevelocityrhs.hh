@@ -14,11 +14,11 @@ template<typename DiscreteFunctionType,typename FluidStateType,typename ProblemT
 void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidState,ProblemType& problem,
                          const TimeProviderType& timeProvider)
 {
-  typedef typename DiscreteFunctionType::LocalFunctionType::RangeType LocalFunctionRangeType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
+  typedef typename FluidStateType::VelocityDiscreteFunctionType VelocityDiscreteFunctionType;
   constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
   const auto& space(rhs.space());
-  std::vector<LocalFunctionRangeType> phi(space.maxNumDofs());
+  std::vector<typename DiscreteFunctionType::RangeType> phi(space.maxNumDofs());
   problem.velocityRHS().initialize(timeProvider.time(),timeProvider.time());
 
   // perform a grid walkthrough and assemble the RHS
@@ -39,7 +39,7 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidSt
     const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
     for(const auto& qp:quadrature)
     {
-      typename FluidStateType::VelocityDiscreteFunctionType::RangeType fValue;
+      typename VelocityDiscreteFunctionType::RangeType fValue;
       problem.velocityRHS().evaluate(qp.position(),fValue);
       baseSet.evaluateAll(qp,phi);
       const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());

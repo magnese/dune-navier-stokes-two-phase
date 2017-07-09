@@ -74,8 +74,7 @@ class SmoothingOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
     op_.clear();
 
     constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
-    typedef typename DiscreteFunctionType::LocalFunctionType::JacobianRangeType LocalFunctionJacobianRangeType;
-    std::vector<LocalFunctionJacobianRangeType> gradphi(space_.maxNumDofs());
+    std::vector<typename DiscreteFunctionType::JacobianRangeType> gradphi(space_.maxNumDofs());
 
     // perform a grid walkthrough and assemble the global matrix
     for(const auto& entity:space_)
