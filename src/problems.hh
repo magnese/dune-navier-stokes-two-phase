@@ -657,6 +657,11 @@ class NavierStokesExpandingBubble1Problem:public BaseProblem<FluidStateImp,Diric
       return value;
     };
 
+    pressureRHS().function()=[&](const PressureDomainType& ,double ,const EntityType& )
+    {
+      return PressureRangeType(alpha_*static_cast<double>(worlddim));
+    };
+
     velocitySolution().function()=[&](const VelocityDomainType& x,double ,const EntityType& )
     {
       auto value(x);
@@ -684,9 +689,20 @@ class NavierStokesExpandingBubble1Problem:public BaseProblem<FluidStateImp,Diric
     return std::exp(alpha_*t)*r0_;
   }
 
+  const PressureFunctionType& pressureRHS() const
+  {
+    return pressurerhs_;
+  }
+
+  PressureFunctionType& pressureRHS()
+  {
+    return pressurerhs_;
+  }
+
   private:
   const double r0_;
   const double alpha_;
+  PressureFunctionType pressurerhs_;
 };
 
 // Navier-Stokes expanding bubble 2
@@ -731,6 +747,16 @@ class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,Diric
       return value;
     };
 
+    pressureRHS().function()=[&](const PressureDomainType& x,double t,const EntityType& entity)
+    {
+      PressureRangeType value(alpha1_*static_cast<double>(worlddim));
+      const auto rt2(std::pow(exactRadius(t),2));
+      const auto x2(std::pow(x.two_norm(),2));
+      const auto indicatorValue(x2<rt2?0.0:1.0);
+      value+=alpha2_*indicatorValue*((worlddim+2)*x2-rt2*worlddim);
+      return value;
+    };
+
     velocitySolution().function()=[&](const VelocityDomainType& x,double t,const EntityType& )
     {
       auto value(x);
@@ -761,10 +787,21 @@ class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,Diric
     return std::exp(alpha1_*t)*r0_;
   }
 
+  const PressureFunctionType& pressureRHS() const
+  {
+    return pressurerhs_;
+  }
+
+  PressureFunctionType& pressureRHS()
+  {
+    return pressurerhs_;
+  }
+
   private:
   const double r0_;
   const double alpha1_;
   const double alpha2_;
+  PressureFunctionType pressurerhs_;
 };
 
 // Navier-Stokes expanding bubble 3

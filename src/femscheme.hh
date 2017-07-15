@@ -33,7 +33,8 @@
 #include "bulkpressurevelocityoperator.hh"
 #include "assemblevelocityrhs.hh"
 #include "assemblepressurerhs.hh"
-
+#include "correctionvelocityrhsnondivergencefree.hh"
+#include "correctionpressurerhsnondivergencefree.hh"
 #include "interfaceoperator.hh"
 #include "assembleinterfacerhs.hh"
 
@@ -231,6 +232,17 @@ class FemScheme
       [&](auto i){assemblePressureRHS(bulkRHS.template subDiscreteFunction<i+1>(),problem_.velocityBC(),timeProvider);});
     #endif
     timerAssembleBulk.stop();
+
+    // apply correction to bulk RHS for non divergence-free problems
+    #if PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9
+    timerAssembleBulk.start();
+    #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
+    correctionVelocityRHSNonDivergenceFree(bulkRHS.template subDiscreteFunction<0>(),problem_,timeProvider);
+    #endif
+    Hybrid::forEach(std::make_index_sequence<BulkDiscreteFunctionType::Sequence::size()-1>{},
+      [&](auto i){correctionPressureRHSNonDivergenceFree(bulkRHS.template subDiscreteFunction<i+1>(),problem_,timeProvider);});
+    timerAssembleBulk.stop();
+    #endif
 
     // assemble interface RHS
     timerAssembleInterface.start();
