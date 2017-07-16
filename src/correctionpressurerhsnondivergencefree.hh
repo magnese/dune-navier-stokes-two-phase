@@ -3,8 +3,8 @@
 
 #include <dune/fem/function/common/localcontribution.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
+#include <dune/fem/quadrature/integrator.hh>
 
-#include <cmath>
 #include <vector>
 
 namespace Dune
@@ -21,39 +21,33 @@ void correctionPressureRHSNonDivergenceFree(DiscreteFunctionType& rhs,ProblemTyp
   std::vector<RangeType> phi(space.maxNumDofs());
   problem.pressureRHS().initialize(timeProvider.time(),timeProvider.time());
 
-  // compute domain volume
-  double vol(0.0);
+  // compute (fdiv,1)/(1,1)
+  Integrator<CachingQuadrature<typename DiscreteFunctionType::GridPartType,0>> integrator(2*space.order()+1);
+  RangeType temp(0);
   for(const auto& entity:space)
-    vol+=std::abs(entity.geometry().volume());
+  {
+    problem.pressureRHS().init(entity);
+    integrator.integrateAdd(entity,problem.pressureRHS(),temp);
+  }
+  temp/=problem.fluidState().meshManager().bulkVolume();
 
-  // perform a grid walkthrough and apply correction to the RHS
+  // compute (fdiv-temp,\phi) and apply correction to the RHS
   LocalContribution<DiscreteFunctionType,Assembly::Add> localRHS(rhs);
   for(const auto& entity:space)
   {
     problem.pressureRHS().init(entity);
     localRHS.bind(entity);
-    const auto& baseSet(space.basisFunctionSet(entity));
-    RangeType coeff(0);
-
     const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
-    for(const auto& qp:quadrature)
-    {
-      baseSet.evaluateAll(qp,phi);
-      const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
-      for(auto row=decltype(localRHS.size()){0};row!=localRHS.size();++row)
-        coeff+=phi[row]*weight;
-    }
-    coeff/=vol;
     for(const auto& qp:quadrature)
     {
       RangeType fdivValue;
       problem.pressureRHS().evaluate(qp.position(),fdivValue);
-      baseSet.evaluateAll(qp,phi);
+      space.basisFunctionSet(entity).evaluateAll(qp,phi);
       const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
       for(auto row=decltype(localRHS.size()){0};row!=localRHS.size();++row)
       {
-        auto value(fdivValue*(phi[row]-coeff));
-        value*=weight;
+        auto value(fdivValue-temp);
+        value*=weight*phi[row];
         localRHS[row]+=value;
       }
     }
