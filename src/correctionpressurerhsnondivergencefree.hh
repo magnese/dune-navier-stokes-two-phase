@@ -45,11 +45,7 @@ void correctionPressureRHSNonDivergenceFree(DiscreteFunctionType& rhs,ProblemTyp
       space.basisFunctionSet(entity).evaluateAll(qp,phi);
       const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
       for(auto row=decltype(localRHS.size()){0};row!=localRHS.size();++row)
-      {
-        auto value(fdivValue-temp);
-        value*=weight*phi[row];
-        localRHS[row]+=value;
-      }
+        localRHS[row]+=weight*(fdivValue-temp)*phi[row];
     }
     localRHS.unbind();
   }

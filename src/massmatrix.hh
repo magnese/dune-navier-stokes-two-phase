@@ -86,24 +86,17 @@ class MassMatrix:public Operator<DomainFunctionImp,RangeFunctionImp>
     for(const auto& entity:space_)
     {
       auto localMatrix(op_.localMatrix(entity,entity));
-      const auto& baseSet(localMatrix.domainBasisFunctionSet());
       const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space_.order()+1);
       for(const auto& qp:quadrature)
       {
-        baseSet.evaluateAll(qp,phi);
+        localMatrix.domainBasisFunctionSet().evaluateAll(qp,phi);
         const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
         const auto localSize(localMatrix.rows());
         for(auto i=decltype(localSize){0};i!=localSize;++i)
-        {
           for(auto j=decltype(localSize){0};j!=localSize;++j)
-          {
-            const auto value((phi[i]*phi[j])*weight);
-            localMatrix.add(i,j,value);
-          }
-        }
+            localMatrix.add(i,j,(phi[i]*phi[j])*weight);
       }
     }
-
   }
 
   private:
