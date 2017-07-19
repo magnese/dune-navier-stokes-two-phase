@@ -5,6 +5,7 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/quadrature/integrator.hh>
 
+#include <cmath>
 #include <vector>
 
 namespace Dune
@@ -24,12 +25,14 @@ void correctionPressureRHSNonDivergenceFree(DiscreteFunctionType& rhs,ProblemTyp
   // compute (fdiv,1)/(1,1)
   Integrator<CachingQuadrature<typename DiscreteFunctionType::GridPartType,0>> integrator(2*space.order()+1);
   RangeType temp(0);
+  typename DiscreteFunctionType::RangeFieldType vol(0);
   for(const auto& entity:space)
   {
+    vol+=std::abs(entity.geometry().volume());
     problem.pressureRHS().init(entity);
     integrator.integrateAdd(entity,problem.pressureRHS(),temp);
   }
-  temp/=problem.fluidState().meshManager().bulkVolume();
+  temp/=vol;
 
   // compute (fdiv-temp,\phi) and apply correction to the RHS
   LocalContribution<DiscreteFunctionType,Assembly::Add> localRHS(rhs);
