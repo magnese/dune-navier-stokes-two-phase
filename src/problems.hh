@@ -747,13 +747,13 @@ class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,Diric
       return value;
     };
 
-    pressureRHS().function()=[&](const PressureDomainType& x,double t,const EntityType& entity)
+    pressureRHS().function()=[&](const PressureDomainType& x,double t,const EntityType& )
     {
       PressureRangeType value(alpha1_*static_cast<double>(worlddim));
       const auto rt2(std::pow(exactRadius(t),2));
       const auto x2(std::pow(x.two_norm(),2));
       const auto indicatorValue(x2<rt2?0.0:1.0);
-      value+=alpha2_*indicatorValue*((worlddim+2)*x2-rt2*worlddim);
+      value+=alpha2_*indicatorValue*((static_cast<double>(worlddim)+2)*x2-rt2*static_cast<double>(worlddim));
       return value;
     };
 
