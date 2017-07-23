@@ -740,7 +740,7 @@ class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,Diric
     {
       VelocityRangeType value(x);
       const auto rt2(std::pow(exactRadius(t),2));
-      const auto x2(std::pow(x.two_norm(),2));
+      const auto x2(x.two_norm2());
       const auto indicatorValue(fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?0.0:1.0);
       value*=((std::pow(alpha1_,2)+indicatorValue*(-2.0*alpha1_*alpha2_*rt2+2.0*alpha1_*alpha2_*(2.0*x2-rt2)+
                std::pow(alpha2_,2)*(x2-rt2)*(3.0*x2-rt2)))*rho(entity)-4.0*(worlddim+1)*alpha2_*mu_.outerValue()*indicatorValue);
@@ -751,7 +751,7 @@ class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,Diric
     {
       PressureRangeType value(alpha1_*static_cast<double>(worlddim));
       const auto rt2(std::pow(exactRadius(t),2));
-      const auto x2(std::pow(x.two_norm(),2));
+      const auto x2(x.two_norm2());
       const auto indicatorValue(x2<rt2?0.0:1.0);
       value+=alpha2_*indicatorValue*((static_cast<double>(worlddim)+2)*x2-rt2*static_cast<double>(worlddim));
       return value;
@@ -761,7 +761,7 @@ class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,Diric
     {
       auto value(x);
       const auto rt2(std::pow(exactRadius(t),2));
-      const auto x2(std::pow(x.two_norm(),2));
+      const auto x2(x.two_norm2());
       const auto indicatorValue(x2<rt2?0.0:1.0);
       value*=(alpha1_+alpha2_*indicatorValue*(x2-rt2));
       return value;
@@ -770,9 +770,9 @@ class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,Diric
     pressureSolution().function()=[&](const PressureDomainType& x,double t,const EntityType& )
     {
       const auto rt(exactRadius(t));
-      const auto coeff((static_cast<double>(worlddim-1)/rt)*gamma()+4.0*alpha2_*mu_.outerValue()*std::pow(rt,2));
+      auto value((static_cast<double>(worlddim-1)/rt)*gamma()+4.0*alpha2_*mu_.outerValue()*std::pow(rt,2));
       const auto indicatorValue(x.two_norm()<=rt?1.0:0.0);
-      auto value(coeff*(indicatorValue-(std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim))/(std::pow(2.0,worlddim))));
+      value*=(indicatorValue-(std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim))/(std::pow(2.0,worlddim)));
       return value;
     };
 
