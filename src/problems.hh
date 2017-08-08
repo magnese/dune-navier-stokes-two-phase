@@ -349,7 +349,6 @@ class StationaryBubbleProblem:public BaseProblem<FluidStateImp,DirichletConditio
   using BaseType::pressureIC;
   using BaseType::gamma;
   using BaseType::worlddim;
-  using BaseType::fluidstate_;
 
   StationaryBubbleProblem(FluidStateType& fluidState,std::string&& name="stationary bubble"):
     BaseType(fluidState,true,true,std::move(name)),r0_(0.5)
@@ -396,10 +395,9 @@ class ExpandingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition
   using BaseType::velocityIC;
   using BaseType::pressureSolution;
   using BaseType::pressureIC;
-  using BaseType::mu_;
+  using BaseType::mu;
   using BaseType::gamma;
   using BaseType::worlddim;
-  using BaseType::fluidstate_;
 
   ExpandingBubbleProblem(FluidStateType& fluidState,std::string&& name="expanding bubble"):
     BaseType(fluidState,true,true,std::move(name)),r0_(0.5),alpha_(0.15)
@@ -415,7 +413,7 @@ class ExpandingBubbleProblem:public BaseProblem<FluidStateImp,DirichletCondition
     pressureSolution().function()=[&](const PressureDomainType& x,double t,const EntityType& )
     {
       const auto rt(exactRadius(t));
-      const auto coeff(static_cast<double>(worlddim-1)*(gamma()/rt+2.0*alpha_*mu_.delta()/std::pow(rt,worlddim)));
+      const auto coeff(static_cast<double>(worlddim-1)*(gamma()/rt+2.0*alpha_*mu().delta()/std::pow(rt,worlddim)));
       const auto indicatorValue(x.two_norm()<=rt?1.0:0.0);
       auto value(coeff*(indicatorValue-(std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim)-std::pow(2.0/3.0,worlddim))/
                                        (std::pow(2.0,worlddim)-std::pow(2.0/3.0,worlddim))));
@@ -641,11 +639,10 @@ class NavierStokesExpandingBubble1Problem:public BaseProblem<FluidStateImp,Diric
   using BaseType::velocityRHS;
   using BaseType::pressureSolution;
   using BaseType::pressureIC;
-  using BaseType::mu_;
+  using BaseType::mu;
   using BaseType::gamma;
   using BaseType::rho;
   using BaseType::worlddim;
-  using BaseType::fluidstate_;
 
   NavierStokesExpandingBubble1Problem(FluidStateType& fluidState,std::string&& name="Navier-Stokes expanding bubble 1"):
     BaseType(fluidState,true,true,std::move(name)),r0_(0.5),alpha_(0.15)
@@ -672,7 +669,7 @@ class NavierStokesExpandingBubble1Problem:public BaseProblem<FluidStateImp,Diric
     pressureSolution().function()=[&](const PressureDomainType& x,double t,const EntityType& )
     {
       const auto rt(exactRadius(t));
-      const auto coeff((static_cast<double>(worlddim-1)/rt)*gamma()+2.0*alpha_*mu_.delta());
+      const auto coeff((static_cast<double>(worlddim-1)/rt)*gamma()-2.0*alpha_*mu().delta());
       const auto indicatorValue(x.two_norm()<=rt?1.0:0.0);
       auto value(coeff*(indicatorValue-(std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim))/(std::pow(2.0,worlddim))));
       return value;
@@ -727,7 +724,7 @@ class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,Diric
   using BaseType::velocityRHS;
   using BaseType::pressureSolution;
   using BaseType::pressureIC;
-  using BaseType::mu_;
+  using BaseType::mu;
   using BaseType::gamma;
   using BaseType::rho;
   using BaseType::worlddim;
@@ -743,35 +740,35 @@ class NavierStokesExpandingBubble2Problem:public BaseProblem<FluidStateImp,Diric
       const auto x2(x.two_norm2());
       const auto indicatorValue(fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?0.0:1.0);
       value*=((std::pow(alpha1_,2)+indicatorValue*(-2.0*alpha1_*alpha2_*rt2+2.0*alpha1_*alpha2_*(2.0*x2-rt2)+
-               std::pow(alpha2_,2)*(x2-rt2)*(3.0*x2-rt2)))*rho(entity)-4.0*(worlddim+1)*alpha2_*mu_.outerValue()*indicatorValue);
+               std::pow(alpha2_,2)*(x2-rt2)*(3.0*x2-rt2)))*rho(entity)-4.0*(worlddim+1)*alpha2_*mu().outerValue()*indicatorValue);
       return value;
     };
 
-    pressureRHS().function()=[&](const PressureDomainType& x,double t,const EntityType& )
+    pressureRHS().function()=[&](const PressureDomainType& x,double t,const EntityType& entity)
     {
       PressureRangeType value(alpha1_*static_cast<double>(worlddim));
       const auto rt2(std::pow(exactRadius(t),2));
       const auto x2(x.two_norm2());
-      const auto indicatorValue(x2<rt2?0.0:1.0);
+      const auto indicatorValue(fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?0.0:1.0);
       value+=alpha2_*indicatorValue*((static_cast<double>(worlddim)+2)*x2-rt2*static_cast<double>(worlddim));
       return value;
     };
 
-    velocitySolution().function()=[&](const VelocityDomainType& x,double t,const EntityType& )
+    velocitySolution().function()=[&](const VelocityDomainType& x,double t,const EntityType& entity)
     {
       auto value(x);
       const auto rt2(std::pow(exactRadius(t),2));
       const auto x2(x.two_norm2());
-      const auto indicatorValue(x2<rt2?0.0:1.0);
+      const auto indicatorValue(fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?0.0:1.0);
       value*=(alpha1_+alpha2_*indicatorValue*(x2-rt2));
       return value;
     };
 
-    pressureSolution().function()=[&](const PressureDomainType& x,double t,const EntityType& )
+    pressureSolution().function()=[&](const PressureDomainType& x,double t,const EntityType& entity)
     {
       const auto rt(exactRadius(t));
-      auto value((static_cast<double>(worlddim-1)/rt)*gamma()+4.0*alpha2_*mu_.outerValue()*std::pow(rt,2));
-      const auto indicatorValue(x.two_norm()<=rt?1.0:0.0);
+      auto value((static_cast<double>(worlddim-1)/rt)*gamma()-2.0*alpha1_*mu().delta()-4.0*alpha2_*mu().outerValue()*std::pow(rt,2));
+      const auto indicatorValue(fluidstate_.meshManager().bulkInnerIndicatorFunction().contains(entity)?1.0:0.0);
       value*=(indicatorValue-(std::pow(4.0/3.0,worlddim-2)*M_PI*std::pow(rt,worlddim))/(std::pow(2.0,worlddim)));
       return value;
     };
