@@ -31,6 +31,7 @@
 #include "bulkvelocityoperator.hh"
 #include "bulkvelocitypressureoperator.hh"
 #include "bulkpressurevelocityoperator.hh"
+#include "assembleforcingterm.hh"
 #include "assemblevelocityrhs.hh"
 #include "assemblepressurerhs.hh"
 #include "correctionvelocityrhsnondivergencefree.hh"
@@ -221,23 +222,29 @@ class FemScheme
     interfaceInvOp.prepare();
     timerSolveInterface.stop();
 
+    // create copy previous step velocity
+    const auto previousStepVelocity(fluidstate_.velocity());
+
     // assemble bulk RHS
     timerAssembleBulk.start();
     BulkDiscreteFunctionType bulkRHS("bulk RHS",fluidstate_.bulkSpace());
     bulkRHS.clear();
     auto& velocityRHS(bulkRHS.template subDiscreteFunction<0>());
-    assembleVelocityRHS(velocityRHS,fluidstate_,problem_,timeProvider);
+    auto forcingTerm(velocityRHS);
+    if(!problem_.isDensityNull())
+      assembleVelocityRHS(velocityRHS,fluidstate_,problem_,timeProvider,previousStepVelocity);
+    assembleForcingTerm(forcingTerm,fluidstate_,problem_,timeProvider);
     #if PROBLEM_NUMBER == 3 || PROBLEM_NUMBER == 4 || PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9 || PROBLEM_NUMBER == 10
     Hybrid::forEach(std::make_index_sequence<BulkDiscreteFunctionType::Sequence::size()-1>{},
       [&](auto i){assemblePressureRHS(bulkRHS.template subDiscreteFunction<i+1>(),problem_.velocityBC(),timeProvider);});
     #endif
     timerAssembleBulk.stop();
 
-    // apply correction to bulk RHS for non divergence-free problems
+    // apply correction to forcing term for non divergence-free problems
     #if PROBLEM_NUMBER == 8 || PROBLEM_NUMBER == 9
     timerAssembleBulk.start();
     #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
-    correctionVelocityRHSNonDivergenceFree(bulkRHS.template subDiscreteFunction<0>(),problem_,timeProvider);
+    correctionVelocityRHSNonDivergenceFree(forcingTerm,problem_,timeProvider);
     #endif
     Hybrid::forEach(std::make_index_sequence<BulkDiscreteFunctionType::Sequence::size()-1>{},
       [&](auto i){correctionPressureRHSNonDivergenceFree(bulkRHS.template subDiscreteFunction<i+1>(),problem_,timeProvider);});
@@ -251,7 +258,7 @@ class FemScheme
     assembleInterfaceRHS(interfaceRHS,interfaceOp);
     timerAssembleInterface.stop();
 
-    // add bulk coupling
+    // add bulk coupling to forcing term
     const auto gamma(problem_.gamma());
     if(gamma!=0.0)
     {
@@ -260,9 +267,14 @@ class FemScheme
       interfaceInvOp.apply(interfaceRHS,interfaceTempFunction);
       VelocityDiscreteFunctionType velocityCouplingRHS("velocity coupling RHS",fluidstate_.velocitySpace());
       curvatureVelocityOp(interfaceTempFunction.template subDiscreteFunction<0>(),velocityCouplingRHS);
-      velocityRHS.axpy(gamma,velocityCouplingRHS);
+      forcingTerm.axpy(gamma,velocityCouplingRHS);
       timerAssembleBulk.stop();
     }
+
+    // add forcing term to velocity RHS
+    timerAssembleBulk.start();
+    velocityRHS+=forcingTerm;
+    timerAssembleBulk.stop();
 
     // impose bulk bc
     timerAssembleBulk.start();
@@ -379,12 +391,15 @@ class FemScheme
           timerSolveInterface.start();
           interfaceInvOp.apply(interfaceRHS,fluidstate_.interfaceSolution());
           timerSolveInterface.stop();
-          // compute smoothing, assemble time derivative on the moved grid and restore the grid
+          // compute smoothing, assemble time derivative and velocity RHS on the moved grid and restore the grid
           fluidstate_.interfaceGrid().coordFunction()+=fluidstate_.displacement();
           meshSmoothing.computeBulkDisplacement();
           fluidstate_.bulkGrid().coordFunction()+=fluidstate_.bulkDisplacement();
           timerAssembleBulk.start();
           velocityOp.allocateAndAssembleTimeDerivative(timeProvider);
+          velocityRHS.clear();
+          assembleVelocityRHS(velocityRHS,fluidstate_,problem_,timeProvider,previousStepVelocity);
+          velocityRHS+=forcingTerm;
           timerAssembleBulk.stop();
           fluidstate_.interfaceGrid().coordFunction()-=fluidstate_.displacement();
           fluidstate_.bulkGrid().coordFunction()-=fluidstate_.bulkDisplacement();

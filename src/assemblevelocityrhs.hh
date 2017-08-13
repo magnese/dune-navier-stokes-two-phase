@@ -14,25 +14,22 @@ namespace Fem
 
 template<typename DiscreteFunctionType,typename FluidStateType,typename ProblemType,typename TimeProviderType>
 void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidState,ProblemType& problem,
-                         const TimeProviderType& timeProvider)
+                         const TimeProviderType& timeProvider,const DiscreteFunctionType& oldVelocity)
 {
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteSpaceType;
-  typedef typename FluidStateType::VelocityDiscreteFunctionType VelocityDiscreteFunctionType;
   constexpr std::size_t localBlockSize(DiscreteSpaceType::localBlockSize);
   const auto& space(rhs.space());
   std::vector<typename DiscreteFunctionType::RangeType> phi(space.maxNumDofs());
-  problem.velocityRHS().initialize(timeProvider.time(),timeProvider.time());
 
   // perform a grid walkthrough and assemble the RHS
   LocalContribution<DiscreteFunctionType,Assembly::Add> localRHS(rhs);
-  ConstLocalDiscreteFunction<VelocityDiscreteFunctionType> localOldVelocity(fluidState.velocity());
+  ConstLocalDiscreteFunction<DiscreteFunctionType> localOldVelocity(oldVelocity);
   #if USE_ANTISYMMETRIC_CONVECTIVE_TERM
   typedef typename FluidStateType::PhysicalCoefficientDiscreteFunctionType PhysicalCoefficientDiscreteFunctionType;
   ConstLocalDiscreteFunction<PhysicalCoefficientDiscreteFunctionType> localOldRho(fluidState.rho());
   #endif
   for(const auto& entity:space)
   {
-    problem.velocityRHS().init(entity);
     localRHS.bind(entity);
     localOldVelocity.init(entity);
     const auto& baseSet(space.basisFunctionSet(entity));
@@ -47,25 +44,17 @@ void assembleVelocityRHS(DiscreteFunctionType& rhs,const FluidStateType& fluidSt
     const CachingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity,2*space.order()+1);
     for(const auto& qp:quadrature)
     {
-      typename VelocityDiscreteFunctionType::RangeType fValue;
-      problem.velocityRHS().evaluate(qp.position(),fValue);
       baseSet.evaluateAll(qp,phi);
       const auto weight(entity.geometry().integrationElement(qp.position())*qp.weight());
 
       const auto localSize(localRHS.size());
       for(auto row=decltype(localSize){0};row!=localSize;++row)
       {
-        auto value(fValue*phi[row]);
-        if(!problem.isDensityNull())
-        {
-          typename DiscreteSpaceType::RangeFieldType temp(0.0);
-          for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
-            for(auto kk=decltype(localSize){0};kk!=localSize;++kk)
-              temp+=localOldVelocity[kk]*phi[kk][k]*phi[row][k];
-          temp*=(rho/timeProvider.deltaT());
-          value+=temp;
-        }
-        value*=weight;
+        typename DiscreteSpaceType::RangeFieldType value(0.0);
+        for(auto k=decltype(localBlockSize){0};k!=localBlockSize;++k)
+          for(auto kk=decltype(localSize){0};kk!=localSize;++kk)
+            value+=localOldVelocity[kk]*phi[kk][k]*phi[row][k];
+        value*=weight*(rho/timeProvider.deltaT());
         localRHS[row]+=value;
       }
     }
