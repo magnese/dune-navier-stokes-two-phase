@@ -431,7 +431,7 @@ class CoupledMeshManager
       localBulkFunction.bind(bulkEntity);
       const auto faceLocalIndex(intersection.indexInInside());
       const auto numCorners(intersection.geometry().corners());
-      const auto& refElement(ReferenceElements<typename BulkGridType::ctype,worlddim>::general(bulkEntity.type()));
+      const auto refElement(referenceElement(bulkEntity.geometry()));
       std::size_t offset(0);
       const auto bulkFirstVertex(
         HostGridAccess<BulkGridType>::hostEntity(bulkEntity).geometry().corner(refElement.subEntity(faceLocalIndex,1,0,worlddim)));
@@ -725,7 +725,7 @@ class CoupledMeshManager
         if(intersection.neighbor())
           if(bulkOuterIndicatorFunction().contains(intersection.outside()))
           {
-            const auto& refElement(ReferenceElements<typename BulkGridType::ctype,bulkGriddim>::general(entity.type()));
+            const auto refElement(referenceElement(entity.geometry()));
             const auto faceLocalIndex(intersection.indexInInside());
             for(auto i=decltype(bulkGriddim){0};i!=bulkGriddim;++i)
             {

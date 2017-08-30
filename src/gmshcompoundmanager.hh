@@ -840,7 +840,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
     std::array<long int,worlddim> posEdge;
     for(const auto& entity:elements(interfaceLeafGridView))
     {
-      const auto& refElement(ReferenceElements<typename InterfaceGridType::ctype,worlddim-1>::general(entity.type()));
+      const auto refElement(referenceElement(entity.geometry()));
       for(auto i=decltype(worlddim){0};i!=worlddim;++i)
       {
         posVtx[i]=interfaceGrid.leafIndexSet().subIndex(entity,i,worlddim-1);

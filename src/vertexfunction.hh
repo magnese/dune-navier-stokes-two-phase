@@ -104,9 +104,9 @@ class VertexFunction:public DiscreteCoordFunction<typename GridImp::ctype,GridIm
 
   void evaluate(const HostEntityType& entity,unsigned int corner,RangeVectorType& y) const
   {
-    const auto& referenceElement(ReferenceElements<ctype,griddim>::general((gridpart_.template begin<0>())->type()));
+    const auto refElement(referenceElement(entity.geometry()));
     localcoord_.init(entity);
-    localcoord_.evaluate(referenceElement.position(corner,griddim),y);
+    localcoord_.evaluate(refElement.position(corner,griddim),y);
   }
 
   void evaluate(const HostVertexType& vertex,unsigned int ,RangeVectorType& y) const
