@@ -19,10 +19,15 @@ namespace Fem
 
 class OutputParameters:public DataOutputParameters
 {
+  typedef OutputParameters ThisType;
+
   public:
   OutputParameters(std::string&& prefix):
     prefix_(prefix),startcounter_(0),startcall_(0),startsavetime_(0.0)
   {}
+
+  OutputParameters(const ThisType& )=default;
+  OutputParameters(ThisType&& )=default;
 
   std::string prefix() const
   {
@@ -402,8 +407,10 @@ class FluidState
     // create IO
     bulktuple_=std::make_tuple(&velocity(),&pressure());
     interfacetuple_=std::make_tuple(&curvature());
-    bulkoutput_=std::make_shared<BulkDataOutputType>(meshmanager_.bulkGrid(),bulktuple_,bulkoutputparameters_);
-    interfaceoutput_=std::make_shared<InterfaceDataOutputType>(meshmanager_.interfaceGrid(),interfacetuple_,interfaceoutputparameters_);
+    bulkoutput_=std::make_shared<BulkDataOutputType>(meshmanager_.bulkGrid(),bulktuple_,
+      std::make_unique<OutputParameters>(bulkoutputparameters_));
+    interfaceoutput_=std::make_shared<InterfaceDataOutputType>(meshmanager_.interfaceGrid(),interfacetuple_,
+      std::make_unique<OutputParameters>(interfaceoutputparameters_));
     // update sequence number
     sequence_=meshmanager_.sequence();
   }
