@@ -88,6 +88,7 @@
 #include <dune/fem/io/io.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/geometry/referenceelements.hh>
+#include <dune/geometry/type.hh>
 #include <dune/grid/common/gridfactory.hh>
 #include <dune/grid/io/file/gmshreader.hh>
 
@@ -612,7 +613,6 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
       }
     }
     // insert simplices in the grid factory
-    GeometryType entityType(GeometryType::BasicType::simplex,worlddim);
     std::vector<unsigned int> entityConnectivity(worlddim+1);
     elementsIDs.clear();
     for(auto faceIt=compound()->firstFace();faceIt!=compound()->lastFace();++faceIt)
@@ -623,7 +623,7 @@ class GMSHCompoundManager<2,CharlengthPolicyType>:
         auto simplexPtr((*faceIt)->triangles[i]);
         for(auto j=decltype(worlddim){0};j!=(worlddim+1);++j)
           entityConnectivity[j]=verticesMap[simplexPtr->getVertex(j)->getNum()];
-        gridFactory.insertElement(entityType,entityConnectivity);
+        gridFactory.insertElement(GeometryTypes::simplex(worlddim),entityConnectivity);
         elementsIDs.push_back(entityID);
       }
     }
@@ -888,7 +888,6 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
       }
     }
     // insert simplices in the grid factory
-    GeometryType entityType(GeometryType::BasicType::simplex,worlddim);
     std::vector<unsigned int> entityConnectivity(worlddim+1);
     elementsIDs.clear();
     for(auto regionIt=compound()->firstRegion();regionIt!=compound()->lastRegion();++regionIt)
@@ -899,7 +898,7 @@ class GMSHCompoundManager<3,CharlengthPolicyType>:
         auto simplexPtr((*regionIt)->tetrahedra[i]);
         for(auto j=decltype(worlddim){0};j!=(worlddim+1);++j)
           entityConnectivity[j]=verticesMap[simplexPtr->getVertex(j)->getNum()];
-        gridFactory.insertElement(entityType,entityConnectivity);
+        gridFactory.insertElement(GeometryTypes::simplex(worlddim),entityConnectivity);
         elementsIDs.push_back(entityID);
       }
     }

@@ -16,6 +16,7 @@
 #include <dune/common/exceptions.hh>
 #include <dune/common/fvector.hh>
 #include <dune/geometry/referenceelements.hh>
+#include <dune/geometry/type.hh>
 #include <dune/grid/common/gridfactory.hh>
 #include <dune/grid/geometrygrid/grid.hh>
 #include <dune/grid/io/file/gmshwriter.hh>
@@ -717,7 +718,6 @@ class CoupledMeshManager
     std::vector<std::size_t> vtxBulk2Interface(bulkGrid().size(worlddim),defaultValue);
     // create necessary variables
     std::size_t vtxInsertionCounter(0);
-    GeometryType faceType(GeometryType::BasicType::simplex,interfaceGriddim);
     std::vector<unsigned int> faceConnectivity(bulkGriddim);
     // loop over bulk inner entities
     for(const auto& entity:elements(bulkInnerGridPart()))
@@ -738,7 +738,7 @@ class CoupledMeshManager
               }
               faceConnectivity[i]=vtxBulk2Interface[vtxGlobalIndex];
             }
-            interfaceHostGridFactory.insertElement(faceType,faceConnectivity);
+            interfaceHostGridFactory.insertElement(GeometryTypes::simplex(interfaceGriddim),faceConnectivity);
             mapper_->push_back(std::make_pair(entity.seed(),faceLocalIndex));
           }
   }
