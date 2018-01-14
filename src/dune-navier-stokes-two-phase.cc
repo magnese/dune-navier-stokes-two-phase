@@ -53,7 +53,7 @@ int main(int argc,char** argv)
     // init
     Dune::Fem::MPIManager::initialize(argc,argv);
     Dune::Fem::Parameter::append(argc,argv);
-    Dune::Fem::Parameter::append(argc<2?(static_cast<std::string>(SOURCEDIR)+"/src/parameter"):argv[1]);
+    Dune::Fem::Parameter::append(argc<2?(static_cast<std::string>(SOURCEDIR)+"/parameter"):argv[1]);
 
     // add preprocessor variables to the parameters in order to have them dumped in the output
     Dune::Fem::Parameter::append("PreconditionerType",STRINGIZE(PRECONDITIONER_TYPE));

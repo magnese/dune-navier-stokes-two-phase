@@ -1,0 +1,6 @@
+[submodule "geo-files"]
+	path = geo-files
+	url = https://github.com/magnese/geo-files
+[submodule "msh-files"]
+	path = msh-files
+	url = https://github.com/magnese/msh-files
