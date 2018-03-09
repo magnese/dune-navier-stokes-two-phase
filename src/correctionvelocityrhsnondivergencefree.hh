@@ -43,7 +43,7 @@ void correctionVelocityRHSNonDivergenceFree(DiscreteFunctionType& rhs,ProblemTyp
       const auto rho(globalPoint.two_norm()>problem.exactRadius(timeProvider.time())?problem.rho().outerValue():
                                                                                      problem.rho().innerValue());
       for(auto row=decltype(localRHS.size()){0};row!=localRHS.size();++row)
-        localRHS[row]+=weight*fdivValue*(velocityValue*phi[row])*rho;
+        localRHS[row]+=0.5*weight*fdivValue*(velocityValue*phi[row])*rho;
     }
     localRHS.unbind();
   }
