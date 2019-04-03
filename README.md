@@ -12,8 +12,8 @@ ALE functionalities to overcome mesh distortions.
 
 A detailed description of this method can be found in the paper
 
-[M.~Agnese and R.~N\"urnberg, Fitted Finite Element Discretization of Two-Phase
-{S}tokes Flow, Int.\ J.\ Numer.\ Meth.\ Fluids, 2016.][2].
+[M. Agnese and R. Nürnberg, Fitted Finite Element Discretization of Two-Phase
+Stokes Flow, Int. J. Numer. Meth. Fluids, 2016][2].
 
 **This is the paper I would ask everyone to cite when using
 dune-navier-stokes-two-phase.**
