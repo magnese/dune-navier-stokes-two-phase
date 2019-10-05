@@ -16,30 +16,16 @@ find_package(LAPACK QUIET)
 find_path(GMSH_INCLUDE_DIR
   NAMES "Gmsh.h"
   PATHS ${GMSH_ROOT}
-  PATH_SUFFIXES "include/gmsh" "../install/include/gmsh"
+  PATH_SUFFIXES "include/gmsh"
   NO_DEFAULT_PATH
-)
-
-#now also look for default paths
-find_path(GMSH_INCLUDE_DIR
-  NAMES "Gmsh.h"
-  PATHS ${GMSH_ROOT}
-  PATH_SUFFIXES "include/gmsh" "../install/include/gmsh"
 )
 
 #look for Gmsh library at positions given by the user
 find_library(GMSH_LIBRARY
   NAMES "Gmsh"
   PATHS ${GMSH_ROOT}
-  PATH_SUFFIXES "lib" "../install/lib"
+  PATH_SUFFIXES "lib"
   NO_DEFAULT_PATH
-)
-
-#now also look for default paths
-find_library(GMSH_LIBRARY
-  NAMES "Gmsh"
-  PATHS ${GMSH_ROOT}
-  PATH_SUFFIXES "lib" "../install/lib"
 )
 
 # behave like a CMake module is supposed to behave
