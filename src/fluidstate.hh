@@ -84,7 +84,7 @@ class FluidState
   static constexpr int pressureSpacePolynomialOrder=Traits::pressureSpacePolynomialOrder;
   typedef typename Traits::PressureDiscreteSpaceType PressureDiscreteSpaceType;
   typedef typename Traits::BulkDisplacementDiscreteSpaceType BulkDisplacementDiscreteSpaceType;
-  static constexpr int physicalCoeffiecientSpacePolynomialOrder=Traits::physicalCoefficientSpacePolynomialOrder;
+  static constexpr int physicalCoefficientSpacePolynomialOrder=Traits::physicalCoefficientSpacePolynomialOrder;
   typedef typename Traits::PhysicalCoefficientDiscreteSpaceType PhysicalCoefficientDiscreteSpaceType;
   typedef typename Traits::CurvatureDiscreteSpaceType CurvatureDiscreteSpaceType;
   typedef typename Traits::DisplacementDiscreteSpaceType DisplacementDiscreteSpaceType;

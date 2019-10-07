@@ -56,8 +56,8 @@ struct FemTraits
   typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,pressureSpacePolynomialOrder> PressureDiscreteSpaceType;
   #endif
   typedef LagrangeDiscreteFunctionSpace<BulkDisplacementContinuosSpaceType,BulkGridPartType,1> BulkDisplacementDiscreteSpaceType;
-  static constexpr int physicalCoefficientPolynomialOrder=0;
-  typedef LagrangeDiscontinuousGalerkinSpace<PhysicalCoefficientContinuosSpaceType,BulkGridPartType,physicalCoefficientPolynomialOrder> PhysicalCoefficientDiscreteSpaceType;
+  static constexpr int physicalCoefficientSpacePolynomialOrder=0;
+  typedef LagrangeDiscontinuousGalerkinSpace<PhysicalCoefficientContinuosSpaceType,BulkGridPartType,physicalCoefficientSpacePolynomialOrder> PhysicalCoefficientDiscreteSpaceType;
   typedef LagrangeDiscreteFunctionSpace<DisplacementContinuosSpaceType,InterfaceGridPartType,1> DisplacementDiscreteSpaceType;
   typedef LagrangeDiscreteFunctionSpace<CurvatureContinuosSpaceType,InterfaceGridPartType,1> CurvatureDiscreteSpaceType;
   // define discrete functions

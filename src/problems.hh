@@ -194,7 +194,7 @@ class BaseProblem
   void rho(DF& df) const
   {
     AdaptedPhysicalCoefficientType rhoAdapted(rho_.name()+" adapted",rho_,fluidstate_.bulkGridPart(),
-      PhysicalCoefficientDiscreteSpaceType::maxPolynomialOrder);
+      FluidStateType::physicalCoefficientSpacePolynomialOrder);
     interpolate(rhoAdapted,df);
   }
   bool isDensityNull() const
