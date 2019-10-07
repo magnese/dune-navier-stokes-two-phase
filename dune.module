@@ -1,4 +1,4 @@
 Module: dune-navier-stokes-two-phase
 Version: 1.0
 Maintainer: marco.agnese88@gmail.com
-Depends: dune-istl(>= 2.6) dune-fem (>= 2.6)
+Depends: dune-istl(>= 2.7) dune-fem (>= 2.7)

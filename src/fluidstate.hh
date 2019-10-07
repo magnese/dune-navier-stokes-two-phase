@@ -75,13 +75,16 @@ class FluidState
   typedef typename Traits::InterfaceGridType InterfaceGridType;
   typedef typename Traits::InterfaceGridPartType InterfaceGridPartType;
   // define spaces
+  static constexpr int velocitySpacePolynomialOrder=Traits::velocitySpacePolynomialOrder;
   typedef typename Traits::VelocityDiscreteSpaceType VelocityDiscreteSpaceType;
   typedef typename Traits::Pressure0DiscreteSpaceType Pressure0DiscreteSpaceType;
   #if USE_EXTENDED_PRESSURE_SPACE
   typedef typename Traits::Pressure1DiscreteSpaceType Pressure1DiscreteSpaceType;
   #endif
+  static constexpr int pressureSpacePolynomialOrder=Traits::pressureSpacePolynomialOrder;
   typedef typename Traits::PressureDiscreteSpaceType PressureDiscreteSpaceType;
   typedef typename Traits::BulkDisplacementDiscreteSpaceType BulkDisplacementDiscreteSpaceType;
+  static constexpr int physicalCoeffiecientSpacePolynomialOrder=Traits::physicalCoefficientSpacePolynomialOrder;
   typedef typename Traits::PhysicalCoefficientDiscreteSpaceType PhysicalCoefficientDiscreteSpaceType;
   typedef typename Traits::CurvatureDiscreteSpaceType CurvatureDiscreteSpaceType;
   typedef typename Traits::DisplacementDiscreteSpaceType DisplacementDiscreteSpaceType;

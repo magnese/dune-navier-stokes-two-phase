@@ -34,24 +34,30 @@ struct FemTraits
   typedef FunctionSpace<double,double,InterfaceGridType::dimensionworld,InterfaceGridType::dimensionworld> DisplacementContinuosSpaceType;
   typedef FunctionSpace<double,double,InterfaceGridType::dimensionworld,1> CurvatureContinuosSpaceType;
   // define discrete spaces
-  typedef LagrangeDiscreteFunctionSpace<VelocityContinuosSpaceType,BulkGridPartType,2> VelocityDiscreteSpaceType;
+  static constexpr int velocitySpacePolynomialOrder=2;
+  typedef LagrangeDiscreteFunctionSpace<VelocityContinuosSpaceType,BulkGridPartType,velocitySpacePolynomialOrder> VelocityDiscreteSpaceType;
   #if PRESSURE_SPACE_TYPE == 0
-  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,0> Pressure0DiscreteSpaceType;
+  static constexpr int pressureSpacePolynomialOrder=0;
+  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,pressureSpacePolynomialOrder> Pressure0DiscreteSpaceType;
   typedef Pressure0DiscreteSpaceType PressureDiscreteSpaceType;
   #elif PRESSURE_SPACE_TYPE == 1
-  typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,1> Pressure0DiscreteSpaceType;
+  static constexpr int pressureSpacePolynomialOrder=1;
+  typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,pressureSpacePolynomialOrder> Pressure0DiscreteSpaceType;
   typedef Pressure0DiscreteSpaceType PressureDiscreteSpaceType;
   #elif PRESSURE_SPACE_TYPE == 2
   typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkGridPartType,1> Pressure0DiscreteSpaceType;
   typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,0> Pressure1DiscreteSpaceType;
-  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDiscreteSpaceType;
+  static constexpr int pressureSpacePolynomialOrder=1;
+  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,pressureSpacePolynomialOrder> PressureDiscreteSpaceType;
   #elif PRESSURE_SPACE_TYPE == 3
   typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkInnerGridPartType,1> Pressure0DiscreteSpaceType;
   typedef LagrangeDiscreteFunctionSpace<PressureContinuosSpaceType,BulkOuterGridPartType,1> Pressure1DiscreteSpaceType;
-  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,1> PressureDiscreteSpaceType;
+  static constexpr int pressureSpacePolynomialOrder=1;
+  typedef LagrangeDiscontinuousGalerkinSpace<PressureContinuosSpaceType,BulkGridPartType,pressureSpacePolynomialOrder> PressureDiscreteSpaceType;
   #endif
   typedef LagrangeDiscreteFunctionSpace<BulkDisplacementContinuosSpaceType,BulkGridPartType,1> BulkDisplacementDiscreteSpaceType;
-  typedef LagrangeDiscontinuousGalerkinSpace<PhysicalCoefficientContinuosSpaceType,BulkGridPartType,0> PhysicalCoefficientDiscreteSpaceType;
+  static constexpr int physicalCoefficientPolynomialOrder=0;
+  typedef LagrangeDiscontinuousGalerkinSpace<PhysicalCoefficientContinuosSpaceType,BulkGridPartType,physicalCoefficientPolynomialOrder> PhysicalCoefficientDiscreteSpaceType;
   typedef LagrangeDiscreteFunctionSpace<DisplacementContinuosSpaceType,InterfaceGridPartType,1> DisplacementDiscreteSpaceType;
   typedef LagrangeDiscreteFunctionSpace<CurvatureContinuosSpaceType,InterfaceGridPartType,1> CurvatureDiscreteSpaceType;
   // define discrete functions

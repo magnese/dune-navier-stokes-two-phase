@@ -159,7 +159,8 @@ class FemScheme
     assembleInterfaceRHS(rhs,interfaceOp);
 
     // solve
-    UMFPACKOp<InterfaceDiscreteFunctionType,InterfaceOperatorType> interfaceInvOp(interfaceOp);
+    UMFPACKInverseOperator<InterfaceDiscreteFunctionType,typename InterfaceOperatorType::MatrixType> interfaceInvOp;
+    interfaceInvOp.bind(interfaceOp.systemMatrix());
     interfaceInvOp(rhs,fluidstate_.interfaceSolution());
   }
 
@@ -217,8 +218,9 @@ class FemScheme
 
     // assemble interface inverse operator
     timerSolveInterface.start();
-    typedef UMFPACKOp<InterfaceDiscreteFunctionType,InterfaceOperatorType> InterfaceInverseOperatorType;
-    InterfaceInverseOperatorType interfaceInvOp(interfaceOp);
+    typedef UMFPACKInverseOperator<InterfaceDiscreteFunctionType,typename InterfaceOperatorType::MatrixType> InterfaceInverseOperatorType;
+    InterfaceInverseOperatorType interfaceInvOp;
+    interfaceInvOp.bind(interfaceOp.systemMatrix());
     interfaceInvOp.prepare();
     timerSolveInterface.stop();
 
@@ -315,9 +317,9 @@ class FemScheme
     OperatorGluerType opGluer(velocityOp,pressure0VelocityOp,velocityPressure0Op,pressure0Op);
     opGluer.assemble();
     #if PRECONDITIONER_TYPE == 1
-    typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
+    typedef DirectPrecond<OperatorGluerType,UMFPACKInverseOperator> BulkPreconditionerType;
     #elif PRECONDITIONER_TYPE == 2
-    typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
+    typedef DirectPrecond<OperatorGluerType,SPQRUnsymmtericInverseOperator> BulkPreconditionerType;
     #endif
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif
@@ -337,9 +339,9 @@ class FemScheme
     OperatorGluerType opGluer(velocityOp,pressure0VelocityOp,velocityPressure0Op,pressure1VelocityOp,velocityPressure1Op);
     opGluer.assemble();
     #if PRECONDITIONER_TYPE == 1
-    typedef DirectPrecond<OperatorGluerType,UMFPACKOp> BulkPreconditionerType;
+    typedef DirectPrecond<OperatorGluerType,UMFPACKInverseOperator> BulkPreconditionerType;
     #elif PRECONDITIONER_TYPE == 2
-    typedef DirectPrecond<OperatorGluerType,SPQROp> BulkPreconditionerType;
+    typedef DirectPrecond<OperatorGluerType,SPQRUnsymmetricInverseOperator> BulkPreconditionerType;
     #endif
     BulkPreconditionerType bulkPreconditioner(opGluer);
     #endif

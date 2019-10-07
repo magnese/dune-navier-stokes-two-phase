@@ -46,7 +46,7 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
     if(!directoryExists(path))
       createDirectory(path);
     std::ofstream ofs(path+"/"+filename);
-    op_.matrix().print(ofs,offset);
+    op_.exportMatrix().print(ofs,offset);
   }
 
   const DiscreteSpaceType& domainSpace() const
@@ -90,7 +90,7 @@ class InterfaceOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
       const auto rowLocalSize(localMatrix.rows());
       const auto& baseSet(localMatrix.domainBasisFunctionSet());
       // assemble local matrix
-      const CachingLumpingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity);
+      const CachingLumpingQuadrature<typename DiscreteSpaceType::GridPartType,0> quadrature(entity, 0);
       for(const auto& qp:quadrature)
       {
         // evaluate basis functions and weight

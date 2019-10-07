@@ -91,7 +91,7 @@ class BaseProblem
     if(istimedependent_)
     {
       AdaptedVelocityFunctionType velocityICAdapted("velocity IC adapted",velocityIC(),fluidstate_.bulkGridPart(),
-        VelocityDiscreteSpaceType::polynomialOrder);
+        FluidStateType::velocitySpacePolynomialOrder);
       velocityICAdapted.initialize(0.0,0.0);
       interpolate(velocityICAdapted,df);
     }
@@ -118,7 +118,7 @@ class BaseProblem
     if(hasexactsolution_)
     {
       AdaptedVelocityFunctionType velocitySolutionAdapted("velocity solution adapted",velocitySolution(),fluidstate_.bulkGridPart(),
-        VelocityDiscreteSpaceType::polynomialOrder);
+        FluidStateType::velocitySpacePolynomialOrder);
       velocitySolutionAdapted.initialize(t,t);
       interpolate(velocitySolutionAdapted,df);
     }
@@ -138,7 +138,7 @@ class BaseProblem
     if(istimedependent_)
     {
       AdaptedPressureFunctionType pressureICAdapted("pressure IC adapted",pressureIC(),fluidstate_.bulkGridPart(),
-        PressureDiscreteSpaceType::polynomialOrder);
+        FluidStateType::pressureSpacePolynomialOrder);
       pressureICAdapted.initialize(0.0,0.0);
       interpolate(pressureICAdapted,df);
     }
@@ -157,7 +157,7 @@ class BaseProblem
     if(hasexactsolution_)
     {
       AdaptedPressureFunctionType pressureSolutionAdapted("pressure solution adapted",pressureSolution(),fluidstate_.bulkGridPart(),
-        PressureDiscreteSpaceType::polynomialOrder);
+        FluidStateType::pressureSpacePolynomialOrder);
       pressureSolutionAdapted.initialize(t,t);
       interpolate(pressureSolutionAdapted,df);
     }
@@ -175,7 +175,7 @@ class BaseProblem
   void mu(DF& df) const
   {
     AdaptedPhysicalCoefficientType muAdapted(mu_.name()+" adapted",mu_,fluidstate_.bulkGridPart(),
-      PhysicalCoefficientDiscreteSpaceType::polynomialOrder);
+      FluidStateType::physicalCoefficientSpacePolynomialOrder);
     interpolate(muAdapted,df);
   }
   double gamma() const
@@ -194,7 +194,7 @@ class BaseProblem
   void rho(DF& df) const
   {
     AdaptedPhysicalCoefficientType rhoAdapted(rho_.name()+" adapted",rho_,fluidstate_.bulkGridPart(),
-      PhysicalCoefficientDiscreteSpaceType::polynomialOrder);
+      PhysicalCoefficientDiscreteSpaceType::maxPolynomialOrder);
     interpolate(rhoAdapted,df);
   }
   bool isDensityNull() const

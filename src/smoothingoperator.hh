@@ -54,7 +54,7 @@ class SmoothingOperator:public Operator<DiscreteFunctionImp,DiscreteFunctionImp>
     if(!directoryExists(path))
       createDirectory(path);
     std::ofstream ofs(path+"/"+filename);
-    op_.matrix().print(ofs,offset);
+    op_.exportMatrix().print(ofs,offset);
   }
 
   const DomainSpaceType& domainSpace() const

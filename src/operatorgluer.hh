@@ -53,8 +53,8 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
   OperatorGluer(const Op11Type& op11,const Op12Type& op12,const Op21Type& op21,const Op22Type& op22):
-    mat11_(op11.systemMatrix().matrix()),mat12_(op12.systemMatrix().matrix()),mat21_(op21.systemMatrix().matrix()),
-    mat22_(op22.systemMatrix().matrix()),space_(op11.domainSpace().gridPart()),op_("gluer operator",space_,space_)
+    mat11_(op11.systemMatrix().exportMatrix()),mat12_(op12.systemMatrix().exportMatrix()),mat21_(op21.systemMatrix().exportMatrix()),
+    mat22_(op22.systemMatrix().exportMatrix()),space_(op11.domainSpace().gridPart()),op_("gluer operator",space_,space_)
   {}
 
   OperatorGluer(const ThisType& )=delete;
@@ -75,7 +75,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
     if(!directoryExists(path))
       createDirectory(path);
     std::ofstream ofs(path+"/"+filename);
-    op_.matrix().print(ofs,offset);
+    op_.exportMatrix().print(ofs,offset);
   }
 
   const DomainSpaceType& domainSpace() const
@@ -100,7 +100,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
     const auto offset(mat11_.rows());
     auto count1(decltype(offset){0});
     auto count2(decltype(offset){0});
-    auto& matrix(op_.matrix());
+    auto& matrix(op_.exportMatrix());
     for(auto row=decltype(mat11_.rows()){0};row!=mat11_.rows();++row)
     {
       while(count1<(mat11_.numNonZeros()*(row+1)))
@@ -148,7 +148,7 @@ class OperatorGluer:public Operator<ExtendedTupleDiscreteFunction<typename Op11T
   void applyDoctoring()
   {
     const auto row(mat11_.cols());
-    auto& matrix(op_.matrix());
+    auto& matrix(op_.exportMatrix());
     matrix.clearRow(row);
     #if USE_SYMMETRIC_DIRICHLET
     for(auto i=decltype(matrix.rows()){0};i!=matrix.rows();++i)
@@ -203,8 +203,8 @@ class ExtendedOperatorGluer:public Operator<
   typedef typename LinearOperatorType::MatrixType MatrixType;
 
   ExtendedOperatorGluer(const Op11Type& op11,const Op12Type& op12,const Op21Type& op21,const Op13Type& op13,const Op31Type& op31):
-    mat11_(op11.systemMatrix().matrix()),mat12_(op12.systemMatrix().matrix()),mat21_(op21.systemMatrix().matrix()),
-    mat13_(op13.systemMatrix().matrix()),mat31_(op31.systemMatrix().matrix()),
+    mat11_(op11.systemMatrix().exportMatrix()),mat12_(op12.systemMatrix().exportMatrix()),mat21_(op21.systemMatrix().exportMatrix()),
+    mat13_(op13.systemMatrix().exportMatrix()),mat31_(op31.systemMatrix().exportMatrix()),
     space_(std::make_tuple(std::make_unique<typename DomainFunction1Type::DiscreteFunctionSpaceType>(op11.domainSpace().gridPart()),
                            std::make_unique<typename DomainFunction2Type::DiscreteFunctionSpaceType>(op12.domainSpace().gridPart()),
                            std::make_unique<typename DomainFunction3Type::DiscreteFunctionSpaceType>(op13.domainSpace().gridPart()))),
@@ -229,7 +229,7 @@ class ExtendedOperatorGluer:public Operator<
     if(!directoryExists(path))
       createDirectory(path);
     std::ofstream ofs(path+"/"+filename);
-    op_.matrix().print(ofs,offset);
+    op_.exportMatrix().print(ofs,offset);
   }
 
   const DomainSpaceType& domainSpace() const
@@ -257,7 +257,7 @@ class ExtendedOperatorGluer:public Operator<
     auto count1(decltype(offset2){0});
     auto count2(decltype(offset2){0});
     auto count3(decltype(offset2){0});
-    auto& matrix(op_.matrix());
+    auto& matrix(op_.exportMatrix());
     for(auto row=decltype(mat11_.rows()){0};row!=mat11_.rows();++row)
     {
       while(count1<(mat11_.numNonZeros()*(row+1)))
@@ -319,7 +319,7 @@ class ExtendedOperatorGluer:public Operator<
   void applyDoctoring()
   {
     auto row(mat11_.cols());
-    auto& matrix(op_.matrix());
+    auto& matrix(op_.exportMatrix());
     matrix.clearRow(row);
     #if USE_SYMMETRIC_DIRICHLET
     for(auto i=decltype(matrix.rows()){0};i!=matrix.rows();++i)

@@ -29,8 +29,11 @@ class StokesPrecond:public Dune::Preconditioner<DFT,DFT>
   typedef typename domain_type::field_type field_type;
 
   StokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22):
-    op11_(op11),op12_(op12),op22_(op22),invop11_(op11),invop22_(op22)
-  {}
+    op11_(op11),op12_(op12),op22_(op22),invop11_(),invop22_()
+  {
+    invop11_.bind(op11_.systemMatrix());
+    invop22_.bind(op22_.systemMatrix());
+  }
 
   virtual SolverCategory::Category category() const
   {
@@ -74,8 +77,8 @@ class StokesPrecond:public Dune::Preconditioner<DFT,DFT>
   const Oper11Type& op11_;
   const Oper12Type& op12_;
   const Oper22Type& op22_;
-  UMFPACKOp<typename Oper11Type::DomainFunctionType,Oper11Type> invop11_;
-  UMFPACKOp<typename Oper22Type::DomainFunctionType,Oper22Type> invop22_;
+  UMFPACKInverseOperator<typename Oper11Type::DomainFunctionType,typename Oper11Type::MatrixType> invop11_;
+  UMFPACKInverseOperator<typename Oper22Type::DomainFunctionType,typename Oper22Type::MatrixType> invop22_;
 };
 
 
@@ -95,8 +98,12 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<DFT,DFT>
 
   explicit ExtendedStokesPrecond(const Oper11Type& op11,const Oper12Type& op12,const Oper22Type& op22,const Oper13Type& op13,
                                  const Oper33Type& op33):
-    op11_(op11),op12_(op12),op22_(op22),op13_(op13),op33_(op33),invop11_(op11),invop22_(op22),invop33_(op33)
-  {}
+    op11_(op11),op12_(op12),op22_(op22),op13_(op13),op33_(op33),invop11_(),invop22_(),invop33_()
+  {
+    invop11_.bind(op11_.systemMatrix());
+    invop22_.bind(op22_.systemMatrix());
+    invop33_.bind(op33_.systemMatrix());
+  }
 
   virtual SolverCategory::Category category() const
   {
@@ -152,13 +159,15 @@ class ExtendedStokesPrecond:public Dune::Preconditioner<DFT,DFT>
   const Oper22Type& op22_;
   const Oper13Type& op13_;
   const Oper33Type& op33_;
-  UMFPACKOp<typename Oper11Type::DomainFunctionType,Oper11Type> invop11_;
-  UMFPACKOp<typename Oper22Type::DomainFunctionType,Oper22Type> invop22_;
-  UMFPACKOp<typename Oper33Type::DomainFunctionType,Oper33Type> invop33_;
+  UMFPACKInverseOperator<typename Oper11Type::DomainFunctionType,typename Oper11Type::MatrixType> invop11_;
+  UMFPACKInverseOperator<typename Oper22Type::DomainFunctionType,typename Oper22Type::MatrixType> invop22_;
+  UMFPACKInverseOperator<typename Oper33Type::DomainFunctionType,typename Oper33Type::MatrixType> invop33_;
 };
 
+template<typename DT,typename MT>
+using SPQRUnsymmetricInverseOperator=SPQRInverseOperator<DT,false,MT>;
 
-template<typename OperT,template<typename ,typename ,bool > typename InvOperT=UMFPACKOp>
+template<typename OperT,template<typename ,typename > typename InvOperT=UMFPACKInverseOperator>
 class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunctionType,typename OperT::DiscreteFunctionType>
 {
   public:
@@ -166,12 +175,14 @@ class DirectPrecond:public Dune::Preconditioner<typename OperT::DiscreteFunction
   typedef typename OperType::DiscreteFunctionType domain_type;
   typedef domain_type range_type;
   typedef typename domain_type::field_type field_type;
-  typedef InvOperT<domain_type,OperType,false> InvOperType;
+  typedef InvOperT<domain_type,typename OperType::MatrixType> InvOperType;
 
   explicit DirectPrecond(OperType& op):
-    op_(op),invop_(op_),usedoctoring_((std::is_same<InvOperType,SPQROp<domain_type,OperType,false>>::value)?false:true),
+    op_(op),invop_(),usedoctoring_((std::is_same<InvOperType,SPQRUnsymmetricInverseOperator<domain_type,typename OperType::MatrixType>>::value)?false:true),
     b_(op_.domainSpace().size(),0),x_(op_.domainSpace().size(),0)
-  {}
+  {
+    invop_.bind(op_.systemMatrix());
+  }
 
   virtual SolverCategory::Category category() const
   {

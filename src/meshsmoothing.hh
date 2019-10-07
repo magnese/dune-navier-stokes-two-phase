@@ -132,7 +132,8 @@ class MeshSmoothing
     // solve
     Timer timerSolve(false);
     timerSolve.start();
-    UMFPACKOp<DiscreteFunctionType,SmoothingOperatorType> invOp(op);
+    UMFPACKInverseOperator<DiscreteFunctionType,typename SmoothingOperatorType::MatrixType> invOp;
+    invOp.bind(op.systemMatrix());
     invOp(rhs,fluidstate_.bulkDisplacement());
     timerSolve.stop();
     // print timers
