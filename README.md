@@ -10,12 +10,21 @@ preconditioners. The full Navier--Stokes flow can be solved with a linearized
 scheme or with a fixed-point iteration. It provides smoothing, remeshing and
 ALE functionalities to overcome mesh distortions.
 
-A detailed description of this method can be found in the paper
+A detailed description of these methods can be found in the PhD thesis
 
-[M. Agnese and R. Nürnberg, Fitted Finite Element Discretization of Two-Phase
-Stokes Flow, Int. J. Numer. Meth. Fluids, 2016.][2]
+[Front tracking finite element methods for two-phase Navier--Stokes flow,
+1 February 2018, Imperial College London, London, UK.][5]
 
-**This is the paper I would ask everyone to cite when using
+and in the papers
+
+[M.~Agnese and R.~N\"urnberg, Fitted Finite Element Discretization of Two-Phase
+{S}tokes Flow, Int.\ J.\ Numer.\ Meth.\ Fluids, 2016.][2],
+
+[M.~Agnese and R.~N\"urnberg, Fitted Front Tracking Methods for Two-Phase
+Incompressible Navier--Stokes Flow: Eulerian and ALE Finite Element
+Discretizations, submitted for publication.][6].
+
+**These are the works I would ask everyone to cite when using
 dune-navier-stokes-two-phase.**
 
 License
@@ -37,3 +46,5 @@ For installation instructions please see the [DUNE website][4].
 [2]: http://onlinelibrary.wiley.com/doi/10.1002/fld.4237/abstract/
 [3]: https://github.com/magnese/dune-repo/blob/master/dune-navier-stokes-two-phase/LICENSE.md
 [4]: https://www.dune-project.org/doc/installation/
+[5]: https://spiral.imperial.ac.uk/handle/10044/1/68274
+[6]: https://arxiv.org/abs/1910.14327
