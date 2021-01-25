@@ -18,11 +18,11 @@ A detailed description of these methods can be found in the PhD thesis
 and in the papers
 
 [M.~Agnese and R.~N\"urnberg, Fitted Finite Element Discretization of Two-Phase
-{S}tokes Flow, Int.\ J.\ Numer.\ Meth.\ Fluids, 2016.][2],
+{S}tokes Flow, Internat.\ J.\ Numer.\ Methods\ Fluids\ 82 (2016), 709--729.][2],
 
 [M.~Agnese and R.~N\"urnberg, Fitted Front Tracking Methods for Two-Phase
 Incompressible Navier--Stokes Flow: Eulerian and ALE Finite Element
-Discretizations, submitted for publication.][6].
+Discretizations, Int.\ J.\ Numer.\ Anal.\ Model.\ 17 (2020), 613--642.][6].
 
 **These are the works I would ask everyone to cite when using
 dune-navier-stokes-two-phase.**
@@ -46,5 +46,5 @@ For installation instructions please see the [DUNE website][4].
 [2]: http://onlinelibrary.wiley.com/doi/10.1002/fld.4237/abstract/
 [3]: https://github.com/magnese/dune-repo/blob/master/dune-navier-stokes-two-phase/LICENSE.md
 [4]: https://www.dune-project.org/doc/installation/
-[5]: https://spiral.imperial.ac.uk/handle/10044/1/68274
-[6]: https://arxiv.org/abs/1910.14327
+[5]: https://doi.org/10.1002/fld.4237
+[6]: http://www.math.ualberta.ca/ijnam/Volume-17-2020/No-5-20/2020-05-01.pdf
